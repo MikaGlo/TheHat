@@ -1,0 +1,1894 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Mika Glo — The Hat</title>
+<style>
+  :root {
+    --pink: #ff2d78;
+    --pink-light: #ff6ba8;
+    --pink-glow: rgba(255,45,120,0.25);
+    --pink-dim: rgba(255,45,120,0.5);
+    --bg: #07070d;
+    --white: #ffffff;
+    --off-white: #f5f5f8;
+    --felt: #111118;
+    --felt-mid: #1a1a24;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+  html, body {
+    width:100%; height:100%; overflow:hidden;
+    background: var(--bg);
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+    touch-action: manipulation;
+  }
+
+  /* ── STARFIELD ── */
+  #stars-canvas {
+    position: fixed; inset: 0;
+    pointer-events: none; z-index: 0;
+  }
+
+  /* ── LAYOUT ── */
+  #app {
+    position: fixed; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    z-index: 1;
+  }
+
+  /* ── BRANDING ── */
+  #branding {
+    position: fixed; top: clamp(18px, 3vh, 42px); left: 50%; transform: translateX(-50%);
+    text-align: center; z-index: 100;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  #branding-name {
+    font-size: clamp(26px, 4.2vw, 64px);
+    letter-spacing: clamp(6px, 1.1vw, 18px);
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.93);
+    font-weight: 200;
+    text-shadow: 0 0 40px rgba(255,45,120,0.3);
+    line-height: 1;
+  }
+  #branding-sub {
+    font-size: clamp(9px, 0.75vw, 12px);
+    letter-spacing: clamp(4px, 0.7vw, 9px);
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.32);
+    font-weight: 400;
+    margin-top: clamp(4px, 0.6vh, 8px);
+  }
+
+  /* ── COUNTER ── */
+  #counter {
+    position: fixed; top: clamp(85px, 13vh, 145px); left: 50%; transform: translateX(-50%);
+    color: rgba(255,255,255,0.22);
+    font-size: clamp(9px, 0.72vw, 11px);
+    letter-spacing: clamp(2px, 0.4vw, 4px);
+    text-transform: uppercase;
+    font-weight: 300;
+    white-space: nowrap;
+    z-index: 100;
+    pointer-events: none;
+  }
+
+  /* ── HAT STAGE ── */
+  #hat-stage {
+    position: relative;
+    width: min(600px, 96vw); height: min(440px, 70vh);
+    cursor: pointer;
+    user-select: none;
+  }
+
+  @keyframes hatFloat {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50%       { transform: translateX(-50%) translateY(-8px); }
+  }
+
+  #hat-rebuild {
+    position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+    width: min(660px, 100vw); height: auto;
+    z-index: 5;
+    transition: transform 0.12s ease;
+    overflow: visible;
+    animation: hatFloat 5s ease-in-out infinite;
+  }
+
+  #hat-stage:active #hat-rebuild {
+    transform: translateX(-50%) scale(0.98) translateZ(0);
+  }
+
+  #hat-shadow {
+    position: absolute; bottom: 2%; left: 50%;
+    transform: translateX(-50%);
+    width: 55%; height: 20px;
+    background: radial-gradient(ellipse, rgba(255,45,120,0.18) 0%, rgba(0,0,0,0) 70%);
+    border-radius: 50%;
+    z-index: 1;
+    pointer-events: none;
+    filter: blur(6px);
+  }
+
+  #hat-img {
+    width: 100%; height: auto; display: block;
+    pointer-events: none;
+    transition: opacity 0.4s ease, filter 0.4s ease;
+  }
+
+  #hat-img.empty {
+    opacity: 0.35;
+    filter: grayscale(0.7) brightness(0.65);
+    transition: opacity 0.8s ease, filter 0.8s ease;
+  }
+
+  #hat-slips {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    overflow: visible;
+    pointer-events: none;
+  }
+
+@keyframes slipPartL { 0%,100%{transform:translateX(0) rotate(0deg);} 30%,70%{transform:translateX(-8px) rotate(-5deg);} }
+  @keyframes slipPartR { 0%,100%{transform:translateX(0) rotate(0deg);} 30%,70%{transform:translateX(8px) rotate(5deg);} }
+  #slips-left.parting  { animation: slipPartL 1.6s ease-in-out forwards; }
+  #slips-right.parting { animation: slipPartR 1.6s ease-in-out forwards; }
+
+  /* ── HAND ── */
+  /* top:-60px + translateY(280px) = hand bottom fully hidden below stage */
+  #hand-container {
+    position: absolute;
+    top: -60px; left: 50%;
+    transform: translateX(-50%) translateY(280px);
+    width: 120px; height: 200px;
+    pointer-events: none; z-index: 30;
+    opacity: 0;
+  }
+
+  #hand-container.animating {
+    animation: handPull 2s cubic-bezier(0.4,0,0.2,1) forwards;
+  }
+
+  @keyframes handPull {
+    0%   { opacity:0;   transform:translateX(-50%) translateY(280px)  rotate(4deg); }
+    12%  { opacity:1;   transform:translateX(-50%) translateY(200px)  rotate(2deg); }
+    35%  { opacity:1;   transform:translateX(-50%) translateY(170px)  rotate(0deg); }
+    55%  { opacity:1;   transform:translateX(-50%) translateY(180px)  rotate(-2deg); }
+    72%  { opacity:1;   transform:translateX(-50%) translateY(80px)   rotate(-5deg); }
+    88%  { opacity:0.4; transform:translateX(-50%) translateY(-60px)  rotate(-8deg); }
+    100% { opacity:0;   transform:translateX(-50%) translateY(-180px) rotate(-10deg); }
+  }
+
+  /* ── TAP HINT ── */
+  #tap-hint {
+    position: fixed; bottom: clamp(74px, 10vh, 108px); left: 50%; transform: translateX(-50%);
+    color: rgba(255,255,255,0.18);
+    font-size: clamp(9px, 0.72vw, 11px);
+    letter-spacing: clamp(3px, 0.5vw, 6px);
+    text-transform: uppercase;
+    font-weight: 300;
+    animation: hintPulse 3s ease-in-out infinite;
+    pointer-events: none; z-index: 100;
+    white-space: nowrap;
+  }
+
+  @keyframes hintPulse {
+    0%,100% { opacity:0.25; }
+    50% { opacity:0.75; }
+  }
+
+  #no-slips {
+    position: fixed; bottom: clamp(100px,14vh,140px); left:50%; transform:translateX(-50%);
+    color: rgba(255,45,120,0.45);
+    font-size: clamp(10px,0.85vw,13px);
+    letter-spacing: 3px;
+    text-align: center; pointer-events: none;
+    display: none; white-space: nowrap;
+    font-weight: 300;
+  }
+
+  /* ── FILTERS ── */
+  #filters {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    padding: clamp(10px,1.4vh,18px) clamp(16px,3vw,40px) clamp(20px,3.4vh,36px);
+    display: flex; flex-wrap: nowrap; gap: clamp(6px,0.55vw,10px);
+    justify-content: safe center;
+    align-items: center;
+    overflow-x: auto; overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    background: linear-gradient(to top, rgba(7,7,13,0.98) 52%, transparent 100%);
+    z-index: 100;
+  }
+  #filters::-webkit-scrollbar { display: none; }
+
+  .filter-btn {
+    padding: clamp(6px, 0.75vh, 10px) clamp(14px, 1.2vw, 24px);
+    border-radius: 100px;
+    border: 1px solid rgba(255,45,120,0.22);
+    background: transparent;
+    color: rgba(255,255,255,0.35);
+    font-size: clamp(10px, 0.72vw, 12.5px);
+    letter-spacing: clamp(1.5px, 0.2vw, 2.5px);
+    text-transform: uppercase;
+    cursor: pointer; transition: all 0.2s;
+    font-family: -apple-system, sans-serif;
+    font-weight: 400;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .filter-btn.active {
+    background: var(--pink);
+    border-color: var(--pink);
+    color: white;
+    box-shadow: 0 0 16px rgba(255,45,120,0.4);
+  }
+
+  /* ── SLIP OVERLAY ── */
+  #slip-overlay {
+    position: fixed; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 200;
+    pointer-events: none;
+    opacity: 0;
+  }
+
+  #slip-overlay.visible { pointer-events: all; }
+
+  #slip-overlay-bg {
+    position: absolute; inset: 0;
+    background: rgba(0,0,0,0.88);
+    opacity: 0; transition: opacity 0.3s;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+
+  #slip-overlay.visible #slip-overlay-bg { opacity: 1; }
+
+  /* ── FLIP CARD ── */
+  #card-scene {
+    position: relative; z-index: 1;
+    width: min(360px, 92vw);
+    height: 320px;
+    perspective: 900px;
+    transform: scale(0.85) translateY(20px);
+    opacity: 0;
+    transition: transform 0.45s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s ease;
+    cursor: pointer;
+  }
+
+  #slip-overlay.visible #card-scene {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+
+  #card-inner {
+    position: relative; width: 100%; height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.65s cubic-bezier(0.4, 0.2, 0.2, 1);
+  }
+
+  #card-inner.flipped {
+    transform: rotateY(180deg);
+  }
+
+  .card-face {
+    position: absolute; inset: 0;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.06);
+    box-shadow:
+      0 32px 80px rgba(0,0,0,0.85),
+      0 0 60px rgba(255,45,120,0.08),
+      inset 0 1px 0 rgba(255,255,255,0.05);
+    backdrop-filter: blur(40px);
+    -webkit-backdrop-filter: blur(40px);
+  }
+
+  /* FRONT — name only */
+  #card-front {
+    background: linear-gradient(145deg, rgba(22,18,36,0.97) 0%, rgba(14,11,24,0.99) 100%);
+    border-top: 1px solid rgba(255,45,120,0.3);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 36px 28px;
+    text-align: center;
+  }
+
+  .slip-category {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: var(--cat-color, var(--pink));
+    font-size: 9px; letter-spacing: 2.5px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    font-weight: 600;
+  }
+
+  .slip-name {
+    font-family: 'Georgia', serif;
+    font-size: clamp(22px, 4vw, 38px); font-weight: 200;
+    letter-spacing: 0.02em;
+    color: rgba(255,255,255,0.92);
+    line-height: 1.2;
+    margin-bottom: 0;
+  }
+
+  /* flip hint */
+  .flip-hint {
+    position: absolute; bottom: 18px; left: 0; right: 0;
+    text-align: center;
+    font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+    color: rgba(255,255,255,0.2);
+    font-family: -apple-system, sans-serif;
+    animation: hintPulse 2s ease-in-out infinite;
+  }
+
+  /* BACK — hook + actions */
+  #card-back {
+    background: linear-gradient(145deg, rgba(22,18,36,0.97) 0%, rgba(14,11,24,0.99) 100%);
+    border-top: 1px solid rgba(255,45,120,0.3);
+    transform: rotateY(180deg);
+    display: flex; flex-direction: column;
+    padding: 24px 24px 18px;
+  }
+
+  /* Short hook — big, bold, the headline */
+  .slip-hook-short {
+    font-family: 'Georgia', serif;
+    font-size: 18px; font-weight: bold; line-height: 1.5;
+    color: rgba(255,255,255,0.88);
+    margin-bottom: 10px;
+    flex-shrink: 0;
+  }
+
+  /* Expand button */
+  .expand-btn {
+    background: none; border: none;
+    font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--cat-color, var(--pink));
+    cursor: pointer; padding: 0; margin-bottom: 10px;
+    font-family: -apple-system, sans-serif;
+    font-weight: 500; text-align: left;
+    opacity: 0.7; flex-shrink: 0;
+    transition: opacity 0.15s;
+  }
+  .expand-btn:active { opacity: 1; }
+  .expand-btn.hidden { display: none; }
+
+  /* Long hook — italic, smaller, hidden by default */
+  .slip-hook-long {
+    font-family: 'Georgia', serif;
+    font-size: 13px; line-height: 1.65;
+    color: rgba(255,255,255,0.5);
+    font-style: italic;
+    margin-bottom: 10px;
+    overflow-y: auto;
+    max-height: 120px;
+    flex-shrink: 0;
+    display: none;
+  }
+  .slip-hook-long.visible { display: block; }
+
+  /* Spacer so actions stay at bottom */
+  .hook-spacer { flex: 1; }
+
+  .slip-actions {
+    display: flex; gap: 8px; flex-shrink: 0;
+  }
+
+  .slip-btn {
+    padding: 11px 16px;
+    border-radius: 6px;
+    border: none;
+    font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase;
+    cursor: pointer;
+    font-family: -apple-system, sans-serif;
+    font-weight: 500;
+    transition: all 0.15s;
+    flex: 1;
+  }
+
+  .slip-btn-used {
+    background: var(--cat-color, var(--pink));
+    color: white;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+  }
+
+  .slip-btn-used:active { transform: scale(0.97); box-shadow: none; }
+
+  .slip-btn-close {
+    background: rgba(255,255,255,0.06);
+    color: rgba(255,255,255,0.45);
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .slip-btn-close:active { background: rgba(255,255,255,0.1); }
+
+  /* ── FLY USED ANIMATION ── */
+  @keyframes cardFlyUp {
+    0%   { transform: scale(1) translateY(0) rotate(0deg); opacity: 1; }
+    15%  { transform: scale(1.04) translateY(-18px) rotate(-1.5deg); opacity: 1; }
+    100% { transform: scale(0.75) translateY(-130vh) rotate(7deg); opacity: 0; }
+  }
+
+  #card-scene.fly-used {
+    animation: cardFlyUp 0.55s cubic-bezier(0.4, 0, 0.6, 1) forwards;
+    pointer-events: none;
+  }
+
+  /* ── ICON BUTTONS ── */
+  .icon-btn {
+    position: fixed;
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.5);
+    font-size: 16px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 100;
+    transition: all 0.2s;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+  .icon-btn:active { background: rgba(255,45,120,0.15); border-color: var(--pink-dim); color: var(--pink-light); }
+
+  #undo-btn { top: 16px; left: 16px; opacity: 0.3; }
+  #undo-btn.has-undo { opacity: 1; border-color: rgba(255,45,120,0.3); color: var(--pink-light); }
+  #menu-btn { top: 16px; right: 16px; }
+
+  /* ── DRAWER ── */
+  #drawer {
+    position: fixed; top: 0; right: -100%;
+    width: min(340px, 100vw); height: 100%;
+    background: #0c0c14;
+    border-left: 1px solid rgba(255,255,255,0.06);
+    z-index: 300;
+    transition: right 0.32s cubic-bezier(0.4,0,0.2,1);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  #drawer.open { right: 0; }
+
+  #drawer-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 290;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.32s;
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+  }
+  #drawer-overlay.visible { opacity: 1; pointer-events: all; }
+
+  .drawer-header {
+    position: sticky; top: 0;
+    padding: 18px 20px;
+    background: #0c0c14;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    display: flex; align-items: center; justify-content: space-between;
+    z-index: 1;
+  }
+  .drawer-header h2 {
+    color: white;
+    font-size: 13px; letter-spacing: 3px; text-transform: uppercase;
+    font-weight: 300;
+  }
+  .drawer-header button {
+    background: none; border: none;
+    color: rgba(255,255,255,0.4); font-size: 20px; cursor: pointer;
+    padding: 4px 6px; line-height: 1;
+    transition: color 0.2s;
+  }
+  .drawer-header button:active { color: var(--pink); }
+
+  .drawer-section {
+    padding: 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .drawer-title {
+    color: rgba(255,45,120,0.7);
+    font-size: 9px; letter-spacing: 2.5px; text-transform: uppercase;
+    margin-bottom: 14px; font-weight: 500;
+  }
+
+  .form-field { margin-bottom: 12px; }
+  .form-field label {
+    display: block;
+    color: rgba(255,255,255,0.3);
+    font-size: 9px; letter-spacing: 2px; text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .form-field input, .form-field textarea, .form-field select {
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 6px;
+    padding: 10px 12px;
+    color: rgba(255,255,255,0.85);
+    font-size: 14px;
+    font-family: -apple-system, sans-serif;
+    outline: none;
+    transition: border-color 0.2s;
+    -webkit-appearance: none;
+  }
+  .form-field input:focus, .form-field textarea:focus, .form-field select:focus {
+    border-color: var(--pink-dim);
+  }
+  .form-field textarea { min-height: 80px; resize: vertical; }
+  .form-field select option { background: #0c0c14; }
+
+  .submit-btn {
+    width: 100%; padding: 12px;
+    background: var(--pink);
+    border: none; border-radius: 6px;
+    color: white;
+    font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+    cursor: pointer; font-weight: 500;
+    box-shadow: 0 4px 20px rgba(255,45,120,0.3);
+    transition: opacity 0.15s;
+    margin-top: 4px;
+  }
+  .submit-btn:active { opacity: 0.8; }
+
+  .export-btn {
+    width: 100%; padding: 11px;
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 6px;
+    color: rgba(255,255,255,0.5);
+    font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .export-btn:active { border-color: var(--pink-dim); color: var(--pink-light); }
+
+  .story-item {
+    padding: 11px 2px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    display: flex; align-items: center; gap: 10px;
+    cursor: pointer;
+    transition: background 0.15s;
+    border-radius: 6px;
+    margin: 0 -4px; padding-left: 4px; padding-right: 4px;
+  }
+  .story-item:active { background: rgba(255,255,255,0.03); }
+  .story-item-text { flex: 1; min-width: 0; }
+  .story-item-name {
+    color: rgba(255,255,255,0.75);
+    font-size: 13px; font-family: 'Georgia', serif;
+    margin-bottom: 2px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .story-item-cat {
+    color: rgba(255,45,120,0.45);
+    font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase;
+  }
+  .story-item-chevron {
+    color: rgba(255,255,255,0.12); font-size: 12px;
+    flex-shrink: 0; margin-right: 2px;
+  }
+  .story-item-del {
+    background: none; border: none;
+    color: rgba(255,255,255,0.12); font-size: 18px;
+    cursor: pointer; padding: 0 2px;
+    flex-shrink: 0; line-height: 1;
+    transition: color 0.2s;
+  }
+  .story-item-del:active { color: var(--pink); }
+  .empty-state {
+    color: rgba(255,255,255,0.12);
+    font-size: 12px; text-align: center;
+    padding: 20px 16px;
+    letter-spacing: 1px;
+  }
+
+  /* ── ENTRANCE ANIMATIONS ── */
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  @keyframes slideUpFade {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  #branding  { animation: fadeIn 0.8s ease 0.2s both; }
+  #counter   { animation: fadeIn 0.8s ease 0.5s both; }
+  #hat-stage { animation: slideUpFade 1.1s cubic-bezier(0.16,1,0.3,1) 0.5s both; }
+  #tap-hint  { animation: fadeIn 0.8s ease 1.0s both; }
+  #filters   { animation: fadeIn 0.8s ease 1.1s both; }
+
+  /* ── MOBILE ── */
+  @media (max-width: 680px) {
+    /* Title — bigger on mobile, vw-based so it reads on any phone */
+    #branding-name {
+      font-size: clamp(30px, 8.5vw, 46px);
+      letter-spacing: clamp(5px, 1.6vw, 9px);
+    }
+    #branding-sub {
+      font-size: 10px;
+      letter-spacing: 4px;
+      margin-top: 5px;
+    }
+    /* Counter sits closer to title on smaller screens */
+    #counter {
+      top: clamp(75px, 14vh, 110px);
+      font-size: 9px;
+      letter-spacing: 2px;
+    }
+    /* Hat stage — cap height so it leaves room above and below */
+    #hat-stage {
+      width: min(440px, 94vw);
+      height: min(340px, 50vh);
+    }
+    #hat-rebuild {
+      width: min(480px, 98vw);
+    }
+    /* Tap hint clears the filter strip with room to breathe */
+    #tap-hint {
+      bottom: clamp(96px, 13.5vh, 130px);
+      font-size: 9px;
+      letter-spacing: 3px;
+    }
+    #no-slips {
+      bottom: clamp(108px, 15vh, 148px);
+    }
+    /* Filter strip — proper mobile touch targets */
+    #filters {
+      padding: 12px 20px env(safe-area-inset-bottom, 26px);
+      padding-bottom: max(26px, env(safe-area-inset-bottom, 26px));
+      gap: 8px;
+      justify-content: flex-start;
+    }
+    .filter-btn {
+      padding: 11px 18px;
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      min-height: 42px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 100px;
+    }
+    .filter-btn.active {
+      box-shadow: 0 0 12px rgba(255,45,120,0.5);
+    }
+  }
+
+  /* ── PINK GLOW AMBIENT ── */
+  #hat-glow {
+    display: none;
+    pointer-events: none;
+  }
+
+  /* ── EPISODE INPUT ON CARD ── */
+  #episode-input-wrap {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 8px; flex-shrink: 0;
+  }
+  #episode-label {
+    font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase;
+    color: rgba(255,255,255,0.25); flex-shrink: 0;
+    font-family: -apple-system, sans-serif;
+  }
+  #episode-input {
+    flex: 1;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 4px;
+    padding: 5px 9px;
+    font-size: 12px; color: rgba(255,255,255,0.75);
+    outline: none;
+    font-family: -apple-system, sans-serif;
+    transition: border-color 0.15s;
+  }
+  #episode-input:focus { border-color: rgba(255,45,120,0.35); }
+  #episode-input::placeholder { color: rgba(255,255,255,0.2); }
+
+  /* ── SOURCE LINKS ON CARD ── */
+  #source-links {
+    display: none;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 6px;
+    flex-shrink: 0;
+  }
+  #source-links.has-links { display: flex; }
+  .source-link-btn {
+    background: none; border: none;
+    font-size: 10px; letter-spacing: 1px; text-transform: uppercase;
+    color: var(--cat-color, var(--pink));
+    cursor: pointer; padding: 0;
+    opacity: 0.65; text-align: left;
+    font-family: -apple-system, sans-serif;
+    font-weight: 500;
+    transition: opacity 0.15s;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    max-width: 100%;
+  }
+  .source-link-btn:active { opacity: 1; }
+
+  /* ── PREP NOTES ON CARD ── */
+  #card-notes {
+    display: none;
+    font-size: 11.5px; line-height: 1.55;
+    color: rgba(255,255,255,0.35);
+    font-style: italic;
+    margin-bottom: 8px; flex-shrink: 0;
+    padding: 6px 8px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 4px;
+    border-left: 2px solid rgba(255,45,120,0.25);
+    font-family: -apple-system, sans-serif;
+  }
+
+  /* ── STORY PROFILE SHEET ── */
+  #story-sheet-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.78);
+    z-index: 400; opacity: 0; pointer-events: none;
+    transition: opacity 0.28s;
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+  }
+  #story-sheet-overlay.visible { opacity: 1; pointer-events: all; }
+
+  #story-sheet {
+    position: fixed; bottom: -100%; left: 0; right: 0;
+    max-height: 88vh;
+    background: #0b0b15;
+    border-radius: 20px 20px 0 0;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    z-index: 401;
+    transition: bottom 0.35s cubic-bezier(0.4,0,0.2,1);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  #story-sheet.open { bottom: 0; }
+
+  .sheet-handle {
+    width: 36px; height: 4px;
+    background: rgba(255,255,255,0.12);
+    border-radius: 2px;
+    margin: 12px auto 0;
+  }
+  .sheet-header {
+    padding: 14px 20px 4px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  #sheet-cat-badge {
+    display: inline-block;
+    padding: 3px 10px; border-radius: 20px;
+    background: rgba(255,255,255,0.06);
+    font-size: 9px; letter-spacing: 2px; text-transform: uppercase;
+    font-weight: 600; color: var(--pink);
+  }
+  #sheet-close-btn {
+    background: none; border: none;
+    color: rgba(255,255,255,0.3); font-size: 20px;
+    cursor: pointer; padding: 4px 6px; line-height: 1;
+    transition: color 0.2s;
+  }
+  #sheet-close-btn:active { color: var(--pink); }
+
+  .sheet-body { padding: 10px 20px 32px; }
+  #sheet-name {
+    font-family: 'Georgia', serif;
+    font-size: 26px; font-weight: bold;
+    color: rgba(255,255,255,0.92);
+    line-height: 1.2; margin-bottom: 18px;
+  }
+  .sheet-section { margin-bottom: 16px; }
+  .sheet-label {
+    color: rgba(255,45,120,0.55);
+    font-size: 9px; letter-spacing: 2.5px; text-transform: uppercase;
+    margin-bottom: 6px; font-weight: 500;
+  }
+  .sheet-hook-short {
+    font-family: 'Georgia', serif;
+    font-size: 15px; font-weight: bold;
+    color: rgba(255,255,255,0.8); line-height: 1.5;
+  }
+  .sheet-hook-long {
+    font-family: 'Georgia', serif;
+    font-size: 13px; font-style: italic;
+    color: rgba(255,255,255,0.45); line-height: 1.6;
+  }
+  #sheet-notes-input {
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px; padding: 10px 12px;
+    color: rgba(255,255,255,0.85); font-size: 14px;
+    font-family: -apple-system, sans-serif;
+    min-height: 88px; resize: none; outline: none;
+    transition: border-color 0.2s; -webkit-appearance: none;
+  }
+  #sheet-notes-input:focus { border-color: rgba(255,45,120,0.35); }
+  #sheet-url-input:focus { border-color: rgba(255,45,120,0.35) !important; }
+
+  #sheet-links-list { display: flex; flex-direction: column; gap: 6px; }
+  .sheet-link-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 12px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 8px;
+  }
+  .sheet-link-anchor {
+    flex: 1; min-width: 0;
+    color: var(--pink-light);
+    font-size: 12px; letter-spacing: 0.3px;
+    text-decoration: none;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    font-family: -apple-system, sans-serif;
+  }
+  .sheet-link-anchor:active { opacity: 0.7; }
+  .sheet-link-del {
+    background: none; border: none;
+    color: rgba(255,255,255,0.2); font-size: 16px;
+    cursor: pointer; padding: 0; line-height: 1; flex-shrink: 0;
+    transition: color 0.15s;
+  }
+  .sheet-link-del:active { color: var(--pink); }
+  #sheet-episode-wrap {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 12px;
+    background: rgba(255,45,120,0.08);
+    border: 1px solid rgba(255,45,120,0.2);
+    border-radius: 20px;
+    color: var(--pink-light); font-size: 11px; letter-spacing: 1px;
+  }
+  .sheet-save-btn {
+    width: 100%; padding: 13px;
+    background: var(--pink); border: none; border-radius: 8px;
+    color: white; font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+    cursor: pointer; font-weight: 500; margin-top: 6px;
+    box-shadow: 0 4px 20px rgba(255,45,120,0.28);
+    transition: opacity 0.15s;
+  }
+  .sheet-save-btn:active { opacity: 0.8; }
+
+  /* ── DRAWER SEARCH ── */
+  .drawer-search {
+    padding: 12px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    position: sticky; top: 0; background: #0c0c14; z-index: 2;
+  }
+  .drawer-search input {
+    width: 100%;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px; padding: 9px 14px;
+    color: rgba(255,255,255,0.85); font-size: 14px;
+    font-family: -apple-system, sans-serif;
+    outline: none; transition: border-color 0.2s;
+    -webkit-appearance: none;
+  }
+  .drawer-search input::placeholder { color: rgba(255,255,255,0.18); }
+  .drawer-search input:focus { border-color: rgba(255,45,120,0.35); }
+
+  /* ── NOTES IN DRAWER ── */
+  .story-item-episode {
+    color: rgba(255,255,255,0.28);
+    font-size: 9px; letter-spacing: 1px;
+    margin-top: 2px;
+  }
+  .story-notes-toggle {
+    background: none; border: none;
+    color: rgba(255,45,120,0.4);
+    font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase;
+    cursor: pointer; padding: 0; margin-top: 4px; display: block;
+    font-family: -apple-system, sans-serif;
+    transition: color 0.15s;
+  }
+  .story-notes-toggle:active { color: var(--pink); }
+  .story-notes-edit {
+    display: none; margin-top: 6px;
+  }
+  .story-notes-edit.visible { display: block; }
+  .story-notes-edit textarea {
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 4px;
+    padding: 6px 8px;
+    color: rgba(255,255,255,0.7);
+    font-size: 12px;
+    font-family: -apple-system, sans-serif;
+    min-height: 52px; resize: none; outline: none;
+    transition: border-color 0.15s;
+  }
+  .story-notes-edit textarea:focus { border-color: rgba(255,45,120,0.3); }
+</style>
+</head>
+<body>
+
+<!-- Starfield canvas -->
+<canvas id="stars-canvas"></canvas>
+
+<div id="app">
+  <div id="branding">
+    <div id="branding-name">The Hat</div>
+    <div id="branding-sub">Mika Glo</div>
+  </div>
+  <div id="counter">— slips remaining</div>
+
+  <div id="hat-stage">
+    <div id="hat-shadow"></div>
+    <!-- Hand — original style, hidden until pull -->
+    <div id="hand-container">
+      <svg viewBox="0 0 120 200" fill="none" xmlns="http://www.w3.org/2000/svg" width="120" height="200">
+        <!-- Simple stylized hand -->
+        <g opacity="0.9">
+          <!-- Palm -->
+          <ellipse cx="60" cy="140" rx="32" ry="38" fill="#c4956a"/>
+          <!-- Fingers -->
+          <rect x="32" y="90" width="14" height="58" rx="7" fill="#c4956a"/>
+          <rect x="48" y="78" width="14" height="66" rx="7" fill="#c8a070"/>
+          <rect x="64" y="80" width="14" height="64" rx="7" fill="#c8a070"/>
+          <rect x="80" y="88" width="14" height="56" rx="7" fill="#c4956a"/>
+          <!-- Thumb -->
+          <rect x="14" y="112" width="24" height="13" rx="6.5" fill="#c4956a" transform="rotate(-20 14 112)"/>
+          <!-- Knuckle lines -->
+          <line x1="36" y1="110" x2="44" y2="108" stroke="#a07850" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
+          <line x1="52" y1="100" x2="60" y2="98" stroke="#a07850" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
+          <line x1="68" y1="102" x2="76" y2="100" stroke="#a07850" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
+          <!-- Paper slip in hand -->
+          <rect x="44" y="68" width="32" height="22" rx="2" fill="#ede0c4" opacity="0.9" transform="rotate(-5 44 68)"/>
+        </g>
+      </svg>
+    </div>
+
+    <div id="hat-rebuild">
+      <img id="hat-img" src="hatclear.png" alt="">
+      <!-- Invisible slip groups kept for JS pull/part animation compatibility -->
+      <svg id="hat-slips" viewBox="0 0 300 202" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g id="slips-left"></g>
+        <g id="slips-right"></g>
+      </svg>
+    </div>
+
+    <div id="hat-glow"></div>
+  </div>
+
+  <div id="tap-hint">tap to pull</div>
+  <div id="no-slips">No slips in this category</div>
+
+  <!-- Filters -->
+  <div id="filters">
+    <button class="filter-btn active" data-cat="All">All</button>
+    <button class="filter-btn" data-cat="Companies">Companies</button>
+    <button class="filter-btn" data-cat="People">People</button>
+    <button class="filter-btn" data-cat="Artists">Artists</button>
+    <button class="filter-btn" data-cat="Science">Science</button>
+    <button class="filter-btn" data-cat="Inventions">Inventions</button>
+    <button class="filter-btn" data-cat="Useful Things">Useful</button>
+    <button class="filter-btn" data-cat="Food">Food</button>
+    <button class="filter-btn" data-cat="History">History</button>
+    <button class="filter-btn" data-cat="Movements">Movements</button>
+  </div>
+</div>
+
+<!-- Buttons -->
+<button class="icon-btn" id="undo-btn" title="Undo">↩</button>
+<button class="icon-btn" id="menu-btn">≡</button>
+
+<!-- Slip overlay -->
+<div id="slip-overlay">
+  <div id="slip-overlay-bg"></div>
+  <div id="card-scene">
+    <div id="card-inner">
+      <!-- FRONT: name only -->
+      <div class="card-face" id="card-front">
+        <div class="slip-category" id="slip-cat-badge">Companies</div>
+        <div class="slip-name" id="slip-name-text">Story Name</div>
+        <div class="flip-hint">tap to reveal</div>
+      </div>
+      <!-- BACK: hook + actions -->
+      <div class="card-face" id="card-back">
+        <div class="slip-hook-short" id="slip-hook-short"></div>
+        <button class="expand-btn" id="expand-btn">read more ↓</button>
+        <div class="slip-hook-long" id="slip-hook-long"></div>
+        <div id="card-notes"></div>
+        <div id="source-links"></div>
+        <div class="hook-spacer"></div>
+        <div id="episode-input-wrap">
+          <span id="episode-label">Episode</span>
+          <input type="text" id="episode-input" placeholder="Ep 1 (optional)" maxlength="40">
+        </div>
+        <div class="slip-actions">
+          <button class="slip-btn slip-btn-used" id="btn-mark-used">✓ Used</button>
+          <button class="slip-btn slip-btn-close" id="btn-close-slip">Put Back</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Story Profile Sheet -->
+<div id="story-sheet-overlay"></div>
+<div id="story-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header">
+    <div id="sheet-cat-badge"></div>
+    <button id="sheet-close-btn">✕</button>
+  </div>
+  <div class="sheet-body">
+    <div id="sheet-name"></div>
+    <div class="sheet-section" id="sheet-hook-short-section">
+      <div class="sheet-label">Hook</div>
+      <div id="sheet-hook-short" class="sheet-hook-short"></div>
+    </div>
+    <div class="sheet-section" id="sheet-hook-long-section">
+      <div class="sheet-label">Full Story</div>
+      <div id="sheet-hook-long" class="sheet-hook-long"></div>
+    </div>
+    <div class="sheet-section">
+      <div class="sheet-label">Prep Notes</div>
+      <textarea id="sheet-notes-input" placeholder="Add production notes, reminders, key facts..."></textarea>
+    </div>
+    <div class="sheet-section">
+      <div class="sheet-label">Research Links</div>
+      <div id="sheet-links-list"></div>
+      <div style="display:flex;gap:8px;margin-top:8px;align-items:stretch">
+        <input type="url" id="sheet-url-input" placeholder="https://..." style="flex:1;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:10px 12px;color:rgba(255,255,255,0.85);font-size:14px;font-family:-apple-system,sans-serif;outline:none;transition:border-color 0.2s;-webkit-appearance:none;">
+        <button type="button" id="sheet-add-link-btn" style="background:rgba(255,45,120,0.1);border:1px solid rgba(255,45,120,0.22);color:var(--pink-light);font-size:12px;padding:0 16px;border-radius:8px;cursor:pointer;white-space:nowrap;font-family:-apple-system,sans-serif;font-weight:500;flex-shrink:0;transition:background 0.15s">+ Add</button>
+      </div>
+    </div>
+    <div class="sheet-section" id="sheet-episode-section" style="display:none">
+      <div class="sheet-label">Used In</div>
+      <div id="sheet-episode-wrap"></div>
+    </div>
+    <button class="sheet-save-btn" id="sheet-save-btn">Save</button>
+  </div>
+</div>
+
+<!-- Drawer -->
+<div id="drawer-overlay"></div>
+<div id="drawer">
+  <div class="drawer-header">
+    <h2>The Hat</h2>
+    <button id="drawer-close-btn">✕</button>
+  </div>
+
+  <div class="drawer-section">
+    <div class="drawer-title">Add Story</div>
+    <div class="form-field">
+      <label>Name</label>
+      <input type="text" id="add-name" placeholder="Story name...">
+    </div>
+    <div class="form-field">
+      <label>Short Hook — one punchy line</label>
+      <textarea id="add-hook-short" placeholder="One sentence. Stop a scroll." style="min-height:60px"></textarea>
+    </div>
+    <div class="form-field">
+      <label>Full Hook — optional detail</label>
+      <textarea id="add-hook" placeholder="The longer version..."></textarea>
+    </div>
+    <div class="form-field">
+      <label>Category</label>
+      <select id="add-cat">
+        <option value="Companies">Companies</option>
+        <option value="People">People</option>
+        <option value="Artists">Artists</option>
+        <option value="Science">Science</option>
+        <option value="Inventions">Inventions</option>
+        <option value="Useful Things">Useful Things</option>
+        <option value="Food">Food</option>
+        <option value="History">History</option>
+        <option value="Movements">Movements</option>
+      </select>
+    </div>
+    <div class="form-field">
+      <label>New Category</label>
+      <div style="display:flex;gap:8px;align-items:stretch">
+        <input type="text" id="new-cat-input" placeholder="e.g. Sports" style="flex:1">
+        <button type="button" id="new-cat-btn" style="background:rgba(255,45,120,0.1);border:1px solid rgba(255,45,120,0.22);color:var(--pink-light);font-size:10px;letter-spacing:1.5px;padding:0 14px;border-radius:6px;cursor:pointer;white-space:nowrap;font-family:-apple-system,sans-serif;font-weight:500;transition:background 0.15s">+ Add</button>
+      </div>
+    </div>
+    <div class="form-field">
+      <label>Research Link — optional</label>
+      <input type="url" id="add-url" placeholder="https://...">
+    </div>
+    <div class="form-field">
+      <label>Prep Notes — optional</label>
+      <textarea id="add-notes" placeholder="Reminders for filming..." style="min-height:60px"></textarea>
+    </div>
+    <button class="submit-btn" id="add-story-btn">Add to Hat</button>
+  </div>
+
+  <div class="drawer-section">
+    <div class="drawer-title">Session</div>
+    <button class="export-btn" id="reset-btn" style="margin-bottom:8px">↺ Reset Session — Put All Back</button>
+    <button class="export-btn" id="export-btn">↓ Download All Stories</button>
+  </div>
+
+  <div class="drawer-search">
+    <input type="search" id="search-input" placeholder="Search stories...">
+  </div>
+
+  <div class="drawer-section">
+    <div class="drawer-title">Used — <span id="used-count">0</span></div>
+    <div id="used-list"></div>
+  </div>
+
+  <div class="drawer-section">
+    <div class="drawer-title">Active — <span id="active-count">0</span></div>
+    <div id="active-list"></div>
+  </div>
+</div>
+
+<script>
+// ══════ STARS ══════
+(function() {
+  const canvas = document.getElementById('stars-canvas');
+  const ctx = canvas.getContext('2d');
+  let stars = [];
+  let W, H;
+
+  function resize() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+
+  function initStars() {
+    stars = [];
+    const count = Math.floor((W * H) / 3000);
+    for (let i = 0; i < count; i++) {
+      stars.push({
+        x: Math.random() * W,
+        y: Math.random() * H,
+        r: Math.random() * 1.4 + 0.2,
+        alpha: Math.random() * 0.7 + 0.1,
+        speed: Math.random() * 0.008 + 0.003,
+        phase: Math.random() * Math.PI * 2,
+        pink: Math.random() < 0.04, // 4% are pink-tinted
+      });
+    }
+  }
+
+  let frame = 0;
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    const t = frame * 0.01;
+    for (const s of stars) {
+      const twinkle = s.alpha * (0.6 + 0.4 * Math.sin(t * s.speed * 100 + s.phase));
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      if (s.pink) {
+        ctx.fillStyle = `rgba(255,100,160,${twinkle})`;
+      } else {
+        ctx.fillStyle = `rgba(255,255,255,${twinkle})`;
+      }
+      ctx.fill();
+    }
+    frame++;
+    requestAnimationFrame(draw);
+  }
+
+  resize();
+  initStars();
+  draw();
+  window.addEventListener('resize', () => { resize(); initStars(); });
+})();
+
+// ══════ CATEGORY COLORS ══════
+let CAT_COLORS = {
+  'Companies':    '#2d7dd2',
+  'People':       '#f18f01',
+  'Artists':      '#9b5de5',
+  'Science':      '#00b4d8',
+  'Inventions':   '#e63946',
+  'Useful Things':'#06d6a0',
+  'Food':         '#fb8500',
+  'History':      '#8d6b4a',
+  'Movements':    '#588157',
+};
+
+// ══════ STORIES ══════
+const DEFAULT_STORIES = [
+  {name:"Greyston Bakery",hookShort:"No application. No interview. You just show up. And you get a job.",hook:"A bakery with no application, no interview, no background check. You just show up. And you get a job. They make the brownies inside every Ben & Jerry's.",cat:"Companies"},
+  {name:"Cost Plus Drugs",hookShort:"That $500 medication? $8 here.",hook:"A $500 medication. Sold here for $8. The pharmacy industry has been lying to you for decades. Mark Cuban decided to prove it.",cat:"Companies"},
+  {name:"Civica Rx",hookShort:"55 hospitals got fed up and built their own drug company.",hook:"55 hospitals got so fed up with pharmaceutical companies that they built their own drug company. It's a nonprofit. It works.",cat:"Companies"},
+  {name:"Mondragon",hookShort:"80,000 people own this company together. Nobody's heard of it.",hook:"80,000 people own this company together. The highest paid person makes 6x the lowest. The average Fortune 500 CEO makes 350x. Nobody has heard of Mondragon.",cat:"Companies"},
+  {name:"Nudie Jeans",hookShort:"This jeans company repairs your jeans for free. Forever. They are trying to sell you fewer jeans.",hook:"This jeans company will repair your jeans for free. Forever. No receipt. They are actively trying to sell you fewer jeans. That is the brand.",cat:"Companies"},
+  {name:"iFixit",hookShort:"Apple wouldn't publish repair manuals for its own devices. So iFixit wrote them all. For free.",hook:"Apple refused to publish repair manuals for its own devices. So iFixit wrote them. All of them. For free. Now they're fighting in court for your right to fix your own stuff.",cat:"Companies"},
+  {name:"Diaspora Co.",hookShort:"One person with a laptop is paying spice farmers 6x fair trade rate. From her apartment.",hook:"One person with a laptop is paying spice farmers 3 to 6 times fair trade rate and disrupting a billion-dollar industry. From her apartment.",cat:"Companies"},
+  {name:"Bookshop.org",hookShort:"Every sale here sends 30% to an independent bookstore. It is growing against Amazon.",hook:"Every sale on this website sends 30% directly to an independent bookstore. It is growing against Amazon. That sentence should not be possible.",cat:"Companies"},
+  {name:"Bob's Red Mill",hookShort:"He was offered millions. He turned it down and gave the company to his employees instead.",hook:"The founder of this company was offered millions to sell. He turned it down. Then gave the entire company to his employees instead.",cat:"Companies"},
+  {name:"Lincoln Electric",hookShort:"Profit-sharing every single year since 1934. Through every recession. Never missed once.",hook:"This company has shared its profits with employees every single year since 1934. Never missed one. Through the Depression. Through every recession. Still going.",cat:"Companies"},
+  {name:"Recology",hookShort:"San Francisco's trash company is employee-owned — and it made SF one of the least wasteful cities in America.",hook:"San Francisco's trash company is owned by its employees. It made San Francisco one of the least wasteful cities in the entire United States. A garbage company did that.",cat:"Companies"},
+  {name:"Organic Valley",hookShort:"A farmer-owned co-op doing $1.2 billion. Almost nobody outside farming has heard of it.",hook:"When big dairy dropped its farmers, this farmer-owned co-op refused to drop its prices. $1.2 billion in revenue. Almost nobody outside farming has heard of it.",cat:"Companies"},
+  {name:"CHS Inc.",hookShort:"$35 billion in revenue. Zero press coverage. Farmer-owned.",hook:"Farmer-owned. $35 billion in annual revenue. Zero press coverage. The size versus the obscurity is genuinely hard to explain.",cat:"Companies"},
+  {name:"Fairphone",hookShort:"This phone ships with the screwdriver to fix it. Built to last a decade.",hook:"This phone ships with the screwdriver you need to fix it. It was built to last a decade. The entire industry said that was impossible.",cat:"Companies"},
+  {name:"Cape",hookShort:"Sign up with only your zip code. No name. No ID. No data sold.",hook:"A phone carrier where you sign up with only a zip code. No name. No ID. No data sold. Ever. Launched 2026.",cat:"Companies"},
+  {name:"OnMed CareStations",hookShort:"A full medical clinic inside a kiosk. Walk up. Get diagnosed. Get medication. No appointment.",hook:"A full medical clinic inside a kiosk. Walk up. Get diagnosed. Get medication dispensed. No appointment. It exists right now.",cat:"Companies"},
+  {name:"Kagi Search",hookShort:"A search engine with no ads, no tracking, no Google. The results aren't selling you anything.",hook:"A search engine with no ads, no tracking, and no Google. $10 a month. The results are not trying to sell you something.",cat:"Companies"},
+  {name:"Vaulted Deep",hookShort:"They fight climate change by injecting organic waste deep underground.",hook:"This company fights climate change by injecting organic waste deep underground. It sounds like science fiction. It is not.",cat:"Companies"},
+  {name:"Openstreetmap",hookShort:"The entire world mapped by unpaid volunteers. Nobody owns it.",hook:"The entire world — every road, every building, every trail — mapped by unpaid volunteers. More detailed than Google Maps in places. Nobody owns it.",cat:"Companies"},
+  {name:"REI",hookShort:"$4 billion in revenue. Every customer is a part-owner. Closed on Black Friday.",hook:"Four billion dollars in revenue. Every single customer is a part-owner. It closes on Black Friday and pays its employees to go outside.",cat:"Companies"},
+  {name:"Dr. Bronner's",hookShort:"A 150-year-old soap company that caps what its executives can earn.",hook:"A 150-year-old soap company that caps what its executives can earn. B-Corp score of 177. Almost nobody knows this company exists.",cat:"Companies"},
+  {name:"MUBI",hookShort:"A streaming service that hand-curates exactly 30 films at a time. It never deletes a film without telling you.",hook:"A streaming service that hand-curates exactly 30 films at a time. It pays filmmakers fairly. It never deletes a film without telling you first.",cat:"Companies"},
+  {name:"Ecosia",hookShort:"You search the internet. It plants a tree. 200 million trees so far.",hook:"You search the internet. It plants a tree. 200 million trees planted so far. You have been reforesting the planet every time you Googled something and used this instead.",cat:"Companies"},
+  {name:"Zingerman's",hookShort:"This deli turned down every franchise offer for 40 years. Then built 10 employee-owned businesses instead.",hook:"A deli in Ann Arbor turned down every single franchise offer for over 40 years. Then built 10 separate employee-owned businesses instead.",cat:"Companies"},
+  {name:"Equal Exchange",hookShort:"Worker-owned. Fair trade. Coffee and chocolate. Since 1986.",hook:"Worker-owned. Fair trade. Coffee and chocolate. Since 1986. They were doing this before ethical consumption was a phrase anyone used.",cat:"Companies"},
+  {name:"Big Cartel",hookShort:"An artist marketplace that chose to stay small while Etsy went public. Charges artists less. On purpose.",hook:"An artist marketplace that chose to stay small and independent while Etsy went public. It charges artists less. On purpose.",cat:"Companies"},
+  {name:"South Mountain Company",hookShort:"An architecture firm with the highest B-Corp score in the United States.",hook:"An employee-owned architecture firm on Martha's Vineyard with the highest B-Corp score in the United States. An architecture firm.",cat:"Companies"},
+  {name:"Tillamook Creamery",hookShort:"The farmers whose milk goes into this cheese own the entire company.",hook:"The farmers whose milk goes into this cheese own the entire company. They compete directly with Kraft and Dannon.",cat:"Companies"},
+  {name:"Orca Books",hookShort:"A fully worker-owned independent bookstore. One of the only ones in the country.",hook:"A fully worker-owned independent bookstore. One of the only ones in the entire country.",cat:"Companies"},
+  {name:"Buffer",hookShort:"This company publishes every single employee's salary publicly. Has done it for years.",hook:"This social media company publishes every single employee's salary publicly. Every year. Has done it for years.",cat:"Companies"},
+  {name:"Acid League",hookShort:"Two people who got sober were bored of the alternatives. So they made non-alcoholic wines that are actually interesting.",hook:"Two people who got sober were bored of the alternatives. So they made non-alcoholic wines that are actually interesting.",cat:"Companies"},
+  {name:"Arctic Solar Ventures",hookShort:"Renewable energy, entirely in Alaska. One of the highest B-Corp scores in the country.",hook:"A renewable energy company operating entirely in Alaska with one of the highest B-Corp scores in the country. Almost nobody in the lower 48 knows it exists.",cat:"Companies"},
+  {name:"Modo Eyewear",hookShort:"Buy one pair. They donate one. Over a million pairs donated.",hook:"Buy one pair of glasses. They donate one pair. In an industry where one company owns 80% of every brand you've ever heard of. Over a million pairs donated.",cat:"Companies"},
+  {name:"Hamdi Ulukaya",hookShort:"He bought a shuttered Kraft factory and hired every worker Kraft just laid off.",hook:"He bought a shuttered Kraft factory. Then hired every single worker Kraft had just laid off. Built Chobani to $10 billion. Gave employees 10% equity. Now says he regrets becoming wealthy.",cat:"People"},
+  {name:"Yvon Chouinard",hookShort:"He built a $3 billion company. Then gave it away. Took zero dollars.",hook:"He built a three billion dollar company. Then gave it away. Took zero dollars. He is still alive. Still climbing. The reason why is more interesting than the what.",cat:"People"},
+  {name:"Ricardo Semler",hookShort:"He let workers set their own salaries. The company grew 900%.",hook:"In the 1980s he let his workers set their own salaries and their own hours. The company grew 900%. Almost nobody in the United States has heard of him.",cat:"People"},
+  {name:"Muhammad Yunus",hookShort:"He lent money to 9 million people with no collateral, no credit, no bank account. His repayment rate beats every bank on earth.",hook:"He invented a way to lend money to people with no collateral, no credit history, and no bank account. Lent to 9 million people. His repayment rate beats every bank on earth. Nobel Prize.",cat:"People"},
+  {name:"Amanda Palmer",hookShort:"Before crowdfunding existed, she just asked her fans for the money. They gave her $1.2 million.",hook:"Before crowdfunding existed, she asked her fans directly to fund her album. They gave her $1.2 million. No label. No middleman. Just asked.",cat:"People"},
+  {name:"Aaron Swartz",hookShort:"He helped build RSS at 14, helped build Reddit, and then fought to make academic research free for everyone.",hook:"He helped build RSS at age 14. Helped build Reddit. Co-wrote Creative Commons. Then fought to make academic research free for everyone. The story of what happened next is one of the most important in the history of the internet.",cat:"People"},
+  {name:"Grant Achatz",hookShort:"He cooked through stage 4 tongue cancer and refused to quit.",hook:"The chef behind America's most mind-bending restaurant cooked through stage 4 tongue cancer and refused to quit. His courses arrive as edible balloons and paintings you eat off the table.",cat:"People"},
+  {name:"Chance the Rapper",hookShort:"Three free mixtapes. Three Grammys. Never signed.",hook:"Three free mixtapes. Three Grammys. Never signed to a label in his life. He changed the Grammy eligibility rules just by existing.",cat:"Artists"},
+  {name:"Radiohead — In Rainbows",hookShort:"They let fans pay whatever they wanted. It made more money than any album they'd ever released.",hook:"In 2007 Radiohead released an album and let fans pay whatever they wanted. It made more money than any album they had ever released. The entire industry said it would destroy them.",cat:"Artists"},
+  {name:"Macklemore and Ryan Lewis",hookShort:"Self-released. Number one on the charts. Four Grammys. Never signed.",hook:"Self-released. Number one on the charts. Four Grammys. Never signed. The industry said independent artists could not do this.",cat:"Artists"},
+  {name:"Jacob Collier",hookShort:"Self-taught. Self-produced. Five Grammys across every genre that exists.",hook:"Self-taught. Self-produced. Five Grammys across every musical genre that exists. The musical ability alone is the entire story.",cat:"Artists"},
+  {name:"Pomplamoose",hookShort:"A husband and wife duo published every dollar they earned and spent publicly.",hook:"A husband and wife music duo published every single dollar they earned and spent publicly. Every tour. Every album. Radical transparency before anyone called it that.",cat:"Artists"},
+  {name:"Noname",hookShort:"A rapper who runs a book club that has given away thousands of free books.",hook:"A rapper who runs a book club that has distributed thousands of free books. The cultural impact is almost completely unreported.",cat:"Artists"},
+  {name:"The Criterion Collection",hookShort:"Netflix deletes films to save on taxes. Criterion has spent 40 years building a permanent library.",hook:"Netflix deletes its own films to save money on taxes. Criterion has spent 40 years building a permanent library of important cinema. Treating film like it actually matters.",cat:"Artists"},
+  {name:"100 Gecs",hookShort:"No genre. Self-produced. Zero label support. Cult following.",hook:"No genre. Self-produced. Built a cult following with zero label support. The music itself is the story.",cat:"Artists"},
+  {name:"Phoebe Bridgers",hookShort:"She built an independent label and owns her own masters in an industry designed to prevent that.",hook:"She built a genuinely independent label and owns her own masters in an industry specifically designed to prevent that.",cat:"Artists"},
+  {name:"Library of Things",hookShort:"Your public library will lend you a telescope. Or a power drill. Or a tent. Free.",hook:"Your public library will lend you a telescope. Or a power drill. Or a tent. Free. It exists in dozens of US cities. Most people have no idea.",cat:"Movements"},
+  {name:"Repair Café",hookShort:"In 2,500 locations, strangers fix each other's broken things for free.",hook:"In 2,500 locations around the world, strangers meet up to fix each other's broken things for free. No money changes hands. Just people who think stuff shouldn't be thrown away.",cat:"Movements"},
+  {name:"Dark Sky Reserves",hookShort:"Some communities have legally banned light pollution. The sky looks completely different there.",hook:"Some communities have legally banned light pollution. There are over 200 of them worldwide. The night sky looks completely different there. Most people have never seen the real sky.",cat:"Movements"},
+  {name:"Seed Savers Exchange",hookShort:"They're maintaining 20,000 varieties of seeds. If they stop, those plants go extinct.",hook:"An Iowa nonprofit is maintaining over 20,000 varieties of heirloom seeds — some grown from plants that are over 100 years old. If they stop, those plants go extinct.",cat:"Movements"},
+  {name:"Municipal Broadband",hookShort:"Some cities built their own internet because Comcast refused to serve them.",hook:"Some cities built their own internet because Comcast refused to serve them. Chattanooga Tennessee now has the fastest internet in the United States. It is city-owned.",cat:"Movements"},
+  {name:"Time Banks",hookShort:"An hour of legal advice equals an hour of babysitting. No money changes hands.",hook:"In these communities, an hour of legal advice equals an hour of babysitting equals an hour of cooking. No money changes hands. Some have been running for over 20 years.",cat:"Movements"},
+  {name:"Right to Repair",hookShort:"Apple and John Deere spent years in court to stop you from fixing your own stuff.",hook:"For years Apple and John Deere fought in court to prevent you from fixing your own devices and tractors. Multiple states have now passed laws saying you can.",cat:"Movements"},
+  {name:"Community Land Trusts",hookShort:"Some neighborhoods permanently removed themselves from real estate speculation.",hook:"Some neighborhoods have permanently removed themselves from real estate speculation. Homes in these trusts can only ever sell at a controlled price. Forever.",cat:"Movements"},
+  {name:"Tool Libraries",hookShort:"Some cities collectively own every tool a household might need. Free to borrow.",hook:"Some cities have collectively purchased every tool a household might ever need and made them free to borrow. You will never need to own a drill again.",cat:"Movements"},
+  {name:"Mutual Aid Networks",hookShort:"During COVID, thousands of local mutual aid networks appeared. Most never went away.",hook:"During COVID thousands of hyper-local mutual aid networks appeared. Most of them never went away. Some are extraordinary.",cat:"Movements"},
+  {name:"Rewilding Europe",hookShort:"They buy farmland and do absolutely nothing with it. Wolves and bison are returning.",hook:"This organization buys farmland and does absolutely nothing with it. Wolves, bison, and eagles are returning to places they haven't existed in centuries.",cat:"Movements"},
+  {name:"Zooniverse",hookShort:"2.5 million ordinary people are classifying galaxies and counting penguins. The science gets published.",hook:"Real scientists need help classifying galaxies, transcribing ancient manuscripts, and counting penguins in satellite photos. 2.5 million ordinary people are doing it. The science gets published.",cat:"Movements"},
+  {name:"Self-healing concrete",hookShort:"There is concrete that repairs its own cracks using bacteria living inside it.",hook:"There is concrete that repairs its own cracks using bacteria living inside it. It is already being used in Europe. It could eliminate potholes permanently.",cat:"Science"},
+  {name:"DNA data storage",hookShort:"One gram of DNA can store the entire Library of Congress.",hook:"One gram of DNA can store the entire Library of Congress. It stays stable for thousands of years. It could replace every data center on earth.",cat:"Science"},
+  {name:"Flamingo filtration",hookShort:"Scientists copied how flamingos filter water. Now it removes microplastics from the ocean.",hook:"Scientists studied how flamingos filter water with their beaks. Then used that exact mechanism to build filters that remove microplastics from the ocean. Georgia Tech. 2025.",cat:"Science"},
+  {name:"Greenland shark longevity",hookShort:"Greenland sharks live over 400 years. Scientists found the genes. It may unlock human aging.",hook:"Greenland sharks live for over 400 years. Scientists have found the genes responsible. This may be the key to slowing human aging.",cat:"Science"},
+  {name:"Spider silk medicine",hookShort:"Spider silk is stronger than steel and flexible enough to make artificial organs.",hook:"Spider silk is stronger than steel by weight and flexible enough to make artificial organs. A Latvian company now produces it synthetically.",cat:"Science"},
+  {name:"Firebrick energy storage",hookShort:"Superheated clay bricks could eliminate 90% of fossil fuel use in heavy industry.",hook:"Ancient clay bricks superheated by renewable electricity can store enough energy to eliminate 90% of fossil fuel use in heavy industry. Stanford.",cat:"Science"},
+  {name:"Fiber removes PFAS",hookShort:"A fiber supplement taken with meals pulls forever chemicals out of your body.",hook:"A simple fiber supplement taken with meals can pull forever chemicals — PFAS — out of your body. Boston University School of Public Health. 2025.",cat:"Science"},
+  {name:"Your brain glows",hookShort:"Scientists detected light being emitted by living human brains. From outside the skull.",hook:"Scientists have detected light being emitted by living human brains from outside the skull. For the first time. The glow changes with your thoughts.",cat:"Science"},
+  {name:"Google quantum chip",hookShort:"It solved in 5 minutes what would take a supercomputer longer than the age of the universe.",hook:"Google's quantum chip solved a mathematical problem in under 5 minutes that would take the fastest classical supercomputer longer than the age of the universe.",cat:"Science"},
+  {name:"Snail eye regeneration",hookShort:"This snail can regrow a completely amputated eye in under a month.",hook:"The golden apple snail can regrow a completely amputated eye in under a month. Scientists have found the gene. Human applications are being studied.",cat:"Science"},
+  {name:"Sand battery",hookShort:"A giant tank of sand stores renewable energy as heat. Cheap. Scalable. Zero emissions.",hook:"A Finnish company stores renewable energy as heat inside a giant insulated tank of sand. Cheap. Scalable. Zero emissions.",cat:"Science"},
+  {name:"The Mpemba Effect",hookShort:"Hot water sometimes freezes faster than cold water. Nobody knows why.",hook:"Hot water sometimes freezes faster than cold water. A Tanzanian schoolboy first described this to scientists in 1963. They are still arguing about why.",cat:"Science"},
+  {name:"Tardigrades",hookShort:"Tardigrades survive boiling water and the vacuum of space. In 2019 a spacecraft crashed on the Moon carrying thousands of them.",hook:"Tardigrades survive the vacuum of space, boiling water, and being frozen for 30 years. In 2019 a spacecraft crashed on the Moon carrying thousands of them. They are almost certainly still alive up there.",cat:"Science"},
+  {name:"The Wood Wide Web",hookShort:"Trees in a forest share nutrients underground through a fungal network. A forest is a single organism.",hook:"Trees in a forest are connected underground through a network of fungi. They use it to share nutrients and send chemical warnings to each other. Old trees feed young ones. A forest is a single organism.",cat:"Science"},
+  {name:"The overview effect",hookShort:"Every astronaut who sees Earth from space describes the same sudden psychological transformation.",hook:"Every astronaut who has seen the Earth from space describes the same sudden psychological transformation — an overwhelming sense of connection and the complete absurdity of human conflict. It has a name.",cat:"Science"},
+  {name:"Cymatics",hookShort:"Sound creates geometric patterns in sand. Different frequencies make different shapes. You can see music.",hook:"Sound creates physical geometric patterns. If you put sand on a surface and play a frequency, the sand will self-organize into perfect shapes. Different frequencies make different shapes. You can literally see music.",cat:"Science"},
+  {name:"Baader-Meinhof phenomenon",hookShort:"That thing where you learn a word and suddenly hear it everywhere. Your brain was filtering it out before.",hook:"The reason you learn a new word and then hear it everywhere for a week. Your brain was filtering it out before. Reality did not change. Your perception did. This has a name.",cat:"Science"},
+  {name:"Octopus intelligence",hookShort:"Each arm makes decisions independently. They dream. They recognize human faces. They're basically aliens.",hook:"Octopuses have neurons throughout their arms. Each arm can make decisions independently. They dream. They recognize individual human faces. They evolved intelligence separately from every vertebrate on earth. They are basically aliens.",cat:"Science"},
+  {name:"Pando",hookShort:"A grove of aspen trees in Utah is a single organism. It was alive before humans left Africa.",hook:"A grove of aspen trees in Utah is a single organism sharing one root system. It weighs 6 million kilograms. It is estimated to be 80,000 years old. It was alive before homo sapiens left Africa.",cat:"Science"},
+  {name:"Kara Pod",hookShort:"A device that pulls water from humidity and turns it into drinking water. No tap. No pipe.",hook:"A device that pulls water from air humidity and turns it into drinking water. 13 cups a day. No tap. No pipe. Inspired by a beetle that drinks fog.",cat:"Inventions"},
+  {name:"NAQI Neural Earbuds",hookShort:"Control computers and wheelchairs using only tiny eye movements and jaw clenches.",hook:"These earbuds let you control computers, phones, and wheelchairs using only tiny eye movements and jaw clenches. No brain surgery required.",cat:"Inventions"},
+  {name:"Electric salt spoon",hookShort:"A spoon that makes food taste saltier without adding any salt.",hook:"A spoon with electrodes that makes food taste saltier without adding any salt. A weak current concentrates sodium on your tongue. Japan. No pain.",cat:"Inventions"},
+  {name:"FireSat",hookShort:"Satellites that can detect a wildfire the size of a classroom anywhere on Earth within minutes.",hook:"Google-funded satellites that can detect a wildfire the size of a classroom anywhere on Earth within minutes. Day or night.",cat:"Inventions"},
+  {name:"MRI wearable",hookShort:"A wearable made from copper and plastic that makes MRI scans faster and cheaper.",hook:"A lightweight wearable made from copper and plastic that makes MRI scans faster, cheaper, and more accurate than existing machines. TIME Best Invention 2025.",cat:"Inventions"},
+  {name:"NanoKnife",hookShort:"Electrical pulses that destroy a cancer tumor while leaving surrounding tissue completely unharmed.",hook:"Electrical pulses delivered with such precision they can destroy a cancer tumor while leaving the surrounding tissue completely unharmed. FDA cleared. In hospitals now.",cat:"Inventions"},
+  {name:"Double Neural Bypass",hookShort:"Microchips that reconnect a severed spinal cord — in both directions. One patient can now feel his dog's fur.",hook:"Microchips implanted in the brain and spine that reconnect the two after a spinal injury — in both directions. One patient can now pet his dog and feel the fur.",cat:"Inventions"},
+  {name:"Mosquito-proof shirt",hookShort:"Woven so tightly mosquitoes physically cannot pierce it. No chemicals. Works forever.",hook:"A shirt woven so tightly that mosquitoes physically cannot pierce the fabric to reach your skin. No chemicals. Washable. Works forever.",cat:"Inventions"},
+  {name:"John Deere LettuceBot",hookShort:"A 188-year-old tractor company built an AI that tells lettuce from weeds. Herbicide use down 90%.",hook:"A 188-year-old tractor company built an AI system that can tell lettuce from weeds with enough precision to reduce herbicide use by 90%. John Deere is now an AI company.",cat:"Inventions"},
+  {name:"3D-printed food",hookShort:"NASA is funding 3D-printed food. Restaurants already use printers to make dishes no human hands could make.",hook:"NASA is funding research into 3D-printed food for astronauts. Restaurants are already using food printers to create dishes that could not be made by human hands.",cat:"Inventions"},
+  {name:"LifeStraw",hookShort:"A straw that turns contaminated water into clean drinking water. Three dollars.",hook:"A straw that turns contaminated water into clean drinking water instantly. Three dollars. Deployed in disaster zones worldwide including after Hurricane Helene.",cat:"Useful Things"},
+  {name:"Knife Aid",hookShort:"Mail your dull knives. They sharpen them. Mail them back.",hook:"You mail your dull kitchen knives. They sharpen them. They mail them back. $250,000 a month in revenue. Something every household needs, made easy.",cat:"Useful Things"},
+  {name:"Sniffspot",hookShort:"Homeowners rent their backyards as private dog parks by the hour.",hook:"Homeowners rent out their private yards by the hour as dog parks. Your dog gets a private fenced yard. The owner makes money. Airbnb for dogs.",cat:"Useful Things"},
+  {name:"Unclaimed Baggage Center",hookShort:"The only store in America that sells lost airline luggage. Inventory has included a Space Shuttle camera.",hook:"The only store in America that buys and sells lost airline luggage — and everything inside it. Inventory has included a Space Shuttle camera and a $25,000 emerald.",cat:"Useful Things"},
+  {name:"Radio Garden",hookShort:"Click any city on a globe. Hear its local radio station playing live.",hook:"A spinning globe of the earth. Click any city. Instantly hear the local radio station playing live. Every country. Thousands of stations.",cat:"Useful Things"},
+  {name:"The True Size Of",hookShort:"Africa is 14 times larger than Greenland. Every map you've ever seen lied to you.",hook:"A website that lets you drag any country across the world map to show its actual size. Africa is 14 times larger than Greenland. Every map you have ever seen lied to you.",cat:"Useful Things"},
+  {name:"Windy.com",hookShort:"A real-time map showing every wind pattern and weather system on Earth right now. Built by one person.",hook:"A real-time animated map showing all wind patterns, ocean currents, air quality, and weather systems on Earth right now. Built by one person in Czech Republic. Free.",cat:"Useful Things"},
+  {name:"Privnote",hookShort:"A message that destroys itself the moment someone reads it. No app. No account.",hook:"Send a message that destroys itself the moment the recipient reads it. No account. No app. No trace. Just a link that dies on opening.",cat:"Useful Things"},
+  {name:"Perma.cc",hookShort:"Harvard Law built a tool that permanently archives any webpage so it can never be deleted.",hook:"Harvard Law School built a free tool that permanently archives any webpage so it can never be deleted, edited, or disappeared. Courts use it to preserve online legal evidence.",cat:"Useful Things"},
+  {name:"Every Noise at Once",hookShort:"A single page mapping every music genre on earth — 6,000 of them. Click any one to hear it.",hook:"A single webpage that maps every music genre on earth — over 6,000 of them — and lets you click any one to hear what it sounds like. Built by one person at Spotify.",cat:"Useful Things"},
+  {name:"Wiby.me",hookShort:"A search engine that only returns old hand-built websites from the early internet. It feels like 1999.",hook:"A search engine that only returns old hand-built personal websites from the early internet. Press search with no query. It takes you somewhere random and human. It feels like 1999.",cat:"Useful Things"},
+  {name:"Wayback Machine",hookShort:"See any website exactly as it appeared on any date back to 1996. Things companies tried to erase. Still there.",hook:"You can see any website exactly as it appeared on any date going back to 1996. Deleted pages. Old versions. Things companies tried to erase. Still there.",cat:"Useful Things"},
+  {name:"IMSLP",hookShort:"855,000 music scores — Bach, Beethoven, everything — free to download instantly.",hook:"Over 855,000 music scores — Bach, Beethoven, everything public domain — free to download instantly. Before this existed, finding a rare orchestral score meant months in university libraries.",cat:"Useful Things"},
+  {name:"Time Travel Mart",hookShort:"A fake store selling time travel supplies. Behind it is a real tutoring nonprofit for kids.",hook:"A storefront in Los Angeles that sells time travel supplies. It is a completely fake business. Behind it is a real tutoring nonprofit for kids. The fake store is the fundraiser.",cat:"Useful Things"},
+  {name:"Dogue",hookShort:"A restaurant serving seven-course tasting menus exclusively for dogs. Always full.",hook:"A restaurant in San Francisco that serves seven-course tasting menus exclusively for dogs. The owners sit at a table beside their pets and eat human food. Fully serious. Always full.",cat:"Useful Things"},
+  {name:"Athletic Brewing",hookShort:"Non-alcoholic beer that actually tastes like beer. Top 10 craft brewery in the US.",hook:"Non-alcoholic beer that actually tastes like beer. Now one of the top 10 craft breweries in the United States by volume. $130 million in sales. Partnered with Arsenal and Netflix.",cat:"Food"},
+  {name:"Juicy Marbles",hookShort:"Plant-based ribs with edible bones that turn into jerky when you bake them.",hook:"A Slovenian company made plant-based ribs with edible bones made entirely from plant protein — bones that turn into jerky-like snacks when you bake them. Nothing like this exists anywhere else.",cat:"Food"},
+  {name:"Row 7 Seed Company",hookShort:"A chef invented new vegetables bred for flavor instead of shelf life.",hook:"A chef invented new vegetables — bred specifically for flavor instead of shelf life. Including a spinach-lettuce hybrid. Now in Whole Foods nationwide.",cat:"Food"},
+  {name:"Solely",hookShort:"Every product has exactly one ingredient. One fruit. Nothing else.",hook:"Every product this company makes has exactly one ingredient. One fruit. Nothing else. They became America's largest seller of dried mango and pineapple.",cat:"Food"},
+  {name:"Plonts",hookShort:"The first plant-based cheese that is actually stinky. Real aged funk.",hook:"The first plant-based cheese that is genuinely stinky — made using actual bacterial aging from traditional cheesemaking. Not vegan rubber. Real aged funk.",cat:"Food"},
+  {name:"Fly by Jing",hookShort:"A multimillion-dollar chili sauce company built with no investors, no retail deals, no marketing budget.",hook:"A woman built a multimillion-dollar Sichuan chili sauce company while living in Chengdu with no investors, no retail deals, and no marketing budget. Just direct sales and word of mouth.",cat:"Food"},
+  {name:"Reduced Denmark",hookShort:"Two Noma alumni making cooking concentrates from food that would otherwise be wasted.",hook:"Two alumni of Noma's fermentation lab are making professional cooking concentrates from food that would otherwise be wasted — misshapen mushrooms, invasive shore crabs.",cat:"Food"},
+  {name:"Pullman Strike of 1894",hookShort:"The company owned their homes, the stores, the church. When wages were cut and rents weren't, they struck.",hook:"Workers built their own town. The railroad company owned everything — their homes, the stores, the church. When wages were cut and rents were not, they struck. The federal government crushed them. That is why you have Labor Day. Almost nobody knows this.",cat:"History"},
+  {name:"Mondragon origin",hookShort:"A Catholic priest started a worker cooperative with 5 people in 1956. It now has 80,000 owners.",hook:"A Catholic priest in Basque Country started a worker cooperative with five people in 1956. Seventy years later it has 80,000 worker-owners and 12 billion dollars in revenue. The origin story is wilder than the company.",cat:"History"},
+  {name:"Tesla vs Edison — the real story",hookShort:"The romanticized version leaves out the actual numbers, the betrayals, and the parts that make it genuinely strange.",hook:"The romanticized version leaves out the actual numbers, the actual betrayals, and the parts that make the whole thing genuinely strange.",cat:"History"},
+  {name:"The Wreck of the Titan",hookShort:"14 years before the Titanic sank, a novelist wrote a story about an unsinkable ship named the Titan that hits an iceberg.",hook:"In 1898 — fourteen years before the Titanic sank — a novelist published a story about an unsinkable ocean liner named the Titan that strikes an iceberg in the North Atlantic and sinks. With too few lifeboats.",cat:"History"},
+  {name:"Paris Syndrome",hookShort:"The gap between what visitors expect of Paris and reality is so severe it causes hallucinations. This is a real diagnosis.",hook:"A recognized psychological condition in which the gap between a visitor's expectations of Paris and the reality is so severe it produces vomiting, heart palpitations, hallucinations, and panic attacks. This is a real diagnosis.",cat:"History"},
+  {name:"Aaron Swartz origin",hookShort:"He co-wrote RSS at 14. Helped build Reddit. Then fought to make academic research free for everyone.",hook:"He co-wrote the RSS specification at age 14. Helped build Reddit. Co-authored Creative Commons. Then spent years fighting to make academic research freely available to everyone. The story of what happened to him is one of the most important in internet history.",cat:"History"},
+];
+
+// ══════ STATE ══════
+let state = { active:[], used:[], lastPulled:null, filter:'All', animating:false, currentSlip:null };
+
+// ══════ FIREBASE ══════
+// 1. Go to https://console.firebase.google.com → New project → "TheHat"
+// 2. Build → Firestore Database → Create database → Start in test mode
+// 3. Project Settings → Your apps → </> Web → register app → copy firebaseConfig below
+// 4. Firestore → Rules → paste the rules from the comment at the bottom of this block
+const FIREBASE_CONFIG = {
+  apiKey:            "AIzaSyBCtm3fF0UJ-rFUiDxHtR6WAdRuoi9r9y4",
+  authDomain:        "thehat-5b4b7.firebaseapp.com",
+  projectId:         "thehat-5b4b7",
+  storageBucket:     "thehat-5b4b7.firebasestorage.app",
+  messagingSenderId: "252477099953",
+  appId:             "1:252477099953:web:d7e8f32c4ac7d34c0bb790"
+};
+/* Firestore security rules (paste into Firebase Console → Firestore → Rules):
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /hat/{doc} {
+      allow read, write: if true;
+    }
+  }
+}
+*/
+
+let db = null;               // Firestore instance, set after SDK loads
+let _firestoreReady = false; // true once SDK has initialised
+let _unsubscribe = null;     // live-listener cleanup handle
+
+function _initFirestore() {
+  try {
+    if (!FIREBASE_CONFIG.apiKey || FIREBASE_CONFIG.apiKey.startsWith('PASTE')) return;
+    firebase.initializeApp(FIREBASE_CONFIG);
+    db = firebase.firestore();
+    _firestoreReady = true;
+
+    // ── Live listener: update every open tab/device the moment Firestore changes ──
+    _unsubscribe = db.collection('hat').doc('state')
+      .onSnapshot(snap => {
+        if (!snap.exists) return;
+        const data = snap.data();
+        _applyRemoteState(data.active || [], data.used || []);
+        // also mirror to localStorage for offline fallback
+        localStorage.setItem('hat-app-v4', JSON.stringify({active: state.active, used: state.used}));
+        updateCounter();
+      }, err => console.warn('Firestore listener error:', err));
+
+    db.collection('hat').doc('customCats')
+      .onSnapshot(snap => {
+        if (!snap.exists) return;
+        const cats = snap.data().cats || [];
+        localStorage.setItem('hat-custom-cats', JSON.stringify(cats));
+        renderCustomCats();
+      }, err => console.warn('Firestore cats listener error:', err));
+
+  } catch(e) {
+    console.warn('Firebase init failed, using localStorage only:', e);
+  }
+}
+
+function _applyRemoteState(active, used) {
+  const defaultMap = {};
+  DEFAULT_STORIES.forEach(s => { defaultMap[s.name] = s; });
+  const merge = arr => arr.map(s => ({
+    ...s,
+    hookShort: s.hookShort || (defaultMap[s.name] && defaultMap[s.name].hookShort) || null,
+    urls: s.urls || (s.url ? [s.url] : []),
+  }));
+  state.active = merge(active);
+  state.used   = merge(used);
+}
+
+// ══════ STATE ══════
+function loadState() {
+  // Try localStorage first so the UI is instant — Firestore snapshot will sync in shortly after
+  try {
+    const saved = localStorage.getItem('hat-app-v4');
+    if (saved) {
+      const p = JSON.parse(saved);
+      _applyRemoteState(p.active || [], p.used || []);
+    } else {
+      state.active = DEFAULT_STORIES.map((s,i) => ({...s, id:i}));
+      state.used = [];
+    }
+  } catch(e) {
+    state.active = DEFAULT_STORIES.map((s,i) => ({...s, id:i}));
+    state.used = [];
+  }
+}
+
+function saveState() {
+  // Always write to localStorage (instant, works offline)
+  localStorage.setItem('hat-app-v4', JSON.stringify({active:state.active, used:state.used}));
+  // Write to Firestore when available (syncs all devices)
+  if (_firestoreReady && db) {
+    db.collection('hat').doc('state')
+      .set({ active: state.active, used: state.used })
+      .catch(e => console.warn('Firestore save failed:', e));
+  }
+}
+
+// ══════ CUSTOM CATEGORIES ══════
+const CAT_COLOR_PALETTE = ['#d64f8e','#5ba8d4','#e89c3c','#4db89e','#9b6fe8','#e86060','#7ec87e','#c87e4d'];
+
+function getCustomCats() {
+  try { return JSON.parse(localStorage.getItem('hat-custom-cats') || '[]'); } catch(e) { return []; }
+}
+function saveCustomCats(cats) {
+  localStorage.setItem('hat-custom-cats', JSON.stringify(cats));
+  if (_firestoreReady && db) {
+    db.collection('hat').doc('customCats')
+      .set({ cats })
+      .catch(e => console.warn('Firestore cats save failed:', e));
+  }
+}
+
+function renderCustomCats() {
+  const cats = getCustomCats();
+  const select = document.getElementById('add-cat');
+  const filters = document.getElementById('filters');
+  select.querySelectorAll('[data-custom]').forEach(o => o.remove());
+  filters.querySelectorAll('[data-custom]').forEach(b => b.remove());
+  cats.forEach((name, i) => {
+    const color = CAT_COLOR_PALETTE[i % CAT_COLOR_PALETTE.length];
+    if (!CAT_COLORS[name]) CAT_COLORS[name] = color;
+    const opt = document.createElement('option');
+    opt.value = name; opt.textContent = name; opt.dataset.custom = '1';
+    select.appendChild(opt);
+    const btn = document.createElement('button');
+    btn.className = 'filter-btn'; btn.dataset.cat = name; btn.dataset.custom = '1';
+    btn.textContent = name;
+    btn.addEventListener('click', () => setFilter(name));
+    filters.appendChild(btn);
+  });
+}
+
+function addCustomCat() {
+  const input = document.getElementById('new-cat-input');
+  const name = input.value.trim();
+  if (!name) return;
+  const cats = getCustomCats();
+  if (cats.includes(name) || CAT_COLORS[name]) { input.value = ''; return; }
+  cats.push(name);
+  saveCustomCats(cats);
+  renderCustomCats();
+  input.value = '';
+}
+
+function getFiltered() {
+  if (state.filter === 'All') return state.active;
+  return state.active.filter(s => s.cat === state.filter);
+}
+
+function updateCounter() {
+  const count = getFiltered().length;
+  const total = state.active.length;
+  const el = document.getElementById('counter');
+  if (state.filter === 'All') {
+    el.textContent = `${total} slip${total !== 1 ? 's' : ''} remaining`;
+  } else {
+    el.textContent = `${count} · ${state.filter}`;
+  }
+  document.getElementById('no-slips').style.display = count === 0 ? 'block' : 'none';
+  document.getElementById('tap-hint').style.display = count === 0 ? 'none' : 'block';
+  updatePeeks(total);
+  document.getElementById('undo-btn').classList.toggle('has-undo', !!state.lastPulled);
+}
+
+function updatePeeks(count) {
+  const img = document.getElementById('hat-img');
+  if (img) img.classList.toggle('empty', count === 0);
+}
+
+// ══════ HAPTICS ══════
+function haptic(pattern) {
+  if (navigator.vibrate) navigator.vibrate(pattern);
+}
+
+// ══════ PULL ══════
+function pullSlip() {
+  if (state.animating) return;
+  const pool = getFiltered();
+  if (pool.length === 0) return;
+  state.animating = true;
+  haptic(30);
+
+  const story = pool[Math.floor(Math.random() * pool.length)];
+  state.currentSlip = story;
+
+  // Part slips as hand enters
+  const sL = document.getElementById('slips-left');
+  const sR = document.getElementById('slips-right');
+  if (sL && sR) {
+    sL.classList.add('parting'); sR.classList.add('parting');
+    setTimeout(() => { sL.classList.remove('parting'); sR.classList.remove('parting'); }, 1700);
+  }
+
+  const hand = document.getElementById('hand-container');
+  hand.classList.remove('animating');
+  void hand.offsetWidth;
+  hand.classList.add('animating');
+
+  setTimeout(() => showSlip(story), 1300);
+  setTimeout(() => { hand.classList.remove('animating'); state.animating = false; }, 2700);
+}
+
+function showSlip(story) {
+  // Set category color
+  const color = CAT_COLORS[story.cat] || '#ff2d78';
+  document.getElementById('card-scene').style.setProperty('--cat-color', color);
+
+  document.getElementById('slip-cat-badge').textContent = story.cat;
+  document.getElementById('slip-name-text').textContent = story.name;
+
+  // Short hook (shown first) — fall back to full hook if no short
+  const shortEl = document.getElementById('slip-hook-short');
+  const longEl = document.getElementById('slip-hook-long');
+  const expandBtn = document.getElementById('expand-btn');
+
+  shortEl.textContent = story.hookShort || story.hook;
+  longEl.textContent = story.hook;
+  longEl.classList.remove('visible');
+
+  // Only show expand button if there's a distinct long hook
+  if (story.hookShort && story.hook && story.hookShort !== story.hook) {
+    expandBtn.classList.remove('hidden');
+    expandBtn.textContent = 'read more ↓';
+  } else {
+    expandBtn.classList.add('hidden');
+  }
+
+  // Prep notes
+  const notesEl = document.getElementById('card-notes');
+  if (story.notes) {
+    notesEl.textContent = story.notes;
+    notesEl.style.display = 'block';
+  } else {
+    notesEl.style.display = 'none';
+  }
+
+  // Source links
+  const srcLinks = document.getElementById('source-links');
+  const urls = story.urls || (story.url ? [story.url] : []);
+  if (urls.length > 0) {
+    srcLinks.classList.add('has-links');
+    srcLinks.innerHTML = urls.map((u, i) =>
+      `<button class="source-link-btn" data-idx="${i}">🔗 ${esc(u.replace(/^https?:\/\/(www\.)?/,'').split('/')[0])}</button>`
+    ).join('');
+    srcLinks.querySelectorAll('.source-link-btn').forEach((btn, i) => {
+      btn.onclick = (e) => { e.stopPropagation(); window.open(urls[i], '_blank', 'noopener,noreferrer'); };
+    });
+  } else {
+    srcLinks.classList.remove('has-links');
+    srcLinks.innerHTML = '';
+  }
+
+  // Reset episode input
+  document.getElementById('episode-input').value = '';
+
+  // Reset to front face
+  document.getElementById('card-inner').classList.remove('flipped');
+  const overlay = document.getElementById('slip-overlay');
+  overlay.style.opacity = '1';
+  overlay.classList.add('visible');
+}
+
+function flipCard() {
+  haptic(15);
+  document.getElementById('card-inner').classList.toggle('flipped');
+}
+
+function toggleExpand() {
+  const longEl = document.getElementById('slip-hook-long');
+  const expandBtn = document.getElementById('expand-btn');
+  const isOpen = longEl.classList.contains('visible');
+  longEl.classList.toggle('visible', !isOpen);
+  expandBtn.textContent = isOpen ? 'read more ↓' : 'read less ↑';
+}
+
+function closeSlip(putBack) {
+  const overlay = document.getElementById('slip-overlay');
+  const scene = document.getElementById('card-scene');
+
+  if (!putBack) {
+    // Fly up animation
+    haptic([20, 50, 20]);
+    scene.classList.add('fly-used');
+    setTimeout(() => {
+      overlay.style.opacity = '';
+      overlay.classList.remove('visible');
+      scene.classList.remove('fly-used');
+      document.getElementById('card-inner').classList.remove('flipped');
+    }, 580);
+  } else {
+    // Gentle fade down
+    scene.style.transform = 'scale(0.92) translateY(12px)';
+    scene.style.opacity = '0';
+    scene.style.transition = 'transform 0.22s ease, opacity 0.18s ease';
+    setTimeout(() => {
+      overlay.style.opacity = '';
+      overlay.classList.remove('visible');
+      scene.style.transform = '';
+      scene.style.opacity = '';
+      scene.style.transition = '';
+      document.getElementById('card-inner').classList.remove('flipped');
+    }, 240);
+  }
+
+  if (!putBack && state.currentSlip) {
+    const episode = document.getElementById('episode-input').value.trim() || null;
+    markUsed(state.currentSlip, episode);
+  }
+  state.currentSlip = null;
+}
+
+function markUsed(story, episode) {
+  const idx = state.active.findIndex(s => s.id === story.id);
+  if (idx === -1) return;
+  state.active.splice(idx, 1);
+  const usedStory = episode ? {...story, episode} : story;
+  state.used.unshift(usedStory);
+  state.lastPulled = usedStory;
+  saveState(); updateCounter();
+}
+
+// ══════ RESET SESSION ══════
+function resetSession() {
+  state.active = [...state.active, ...state.used];
+  state.used = [];
+  state.lastPulled = null;
+  saveState(); updateCounter();
+  closeDrawer();
+}
+
+// ══════ UNDO ══════
+function undoLast() {
+  if (!state.lastPulled) return;
+  const story = state.lastPulled;
+  const idx = state.used.findIndex(s => s.id === story.id);
+  if (idx !== -1) {
+    state.used.splice(idx, 1);
+    state.active.push(story);
+    saveState(); updateCounter();
+  }
+  state.lastPulled = null;
+  document.getElementById('undo-btn').classList.remove('has-undo');
+}
+
+// ══════ DRAWER ══════
+function openDrawer() {
+  document.getElementById('drawer').classList.add('open');
+  document.getElementById('drawer-overlay').classList.add('visible');
+  refreshDrawer();
+}
+function closeDrawer() {
+  document.getElementById('drawer').classList.remove('open');
+  document.getElementById('drawer-overlay').classList.remove('visible');
+}
+function refreshDrawer() {
+  const q = (document.getElementById('search-input').value || '').toLowerCase().trim();
+  document.getElementById('used-count').textContent = state.used.length;
+  document.getElementById('active-count').textContent = state.active.length;
+
+  const filtered = arr => q ? arr.filter(s =>
+    s.name.toLowerCase().includes(q) || s.cat.toLowerCase().includes(q) ||
+    (s.notes && s.notes.toLowerCase().includes(q))
+  ) : arr;
+
+  const usedList = document.getElementById('used-list');
+  const fUsed = filtered(state.used);
+  usedList.innerHTML = fUsed.length === 0
+    ? '<div class="empty-state">Nothing pulled yet.</div>'
+    : fUsed.map(s => storyHTML(s,'used')).join('');
+
+  const activeList = document.getElementById('active-list');
+  const fActive = filtered(state.active);
+  activeList.innerHTML = fActive.length === 0
+    ? '<div class="empty-state">Hat is empty.</div>'
+    : fActive.map(s => storyHTML(s,'active')).join('');
+
+  document.querySelectorAll('.story-item').forEach(item => {
+    item.addEventListener('click', e => {
+      if (e.target.closest('.story-item-del')) return;
+      const id = parseInt(item.dataset.id);
+      const pile = item.dataset.pile;
+      const arr = pile === 'used' ? state.used : state.active;
+      const story = arr.find(s => s.id === id);
+      if (story) openStorySheet(story, pile);
+    });
+  });
+
+  document.querySelectorAll('.story-item-del').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const id = parseInt(e.target.dataset.id);
+      const pile = e.target.dataset.pile;
+      if (pile === 'used') state.used = state.used.filter(s => s.id !== id);
+      else state.active = state.active.filter(s => s.id !== id);
+      saveState(); updateCounter(); refreshDrawer();
+    });
+  });
+}
+
+function storyHTML(s, pile) {
+  const ep = (pile === 'used' && s.episode)
+    ? `<div class="story-item-episode">↳ ${esc(s.episode)}</div>` : '';
+  const notesDot = s.notes ? ' <span style="color:rgba(255,45,120,0.5);font-size:8px">●</span>' : '';
+  return `<div class="story-item" data-id="${s.id}" data-pile="${pile}" style="cursor:pointer">
+    <div class="story-item-text">
+      <div class="story-item-name">${esc(s.name)}${notesDot}</div>
+      <div class="story-item-cat">${esc(s.cat)}</div>
+      ${ep}
+    </div>
+    <button class="story-item-del" data-id="${s.id}" data-pile="${pile}">×</button>
+  </div>`;
+}
+
+// ══════ STORY SHEET ══════
+let sheetStory = null, sheetPile = null;
+
+function openStorySheet(story, pile) {
+  sheetStory = story; sheetPile = pile;
+  const color = CAT_COLORS[story.cat] || '#ff2d78';
+  const badge = document.getElementById('sheet-cat-badge');
+  badge.textContent = story.cat;
+  badge.style.color = color;
+  document.getElementById('sheet-name').textContent = story.name;
+  document.getElementById('sheet-hook-short').textContent = story.hookShort || story.hook;
+  const longSec = document.getElementById('sheet-hook-long-section');
+  if (story.hookShort && story.hook && story.hookShort !== story.hook) {
+    document.getElementById('sheet-hook-long').textContent = story.hook;
+    longSec.style.display = '';
+  } else {
+    longSec.style.display = 'none';
+  }
+  document.getElementById('sheet-notes-input').value = story.notes || '';
+  document.getElementById('sheet-url-input').value = '';
+  renderSheetLinks(story.urls || (story.url ? [story.url] : []));
+  const epSec = document.getElementById('sheet-episode-section');
+  if (pile === 'used' && story.episode) {
+    epSec.style.display = '';
+    document.getElementById('sheet-episode-wrap').textContent = '↳ ' + story.episode;
+  } else {
+    epSec.style.display = 'none';
+  }
+  document.getElementById('story-sheet').classList.add('open');
+  document.getElementById('story-sheet-overlay').classList.add('visible');
+}
+
+function closeStorySheet() {
+  document.getElementById('story-sheet').classList.remove('open');
+  document.getElementById('story-sheet-overlay').classList.remove('visible');
+  sheetStory = null; sheetPile = null;
+}
+
+let sheetUrls = [];
+
+function renderSheetLinks(urls) {
+  sheetUrls = [...urls];
+  const list = document.getElementById('sheet-links-list');
+  list.innerHTML = sheetUrls.map((u, i) => `
+    <div class="sheet-link-item">
+      <a class="sheet-link-anchor" href="${esc(u)}" target="_blank" rel="noopener noreferrer">${esc(u.replace(/^https?:\/\/(www\.)?/,'').split('/')[0])}</a>
+      <button class="sheet-link-del" data-idx="${i}">×</button>
+    </div>`).join('');
+  list.querySelectorAll('.sheet-link-del').forEach(btn => {
+    btn.addEventListener('click', () => {
+      sheetUrls.splice(parseInt(btn.dataset.idx), 1);
+      renderSheetLinks(sheetUrls);
+    });
+  });
+}
+
+function addSheetLink() {
+  const input = document.getElementById('sheet-url-input');
+  const val = input.value.trim();
+  if (!val) return;
+  const url = val.startsWith('http') ? val : 'https://' + val;
+  if (!sheetUrls.includes(url)) sheetUrls.push(url);
+  renderSheetLinks(sheetUrls);
+  input.value = '';
+}
+
+function saveSheet() {
+  if (!sheetStory || !sheetPile) return;
+  const arr = sheetPile === 'used' ? state.used : state.active;
+  const story = arr.find(s => s.id === sheetStory.id);
+  if (!story) return;
+  story.notes = document.getElementById('sheet-notes-input').value.trim() || null;
+  story.urls = [...sheetUrls];
+  story.url = sheetUrls[0] || null; // backwards compat
+  saveState();
+  closeStorySheet();
+  refreshDrawer();
+}
+function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ══════ ADD ══════
+function addStory() {
+  const name = document.getElementById('add-name').value.trim();
+  const hookShort = document.getElementById('add-hook-short').value.trim();
+  const hook = document.getElementById('add-hook').value.trim();
+  const cat = document.getElementById('add-cat').value;
+  const url = document.getElementById('add-url').value.trim() || null;
+  const notes = document.getElementById('add-notes').value.trim() || null;
+  if (!name || !hookShort) return;
+  const urls = url ? [url.startsWith('http') ? url : 'https://' + url] : [];
+  state.active.push({id:Date.now(), name, hookShort, hook: hook || hookShort, cat, url: urls[0] || null, urls, notes});
+  saveState(); updateCounter();
+  document.getElementById('add-name').value = '';
+  document.getElementById('add-hook-short').value = '';
+  document.getElementById('add-hook').value = '';
+  document.getElementById('add-url').value = '';
+  document.getElementById('add-notes').value = '';
+  refreshDrawer();
+}
+
+// ══════ EXPORT ══════
+function exportStories() {
+  const all = [...state.active, ...state.used];
+  const text = all.map(s => `${s.name} | ${s.hook} | ${s.cat}`).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([text], {type:'text/plain'}));
+  a.download = 'hat-stories.txt';
+  a.click();
+}
+
+// ══════ FILTER ══════
+function setFilter(cat) {
+  state.filter = cat;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.cat === cat));
+  updateCounter();
+}
+
+// ══════ BOOT ══════
+loadState();
+renderCustomCats();
+updateCounter();
+_initFirestore(); // connects to Firebase after local state is shown
+
+document.getElementById('hat-stage').addEventListener('click', pullSlip);
+document.getElementById('slip-overlay-bg').addEventListener('click', () => closeSlip(true));
+document.getElementById('card-front').addEventListener('click', flipCard);
+document.getElementById('card-back').addEventListener('click', (e) => {
+  if (!e.target.closest('.slip-btn') && !e.target.closest('.expand-btn') && !e.target.closest('#episode-input-wrap') && !e.target.closest('#source-btn')) flipCard();
+});
+document.getElementById('expand-btn').addEventListener('click', (e) => { e.stopPropagation(); toggleExpand(); });
+document.getElementById('btn-mark-used').addEventListener('click', (e) => { e.stopPropagation(); closeSlip(false); });
+document.getElementById('btn-close-slip').addEventListener('click', (e) => { e.stopPropagation(); closeSlip(true); });
+document.getElementById('reset-btn').addEventListener('click', resetSession);
+document.getElementById('undo-btn').addEventListener('click', undoLast);
+document.getElementById('menu-btn').addEventListener('click', openDrawer);
+document.getElementById('drawer-close-btn').addEventListener('click', closeDrawer);
+document.getElementById('drawer-overlay').addEventListener('click', closeDrawer);
+document.querySelectorAll('.filter-btn').forEach(b => b.addEventListener('click', () => setFilter(b.dataset.cat)));
+document.getElementById('add-story-btn').addEventListener('click', addStory);
+document.getElementById('new-cat-btn').addEventListener('click', addCustomCat);
+document.getElementById('new-cat-input').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addCustomCat(); } });
+document.getElementById('export-btn').addEventListener('click', exportStories);
+document.getElementById('story-sheet-overlay').addEventListener('click', closeStorySheet);
+document.getElementById('sheet-close-btn').addEventListener('click', closeStorySheet);
+document.getElementById('sheet-save-btn').addEventListener('click', saveSheet);
+document.getElementById('sheet-add-link-btn').addEventListener('click', addSheetLink);
+document.getElementById('sheet-url-input').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addSheetLink(); } });
+document.getElementById('search-input').addEventListener('input', refreshDrawer);
+</script>
+
+<!-- Firebase compat SDK (v9 compat — no build step needed) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+</body>
+</html>
