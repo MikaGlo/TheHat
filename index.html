@@ -245,6 +245,7 @@
     box-shadow: 0 0 16px rgba(255,45,120,0.4);
   }
 
+
   /* ── SLIP OVERLAY ── */
   #slip-overlay {
     position: fixed; inset: 0;
@@ -338,6 +339,34 @@
     line-height: 1.2;
     margin-bottom: 0;
   }
+
+  /* ── CARD PIN BUTTON ── */
+  #card-pin-btn {
+    position: absolute;
+    top: 14px; right: 14px;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.05);
+    border: none;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: transform 0.15s, background 0.18s;
+    z-index: 2;
+  }
+  #card-pin-btn::after {
+    content: '★';
+    font-size: 13px;
+    color: rgba(255,255,255,0.2);
+    transition: color 0.2s;
+    line-height: 1;
+  }
+  #card-pin-btn.pinned {
+    background: rgba(255,255,255,0.09);
+  }
+  #card-pin-btn.pinned::after {
+    color: rgba(255,255,255,0.85);
+  }
+  #card-pin-btn:active { transform: scale(0.82); }
 
   /* flip hint */
   .flip-hint {
@@ -459,8 +488,6 @@
   }
   .icon-btn:active { background: rgba(255,45,120,0.15); border-color: var(--pink-dim); color: var(--pink-light); }
 
-  #undo-btn { top: 16px; left: 16px; opacity: 0.3; }
-  #undo-btn.has-undo { opacity: 1; border-color: rgba(255,45,120,0.3); color: var(--pink-light); }
   #menu-btn { top: 16px; right: 16px; }
 
   /* ── DRAWER ── */
@@ -516,6 +543,21 @@
     color: rgba(255,45,120,0.7);
     font-size: 9px; letter-spacing: 2.5px; text-transform: uppercase;
     margin-bottom: 14px; font-weight: 500;
+  }
+  #drawer-pin-filter-btn {
+    background: none;
+    border: 1px solid rgba(255,215,0,0.25);
+    color: rgba(255,215,0,0.4);
+    font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase;
+    padding: 3px 10px; border-radius: 20px;
+    cursor: pointer; font-weight: 500;
+    font-family: -apple-system, sans-serif;
+    transition: all 0.2s;
+  }
+  #drawer-pin-filter-btn.active {
+    background: rgba(255,215,0,0.12);
+    border-color: #ffd700;
+    color: #ffd700;
   }
 
   .form-field { margin-bottom: 12px; }
@@ -780,6 +822,27 @@
     font-size: 9px; letter-spacing: 2px; text-transform: uppercase;
     font-weight: 600; color: var(--pink);
   }
+  #sheet-pin-btn {
+    background: none; border: none;
+    color: rgba(255,255,255,0.2); font-size: 18px;
+    cursor: pointer; padding: 4px 6px; line-height: 1;
+    transition: color 0.2s, transform 0.2s;
+    margin-right: 2px;
+  }
+  #sheet-pin-btn.pinned {
+    color: #ffd700;
+    transform: rotate(-20deg);
+  }
+  #sheet-pin-btn:active { transform: scale(0.85) rotate(-20deg); }
+  .story-pin-star {
+    font-size: 9px;
+    color: #ffd700;
+    margin-right: 5px;
+    flex-shrink: 0;
+    line-height: 1;
+    filter: drop-shadow(0 0 3px rgba(255,215,0,0.7));
+    align-self: center;
+  }
   #sheet-close-btn {
     background: none; border: none;
     color: rgba(255,255,255,0.3); font-size: 20px;
@@ -1016,7 +1079,6 @@
 </div>
 
 <!-- Buttons -->
-<button class="icon-btn" id="undo-btn" title="Undo">↩</button>
 <button class="icon-btn" id="menu-btn">≡</button>
 
 <!-- Slip overlay -->
@@ -1026,6 +1088,7 @@
     <div id="card-inner">
       <!-- FRONT: name only -->
       <div class="card-face" id="card-front">
+        <button id="card-pin-btn" aria-label="Pin story"></button>
         <div class="slip-category" id="slip-cat-badge">Companies</div>
         <div class="slip-name" id="slip-name-text">Story Name</div>
         <div class="flip-hint">tap to reveal</div>
@@ -1057,7 +1120,10 @@
   <div class="sheet-handle"></div>
   <div class="sheet-header">
     <div id="sheet-cat-badge"></div>
-    <button id="sheet-close-btn">✕</button>
+    <div style="display:flex;align-items:center;gap:4px">
+      <button id="sheet-pin-btn" title="Pin story">📌</button>
+      <button id="sheet-close-btn">✕</button>
+    </div>
   </div>
   <div class="sheet-body">
     <div id="sheet-name"></div>
@@ -1159,7 +1225,10 @@
   </div>
 
   <div class="drawer-section">
-    <div class="drawer-title">Active — <span id="active-count">0</span></div>
+    <div class="drawer-title" style="display:flex;align-items:center;justify-content:space-between">
+      <span>Active — <span id="active-count">0</span></span>
+      <button id="drawer-pin-filter-btn">★ Pinned</button>
+    </div>
     <div id="active-list"></div>
   </div>
 </div>
@@ -1504,6 +1573,7 @@ function addCustomCat() {
 }
 
 function getFiltered() {
+  if (state.filter === '__pinned__') return state.active.filter(s => s.pinned);
   if (state.filter === 'All') return state.active;
   return state.active.filter(s => s.cat === state.filter);
 }
@@ -1512,7 +1582,9 @@ function updateCounter() {
   const count = getFiltered().length;
   const total = state.active.length;
   const el = document.getElementById('counter');
-  if (state.filter === 'All') {
+  if (state.filter === '__pinned__') {
+    el.textContent = `${count} pinned`;
+  } else if (state.filter === 'All') {
     el.textContent = `${total} slip${total !== 1 ? 's' : ''} remaining`;
   } else {
     el.textContent = `${count} · ${state.filter}`;
@@ -1520,7 +1592,6 @@ function updateCounter() {
   document.getElementById('no-slips').style.display = count === 0 ? 'block' : 'none';
   document.getElementById('tap-hint').style.display = count === 0 ? 'none' : 'block';
   updatePeeks(total);
-  document.getElementById('undo-btn').classList.toggle('has-undo', !!state.lastPulled);
 }
 
 function updatePeeks(count) {
@@ -1542,7 +1613,10 @@ function pullSlip() {
   positionHand(); // recalculate for current screen size before animating
   haptic(30);
 
-  const story = pool[Math.floor(Math.random() * pool.length)];
+  // Weighted pool: pinned stories appear 3× as likely
+  const weighted = [];
+  pool.forEach(s => { weighted.push(s); if (s.pinned) { weighted.push(s, s); } });
+  const story = weighted[Math.floor(Math.random() * weighted.length)];
   state.currentSlip = story;
 
   // Part slips as hand enters
@@ -1614,6 +1688,9 @@ function showSlip(story) {
 
   // Reset episode input
   document.getElementById('episode-input').value = '';
+
+  // Reflect pin state on card
+  document.getElementById('card-pin-btn').classList.toggle('pinned', !!story.pinned);
 
   // Reset to front face
   document.getElementById('card-inner').classList.remove('flipped');
@@ -1751,19 +1828,6 @@ function resetSession() {
   closeDrawer();
 }
 
-// ══════ UNDO ══════
-function undoLast() {
-  if (!state.lastPulled) return;
-  const story = state.lastPulled;
-  const idx = state.used.findIndex(s => s.id === story.id);
-  if (idx !== -1) {
-    state.used.splice(idx, 1);
-    state.active.push(story);
-    saveState(); updateCounter();
-  }
-  state.lastPulled = null;
-  document.getElementById('undo-btn').classList.remove('has-undo');
-}
 
 // ══════ DRAWER ══════
 function openDrawer() {
@@ -1792,9 +1856,10 @@ function refreshDrawer() {
     : fUsed.map(s => storyHTML(s,'used')).join('');
 
   const activeList = document.getElementById('active-list');
-  const fActive = filtered(state.active);
+  let fActive = filtered(state.active).slice().sort((a,b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
+  if (drawerPinFilter) fActive = fActive.filter(s => s.pinned);
   activeList.innerHTML = fActive.length === 0
-    ? '<div class="empty-state">Hat is empty.</div>'
+    ? `<div class="empty-state">${drawerPinFilter ? 'No pinned stories yet.' : 'Hat is empty.'}</div>`
     : fActive.map(s => storyHTML(s,'active')).join('');
 
   document.querySelectorAll('.story-item').forEach(item => {
@@ -1824,17 +1889,22 @@ function storyHTML(s, pile) {
   const ep = (pile === 'used' && s.episode)
     ? `<div class="story-item-episode">↳ ${esc(s.episode)}</div>` : '';
   const notesDot = s.notes ? ' <span style="color:rgba(255,45,120,0.5);font-size:8px">●</span>' : '';
+  const pinStar = s.pinned ? '<span class="story-pin-star">★</span>' : '';
   return `<div class="story-item" data-id="${s.id}" data-pile="${pile}" style="cursor:pointer">
-    <div class="story-item-text">
-      <div class="story-item-name">${esc(s.name)}${notesDot}</div>
-      <div class="story-item-cat">${esc(s.cat)}</div>
-      ${ep}
+    <div class="story-item-text" style="display:flex;align-items:center;gap:0">
+      ${pinStar}
+      <div>
+        <div class="story-item-name">${esc(s.name)}${notesDot}</div>
+        <div class="story-item-cat">${esc(s.cat)}</div>
+        ${ep}
+      </div>
     </div>
     <button class="story-item-del" data-id="${s.id}" data-pile="${pile}">×</button>
   </div>`;
 }
 
 // ══════ STORY SHEET ══════
+let drawerPinFilter = false;
 let sheetStory = null, sheetPile = null;
 
 function openStorySheet(story, pile) {
@@ -1854,6 +1924,8 @@ function openStorySheet(story, pile) {
   }
   document.getElementById('sheet-notes-input').value = story.notes || '';
   document.getElementById('sheet-url-input').value = '';
+  const pinBtn = document.getElementById('sheet-pin-btn');
+  pinBtn.classList.toggle('pinned', !!story.pinned);
   renderSheetLinks(story.urls || (story.url ? [story.url] : []));
   const epSec = document.getElementById('sheet-episode-section');
   if (pile === 'used' && story.episode) {
@@ -1908,6 +1980,7 @@ function saveSheet() {
   story.notes = document.getElementById('sheet-notes-input').value.trim() || null;
   story.urls = [...sheetUrls];
   story.url = sheetUrls[0] || null; // backwards compat
+  story.pinned = document.getElementById('sheet-pin-btn').classList.contains('pinned') || false;
   saveState();
   closeStorySheet();
   refreshDrawer();
@@ -2022,6 +2095,18 @@ function spawnShootingStar() {
 document.getElementById('hat-stage').addEventListener('click', pullSlip);
 document.getElementById('slip-overlay-bg').addEventListener('click', () => closeSlip(true));
 document.getElementById('card-front').addEventListener('click', flipCard);
+document.getElementById('card-pin-btn').addEventListener('click', e => {
+  e.stopPropagation();
+  const story = state.currentSlip;
+  if (!story) return;
+  const target = state.active.find(s => s.id === story.id) || state.used.find(s => s.id === story.id);
+  if (!target) return;
+  target.pinned = !target.pinned;
+  story.pinned = target.pinned;
+  document.getElementById('card-pin-btn').classList.toggle('pinned', target.pinned);
+  saveState();
+  refreshDrawer();
+});
 document.getElementById('card-back').addEventListener('click', (e) => {
   if (!e.target.closest('.slip-btn') && !e.target.closest('.expand-btn') && !e.target.closest('#episode-input-wrap') && !e.target.closest('#source-btn')) flipCard();
 });
@@ -2029,9 +2114,13 @@ document.getElementById('expand-btn').addEventListener('click', (e) => { e.stopP
 document.getElementById('btn-mark-used').addEventListener('click', (e) => { e.stopPropagation(); closeSlip(false); });
 document.getElementById('btn-close-slip').addEventListener('click', (e) => { e.stopPropagation(); closeSlip(true); });
 document.getElementById('reset-btn').addEventListener('click', resetSession);
-document.getElementById('undo-btn').addEventListener('click', undoLast);
 document.getElementById('menu-btn').addEventListener('click', openDrawer);
 document.getElementById('drawer-close-btn').addEventListener('click', closeDrawer);
+document.getElementById('drawer-pin-filter-btn').addEventListener('click', () => {
+  drawerPinFilter = !drawerPinFilter;
+  document.getElementById('drawer-pin-filter-btn').classList.toggle('active', drawerPinFilter);
+  refreshDrawer();
+});
 document.getElementById('drawer-overlay').addEventListener('click', closeDrawer);
 document.querySelectorAll('.filter-btn').forEach(b => b.addEventListener('click', () => setFilter(b.dataset.cat)));
 document.getElementById('add-story-btn').addEventListener('click', addStory);
@@ -2040,6 +2129,9 @@ document.getElementById('new-cat-input').addEventListener('keydown', e => { if (
 document.getElementById('export-btn').addEventListener('click', exportStories);
 document.getElementById('story-sheet-overlay').addEventListener('click', closeStorySheet);
 document.getElementById('sheet-close-btn').addEventListener('click', closeStorySheet);
+document.getElementById('sheet-pin-btn').addEventListener('click', () => {
+  document.getElementById('sheet-pin-btn').classList.toggle('pinned');
+});
 document.getElementById('sheet-save-btn').addEventListener('click', saveSheet);
 document.getElementById('sheet-add-link-btn').addEventListener('click', addSheetLink);
 document.getElementById('sheet-url-input').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addSheetLink(); } });
