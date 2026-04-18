@@ -544,20 +544,30 @@
     font-size: 9px; letter-spacing: 2.5px; text-transform: uppercase;
     margin-bottom: 14px; font-weight: 500;
   }
-  #drawer-pin-filter-btn {
-    background: none;
-    border: 1px solid rgba(255,215,0,0.25);
-    color: rgba(255,215,0,0.4);
-    font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase;
-    padding: 3px 10px; border-radius: 20px;
-    cursor: pointer; font-weight: 500;
-    font-family: -apple-system, sans-serif;
-    transition: all 0.2s;
+  #drawer-filter-row {
+    margin-bottom: 14px;
   }
-  #drawer-pin-filter-btn.active {
-    background: rgba(255,215,0,0.12);
-    border-color: #ffd700;
-    color: #ffd700;
+  #drawer-filter-select {
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px;
+    padding: 9px 12px;
+    color: rgba(255,255,255,0.6);
+    font-size: 12px;
+    font-family: -apple-system, sans-serif;
+    cursor: pointer;
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='rgba(255,255,255,0.3)' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 32px;
+    transition: border-color 0.2s;
+  }
+  #drawer-filter-select:focus {
+    border-color: rgba(255,255,255,0.18);
   }
 
   .form-field { margin-bottom: 12px; }
@@ -931,9 +941,7 @@
 
   /* ── DRAWER SEARCH ── */
   .drawer-search {
-    padding: 12px 20px;
-    border-bottom: 1px solid rgba(255,255,255,0.04);
-    position: sticky; top: 0; background: #0c0c14; z-index: 2;
+    margin-bottom: 10px;
   }
   .drawer-search input {
     width: 100%;
@@ -1215,19 +1223,18 @@
     <button class="export-btn" id="export-btn">↓ Download All Stories</button>
   </div>
 
-  <div class="drawer-search">
-    <input type="search" id="search-input" placeholder="Search stories...">
-  </div>
-
   <div class="drawer-section">
     <div class="drawer-title">Used — <span id="used-count">0</span></div>
     <div id="used-list"></div>
   </div>
 
   <div class="drawer-section">
-    <div class="drawer-title" style="display:flex;align-items:center;justify-content:space-between">
-      <span>Active — <span id="active-count">0</span></span>
-      <button id="drawer-pin-filter-btn">★ Pinned</button>
+    <div class="drawer-title">Active — <span id="active-count">0</span></div>
+    <div class="drawer-search">
+      <input type="search" id="search-input" placeholder="Search stories...">
+    </div>
+    <div id="drawer-filter-row">
+      <select id="drawer-filter-select"></select>
     </div>
     <div id="active-list"></div>
   </div>
@@ -1829,6 +1836,23 @@ function resetSession() {
 }
 
 
+// ══════ DRAWER FILTERS ══════
+function buildDrawerFilters() {
+  const sel = document.getElementById('drawer-filter-select');
+  if (!sel) return;
+  const cats = [...new Set(state.active.map(s => s.cat))].sort();
+  const options = [
+    { key: 'all',         label: 'All Stories' },
+    { key: '__pinned__',  label: '★  Pinned' },
+    { key: '__prepped__', label: '✓  Prepped (has notes or links)' },
+    ...cats.map(c => ({ key: c, label: c }))
+  ];
+  sel.innerHTML = options.map(o =>
+    `<option value="${o.key}"${drawerFilter === o.key ? ' selected' : ''}>${o.label}</option>`
+  ).join('');
+  sel.onchange = () => { drawerFilter = sel.value; refreshDrawer(); };
+}
+
 // ══════ DRAWER ══════
 function openDrawer() {
   document.getElementById('drawer').classList.add('open');
@@ -1855,11 +1879,18 @@ function refreshDrawer() {
     ? '<div class="empty-state">Nothing pulled yet.</div>'
     : fUsed.map(s => storyHTML(s,'used')).join('');
 
+  buildDrawerFilters();
+
   const activeList = document.getElementById('active-list');
   let fActive = filtered(state.active).slice().sort((a,b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
-  if (drawerPinFilter) fActive = fActive.filter(s => s.pinned);
+  if      (drawerFilter === '__pinned__')  fActive = fActive.filter(s => s.pinned);
+  else if (drawerFilter === '__prepped__') fActive = fActive.filter(s => s.notes || (s.urls && s.urls.length > 0) || s.url);
+  else if (drawerFilter !== 'all')        fActive = fActive.filter(s => s.cat === drawerFilter);
+  const emptyMsg = drawerFilter === '__pinned__'  ? 'No pinned stories yet.' :
+                   drawerFilter === '__prepped__' ? 'No prepped stories — add notes or links to any story.' :
+                   'Hat is empty.';
   activeList.innerHTML = fActive.length === 0
-    ? `<div class="empty-state">${drawerPinFilter ? 'No pinned stories yet.' : 'Hat is empty.'}</div>`
+    ? `<div class="empty-state">${emptyMsg}</div>`
     : fActive.map(s => storyHTML(s,'active')).join('');
 
   document.querySelectorAll('.story-item').forEach(item => {
@@ -1904,7 +1935,7 @@ function storyHTML(s, pile) {
 }
 
 // ══════ STORY SHEET ══════
-let drawerPinFilter = false;
+let drawerFilter = 'all';
 let sheetStory = null, sheetPile = null;
 
 function openStorySheet(story, pile) {
@@ -2116,11 +2147,6 @@ document.getElementById('btn-close-slip').addEventListener('click', (e) => { e.s
 document.getElementById('reset-btn').addEventListener('click', resetSession);
 document.getElementById('menu-btn').addEventListener('click', openDrawer);
 document.getElementById('drawer-close-btn').addEventListener('click', closeDrawer);
-document.getElementById('drawer-pin-filter-btn').addEventListener('click', () => {
-  drawerPinFilter = !drawerPinFilter;
-  document.getElementById('drawer-pin-filter-btn').classList.toggle('active', drawerPinFilter);
-  refreshDrawer();
-});
 document.getElementById('drawer-overlay').addEventListener('click', closeDrawer);
 document.querySelectorAll('.filter-btn').forEach(b => b.addEventListener('click', () => setFilter(b.dataset.cat)));
 document.getElementById('add-story-btn').addEventListener('click', addStory);
