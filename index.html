@@ -784,9 +784,7 @@
   /* ── EPISODE INPUT ON CARD ── */
   #episode-input-wrap {
     display: flex; align-items: center; gap: 10px;
-    margin-bottom: 10px; flex-shrink: 0;
-    border-bottom: 1px solid rgba(255,255,255,0.07);
-    padding-bottom: 10px;
+    margin-bottom: 6px; flex-shrink: 0;
   }
   #episode-label {
     font-size: 8.5px; letter-spacing: 1.5px; text-transform: uppercase;
@@ -809,28 +807,20 @@
     color: rgba(255,45,120,0.9);
   }
 
-  /* ── SOURCE LINKS ON CARD ── */
-  #source-links {
-    display: none;
-    flex-direction: column;
-    gap: 4px;
-    margin-bottom: 6px;
-    flex-shrink: 0;
-  }
-  #source-links.has-links { display: flex; }
-  .source-link-btn {
+  /* ── VIEW PROFILE BUTTON ON CARD ── */
+  #card-profile-btn {
     background: none; border: none;
-    font-size: 10px; letter-spacing: 1px; text-transform: uppercase;
-    color: var(--cat-color, var(--pink));
-    cursor: pointer; padding: 0;
-    opacity: 0.65; text-align: left;
+    font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase;
+    color: rgba(255,255,255,0.2);
+    cursor: pointer;
+    padding: 8px 0 12px 16px;
     font-family: -apple-system, sans-serif;
     font-weight: 500;
-    transition: opacity 0.15s;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    max-width: 100%;
+    align-self: flex-end;
+    flex-shrink: 0;
+    transition: color 0.15s;
   }
-  .source-link-btn:active { opacity: 1; }
+  #card-profile-btn:active { color: rgba(255,255,255,0.55); }
 
   /* ── PREP NOTES ON CARD ── */
   #card-flag {
@@ -856,88 +846,6 @@
     border-left: 2px solid rgba(255,45,120,0.25);
     font-family: -apple-system, sans-serif;
   }
-  /* Quick inline note on card back */
-  #quick-note-wrap {
-    flex-shrink: 0;
-    margin: 2px 0 10px;
-    position: relative;
-  }
-
-  /* Idle state — empty or has-note */
-  #quick-note-display {
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-    min-height: 20px;
-    transition: opacity 0.15s;
-  }
-  #quick-note-display:active { opacity: 0.6; }
-
-  /* Empty: hairline + pencil icon */
-  #quick-note-display.empty::before {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: rgba(255,255,255,0.07);
-  }
-  #quick-note-display.empty::after {
-    content: '✎';
-    font-size: 13px;
-    color: rgba(255,255,255,0.2);
-    margin-left: 8px;
-    flex-shrink: 0;
-    transition: color 0.15s;
-  }
-  #quick-note-display.empty:active::after { color: rgba(255,45,120,0.5); }
-
-  /* Has note: faint italic text + tiny edit hint */
-  #quick-note-display:not(.empty) {
-    font-size: 11.5px; line-height: 1.5;
-    color: rgba(255,255,255,0.35);
-    font-style: italic;
-    font-family: -apple-system, sans-serif;
-    padding: 1px 0;
-  }
-  #quick-note-display:not(.empty)::after {
-    content: ' ✎';
-    font-style: normal;
-    font-size: 11px;
-    color: rgba(255,255,255,0.13);
-    margin-left: 4px;
-    flex-shrink: 0;
-  }
-
-  /* Editing: iOS-style underline textarea */
-  #quick-note-input {
-    display: none;
-    width: 100%; box-sizing: border-box;
-    background: transparent;
-    border: none;
-    border-bottom: 1px solid rgba(255,45,120,0.3);
-    padding: 4px 26px 8px 0;
-    color: rgba(255,255,255,0.82);
-    font-size: 12px; line-height: 1.55;
-    font-style: italic;
-    font-family: -apple-system, sans-serif;
-    resize: none; outline: none;
-    min-height: 44px;
-    transition: border-color 0.15s;
-  }
-  #quick-note-input:focus { border-bottom-color: rgba(255,45,120,0.55); }
-
-  /* Save: small checkmark overlaid at bottom-right of textarea */
-  #quick-note-save-btn {
-    display: none;
-    position: absolute;
-    bottom: 8px; right: 0;
-    background: none; border: none;
-    font-size: 18px; line-height: 1;
-    color: rgba(255,45,120,0.4);
-    cursor: pointer; padding: 0;
-    transition: color 0.15s, transform 0.12s;
-  }
-  #quick-note-save-btn:active { transform: scale(0.82); color: rgba(255,45,120,0.9); }
-  #quick-note-save-btn.saved { color: rgba(80,210,110,0.85); }
   /* Depth badge on card back */
   #card-depth {
     display: none;
@@ -1363,17 +1271,12 @@
         <div class="slip-hook-long" id="slip-hook-long"></div>
         <div id="card-flag"></div>
         <div id="card-notes"></div>
-        <div id="quick-note-wrap">
-          <div id="quick-note-display" class="empty"></div>
-          <textarea id="quick-note-input" placeholder="Quick note..." rows="2"></textarea>
-          <button type="button" id="quick-note-save-btn">✓</button>
-        </div>
-        <div id="source-links"></div>
         <div class="hook-spacer"></div>
         <div id="episode-input-wrap">
           <span id="episode-label">Episode</span>
           <input type="text" id="episode-input" placeholder="Ep 1 (optional)" maxlength="40">
         </div>
+        <button type="button" id="card-profile-btn">View Profile →</button>
         <div class="slip-actions">
           <button class="slip-btn slip-btn-used" id="btn-mark-used">✓ Used</button>
           <button class="slip-btn slip-btn-close" id="btn-close-slip">Return</button>
@@ -2044,20 +1947,7 @@ function showSlip(story) {
   } else {
     flagEl.style.display = 'none';
   }
-  // User prep notes (static display — quick-note-wrap handles inline editing)
   document.getElementById('card-notes').style.display = 'none';
-  // Quick inline note
-  const qDisplay = document.getElementById('quick-note-display');
-  const qInput   = document.getElementById('quick-note-input');
-  qInput.style.display = 'none';
-  document.getElementById('quick-note-save-btn').style.display = 'none';
-  if (story.notes) {
-    qDisplay.textContent = story.notes;
-    qDisplay.classList.remove('empty');
-  } else {
-    qDisplay.textContent = '';
-    qDisplay.classList.add('empty');
-  }
   // Depth badge
   const depthEl = document.getElementById('card-depth');
   const depthLabels = { quick: '⚡ Quick Hit', medium: '◎ Medium', deep: '🕳 Deep Dive' };
@@ -2068,21 +1958,6 @@ function showSlip(story) {
     depthEl.style.display = 'none';
   }
 
-  // Source links
-  const srcLinks = document.getElementById('source-links');
-  const urls = story.urls || (story.url ? [story.url] : []);
-  if (urls.length > 0) {
-    srcLinks.classList.add('has-links');
-    srcLinks.innerHTML = urls.map((u, i) =>
-      `<button class="source-link-btn" data-idx="${i}">🔗 ${esc(u.replace(/^https?:\/\/(www\.)?/,'').split('/')[0])}</button>`
-    ).join('');
-    srcLinks.querySelectorAll('.source-link-btn').forEach((btn, i) => {
-      btn.onclick = (e) => { e.stopPropagation(); window.open(urls[i], '_blank', 'noopener,noreferrer'); };
-    });
-  } else {
-    srcLinks.classList.remove('has-links');
-    srcLinks.innerHTML = '';
-  }
 
   // Reset episode input and Used button state
   const epInput = document.getElementById('episode-input');
@@ -2167,7 +2042,10 @@ function spawnSparkles() {  // kept same name so showSlip() call is unchanged
 function fitCardToBack() {
   const scene = document.getElementById('card-scene');
   const back  = document.getElementById('card-back');
+  // Temporarily zero min-height so scrollHeight reflects true content, not the scene's current size
+  back.style.minHeight = '0';
   const h = Math.max(320, back.scrollHeight);
+  back.style.minHeight = '';
   scene.style.height = h + 'px';
 }
 
@@ -2665,7 +2543,14 @@ document.getElementById('card-pin-btn').addEventListener('click', e => {
   refreshDrawer();
 });
 document.getElementById('card-back').addEventListener('click', (e) => {
-  if (!e.target.closest('.slip-btn') && !e.target.closest('.expand-btn') && !e.target.closest('#episode-input-wrap') && !e.target.closest('#source-btn') && !e.target.closest('#quick-note-wrap')) flipCard();
+  if (!e.target.closest('.slip-btn') && !e.target.closest('.expand-btn') && !e.target.closest('#episode-input-wrap') && !e.target.closest('#card-profile-btn')) flipCard();
+});
+document.getElementById('card-profile-btn').addEventListener('click', (e) => {
+  e.stopPropagation();
+  const story = state.currentSlip;
+  if (!story) return;
+  const pile = state.used.find(s => s.id === story.id) ? 'used' : 'active';
+  openStorySheet(story, pile);
 });
 document.getElementById('expand-btn').addEventListener('click', (e) => { e.stopPropagation(); toggleExpand(); });
 document.getElementById('episode-input').addEventListener('keydown', (e) => {
@@ -2754,67 +2639,6 @@ document.querySelectorAll('.depth-btn').forEach(btn => {
   });
 });
 
-// Quick inline note on card back
-function saveQuickNote(andClose) {
-  const story = state.currentSlip;
-  if (!story) return;
-  const qInput   = document.getElementById('quick-note-input');
-  const qDisplay = document.getElementById('quick-note-display');
-  const qSave    = document.getElementById('quick-note-save-btn');
-  const val = qInput.value.trim() || null;
-  const target = state.active.find(s => s.id === story.id) || state.used.find(s => s.id === story.id);
-  if (target) { target.notes = val; story.notes = val; saveState(); }
-  if (andClose) {
-    qInput.style.display = 'none';
-    qSave.style.display = 'none';
-    qDisplay.style.display = '';
-    if (val) {
-      qDisplay.textContent = val;
-      qDisplay.classList.remove('empty');
-    } else {
-      qDisplay.textContent = '';
-      qDisplay.classList.add('empty');
-    }
-    fitCardToBack();
-  } else {
-    // Flash ✓ green, stay open
-    qSave.classList.add('saved');
-    setTimeout(() => qSave.classList.remove('saved'), 1500);
-    fitCardToBack();
-  }
-}
-
-document.getElementById('quick-note-display').addEventListener('click', () => {
-  const story = state.currentSlip;
-  if (!story) return;
-  const qDisplay = document.getElementById('quick-note-display');
-  const qInput   = document.getElementById('quick-note-input');
-  const qSave    = document.getElementById('quick-note-save-btn');
-  qInput.value = story.notes || '';
-  qDisplay.style.display = 'none';
-  qInput.style.display = 'block';
-  qSave.style.display = 'block';
-  qSave.classList.remove('saved');
-  qInput.focus();
-  fitCardToBack();
-});
-
-document.getElementById('quick-note-save-btn').addEventListener('mousedown', (e) => {
-  // mousedown prevents textarea blur from firing first
-  e.preventDefault();
-});
-document.getElementById('quick-note-save-btn').addEventListener('click', (e) => {
-  e.stopPropagation();
-  saveQuickNote(false); // save + flash, stay open
-});
-
-document.getElementById('quick-note-input').addEventListener('blur', () => {
-  // Only auto-close on blur if save button wasn't just clicked
-  const qSave = document.getElementById('quick-note-save-btn');
-  if (qSave.style.display !== 'none') {
-    saveQuickNote(true);
-  }
-});
 
 // Escape key closes whatever is open
 document.addEventListener('keydown', e => {
