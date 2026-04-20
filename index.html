@@ -173,10 +173,29 @@
     0%   { opacity: 0;   transform: translateX(var(--hand-x-start, -130vw)) translateY(0px)   rotate(-4deg); }
     10%  { opacity: 1;   transform: translateX(var(--hand-x-enter, -80vw))  translateY(6px)   rotate(-3deg); }
     36%  { opacity: 1;   transform: translateX(var(--hand-x-peak,  -55vw))  translateY(16px)  rotate(-1deg); }
-    52%  { opacity: 1;   transform: translateX(var(--hand-x-hold,  -57vw))  translateY(14px)  rotate(-1deg); }
+    /* rummage — digging around in the hat */
+    41%  { opacity: 1;   transform: translateX(var(--hand-x-hold,  -57vw))  translateY(22px)  rotate(-2.5deg); }
+    46%  { opacity: 1;   transform: translateX(var(--hand-x-peak,  -55vw))  translateY(13px)  rotate(0.5deg); }
+    51%  { opacity: 1;   transform: translateX(var(--hand-x-hold,  -57vw))  translateY(20px)  rotate(-2deg); }
+    /* snap — grabbed something, yanks up */
+    57%  { opacity: 1;   transform: translateX(var(--hand-x-hold,  -57vw))  translateY(2px)   rotate(-4deg); }
     74%  { opacity: 1;   transform: translateX(var(--hand-x-enter, -80vw))  translateY(6px)   rotate(-3deg); }
     90%  { opacity: 0.4; transform: translateX(var(--hand-x-exit,  -110vw)) translateY(2px)   rotate(-4deg); }
     100% { opacity: 0;   transform: translateX(var(--hand-x-start, -130vw)) translateY(0px)   rotate(-4deg); }
+  }
+
+  /* Hat shudder when the arm is rummaging inside */
+  @keyframes hatShudder {
+    0%   { transform: rotate(0deg)    translateX(0px); }
+    18%  { transform: rotate(-1.8deg) translateX(-3px); }
+    36%  { transform: rotate(1.4deg)  translateX(2px); }
+    52%  { transform: rotate(-1.1deg) translateX(-2px); }
+    68%  { transform: rotate(0.7deg)  translateX(1px); }
+    84%  { transform: rotate(-0.4deg) translateX(0px); }
+    100% { transform: rotate(0deg)    translateX(0px); }
+  }
+  #hat-img.shuddering {
+    animation: hatShudder 0.55s ease-in-out;
   }
 
   /* ── TAP HINT ── */
@@ -221,6 +240,16 @@
     z-index: 100;
   }
   #filters::-webkit-scrollbar { display: none; }
+  /* Right-edge fade — standalone fixed div, never inside the overflow container */
+  #filter-fade {
+    position: fixed;
+    bottom: 0; right: 0;
+    width: 44px;
+    height: 80px;
+    background: linear-gradient(to left, rgba(7,7,13,0.92) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 101;
+  }
 
   .filter-btn {
     padding: clamp(6px, 0.75vh, 10px) clamp(14px, 1.2vw, 24px);
@@ -373,7 +402,7 @@
     position: absolute; bottom: 18px; left: 0; right: 0;
     text-align: center;
     font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
-    color: rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.48);
     font-family: -apple-system, sans-serif;
     animation: hintPulse 2s ease-in-out infinite;
   }
@@ -544,6 +573,19 @@
     font-size: 9px; letter-spacing: 2.5px; text-transform: uppercase;
     margin-bottom: 14px; font-weight: 500;
   }
+  .drawer-title-toggle {
+    display: flex; align-items: center; justify-content: space-between;
+    cursor: pointer; user-select: none; margin-bottom: 0;
+  }
+  .drawer-title-toggle .toggle-icon {
+    font-size: 14px; color: rgba(255,45,120,0.5); transition: transform 0.2s;
+    margin-bottom: 0; line-height: 1;
+  }
+  .drawer-title-toggle.open .toggle-icon { transform: rotate(45deg); }
+  .add-story-form, #add-story-form {
+    display: none; margin-top: 14px;
+  }
+  .add-story-form.open, #add-story-form.open { display: block; }
   #drawer-filter-row {
     margin-bottom: 14px;
   }
@@ -704,10 +746,12 @@
     }
     /* Filter strip — proper mobile touch targets */
     #filters {
-      padding: 12px 20px env(safe-area-inset-bottom, 26px);
-      padding-bottom: max(26px, env(safe-area-inset-bottom, 26px));
+      padding: 12px 52px max(26px, env(safe-area-inset-bottom, 26px)) 20px;
       gap: 8px;
       justify-content: flex-start;
+    }
+    #filter-fade {
+      height: calc(72px + env(safe-area-inset-bottom, 0px));
     }
     .filter-btn {
       padding: 11px 18px;
@@ -778,6 +822,17 @@
   .source-link-btn:active { opacity: 1; }
 
   /* ── PREP NOTES ON CARD ── */
+  #card-flag {
+    display: none;
+    font-size: 11px; line-height: 1.5;
+    color: rgba(255,200,80,0.9);
+    margin-bottom: 8px; flex-shrink: 0;
+    padding: 6px 10px;
+    background: rgba(255,180,0,0.07);
+    border-radius: 4px;
+    border-left: 2px solid rgba(255,180,0,0.4);
+    font-family: -apple-system, sans-serif;
+  }
   #card-notes {
     display: none;
     font-size: 11.5px; line-height: 1.55;
@@ -789,6 +844,65 @@
     border-radius: 4px;
     border-left: 2px solid rgba(255,45,120,0.25);
     font-family: -apple-system, sans-serif;
+  }
+  /* Quick inline note on card back */
+  #quick-note-wrap {
+    flex-shrink: 0;
+    margin-bottom: 8px;
+  }
+  #quick-note-display {
+    font-size: 11.5px; line-height: 1.55;
+    color: rgba(255,255,255,0.35);
+    font-style: italic;
+    padding: 6px 8px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 4px;
+    border-left: 2px solid rgba(255,45,120,0.25);
+    font-family: -apple-system, sans-serif;
+    cursor: text; min-height: 30px;
+  }
+  #quick-note-display.empty {
+    color: rgba(255,255,255,0.18);
+    font-style: normal;
+    font-size: 11px; letter-spacing: 0.5px;
+  }
+  #quick-note-input {
+    display: none;
+    width: 100%; box-sizing: border-box;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,45,120,0.35);
+    border-radius: 4px; border-left: 2px solid rgba(255,45,120,0.5);
+    padding: 6px 8px;
+    color: rgba(255,255,255,0.85);
+    font-size: 11.5px; line-height: 1.55;
+    font-style: italic;
+    font-family: -apple-system, sans-serif;
+    resize: none; outline: none;
+    min-height: 56px;
+  }
+  /* Depth badge on card back */
+  #card-depth {
+    display: none;
+    font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase;
+    color: rgba(255,255,255,0.3);
+    font-family: -apple-system, sans-serif;
+    margin-bottom: 10px; flex-shrink: 0;
+  }
+  /* Depth selector in story sheet */
+  .depth-selector {
+    display: flex; gap: 8px;
+  }
+  .depth-btn {
+    flex: 1; padding: 8px 4px; border-radius: 8px; font-size: 11px;
+    font-family: -apple-system, sans-serif; font-weight: 500; cursor: pointer;
+    letter-spacing: 0.5px; text-align: center; transition: all 0.15s;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.4);
+  }
+  .depth-btn.active {
+    border-color: rgba(255,45,120,0.5);
+    background: rgba(255,45,120,0.12);
+    color: rgba(255,255,255,0.88);
   }
 
   /* ── STORY PROFILE SHEET ── */
@@ -860,6 +974,30 @@
     transition: color 0.2s;
   }
   #sheet-close-btn:active { color: var(--pink); }
+  #sheet-edit-btn {
+    background: none; border: none;
+    color: rgba(255,255,255,0.2); font-size: 13px;
+    cursor: pointer; padding: 4px 6px; line-height: 1;
+    transition: color 0.2s; margin-right: 2px;
+    font-family: -apple-system, sans-serif;
+    letter-spacing: 0.5px;
+  }
+  #sheet-edit-btn:hover { color: rgba(255,255,255,0.5); }
+  #sheet-edit-btn.active { color: var(--pink); }
+  /* Editable fields shown when editing a custom story */
+  #sheet-edit-fields { display: none; }
+  #sheet-edit-fields.visible { display: block; }
+  .sheet-edit-input {
+    width: 100%; box-sizing: border-box;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px; padding: 10px 12px;
+    color: rgba(255,255,255,0.85); font-size: 14px;
+    font-family: -apple-system, sans-serif;
+    outline: none; resize: vertical;
+    transition: border-color 0.2s;
+  }
+  .sheet-edit-input:focus { border-color: rgba(255,45,120,0.4); }
 
   .sheet-body { padding: 10px 20px 32px; }
   #sheet-name {
@@ -1141,6 +1279,9 @@
   </div>
 </div>
 
+<!-- Filter right-edge fade — must be outside #filters (overflow container) -->
+<div id="filter-fade"></div>
+
 <!-- Buttons -->
 <button class="icon-btn" id="menu-btn">≡</button>
 
@@ -1158,10 +1299,16 @@
       </div>
       <!-- BACK: hook + actions -->
       <div class="card-face" id="card-back">
+        <div id="card-depth"></div>
         <div class="slip-hook-short" id="slip-hook-short"></div>
         <button class="expand-btn" id="expand-btn">read more ↓</button>
         <div class="slip-hook-long" id="slip-hook-long"></div>
+        <div id="card-flag"></div>
         <div id="card-notes"></div>
+        <div id="quick-note-wrap">
+          <div id="quick-note-display" class="empty">+ note</div>
+          <textarea id="quick-note-input" placeholder="Quick note..." rows="2"></textarea>
+        </div>
         <div id="source-links"></div>
         <div class="hook-spacer"></div>
         <div id="episode-input-wrap">
@@ -1170,7 +1317,7 @@
         </div>
         <div class="slip-actions">
           <button class="slip-btn slip-btn-used" id="btn-mark-used">✓ Used</button>
-          <button class="slip-btn slip-btn-close" id="btn-close-slip">Put Back</button>
+          <button class="slip-btn slip-btn-close" id="btn-close-slip">Return to Deck</button>
         </div>
       </div>
     </div>
@@ -1184,12 +1331,32 @@
   <div class="sheet-header">
     <div id="sheet-cat-badge"></div>
     <div style="display:flex;align-items:center;gap:4px">
+      <button id="sheet-edit-btn" title="Edit story" style="display:none">✎</button>
       <button id="sheet-pin-btn" title="Pin story">📌</button>
       <button id="sheet-close-btn">✕</button>
     </div>
   </div>
   <div class="sheet-body">
     <div id="sheet-name"></div>
+    <!-- Edit fields — only shown for custom (user-added) stories -->
+    <div id="sheet-edit-fields">
+      <div class="sheet-section">
+        <div class="sheet-label">Name</div>
+        <input type="text" id="sheet-edit-name" class="sheet-edit-input" placeholder="Story name">
+      </div>
+      <div class="sheet-section">
+        <div class="sheet-label">Short Hook</div>
+        <textarea id="sheet-edit-hook-short" class="sheet-edit-input" placeholder="One punchy line..." style="min-height:60px"></textarea>
+      </div>
+      <div class="sheet-section">
+        <div class="sheet-label">Full Hook</div>
+        <textarea id="sheet-edit-hook" class="sheet-edit-input" placeholder="The longer version..." style="min-height:80px"></textarea>
+      </div>
+      <div class="sheet-section">
+        <div class="sheet-label">Category</div>
+        <select id="sheet-edit-cat" class="sheet-edit-input"></select>
+      </div>
+    </div>
     <div class="sheet-section" id="sheet-hook-short-section">
       <div class="sheet-label">Hook</div>
       <div id="sheet-hook-short" class="sheet-hook-short"></div>
@@ -1197,6 +1364,14 @@
     <div class="sheet-section" id="sheet-hook-long-section">
       <div class="sheet-label">Full Story</div>
       <div id="sheet-hook-long" class="sheet-hook-long"></div>
+    </div>
+    <div class="sheet-section">
+      <div class="sheet-label">Depth</div>
+      <div class="depth-selector">
+        <button type="button" class="depth-btn" data-depth="quick">Quick Hit</button>
+        <button type="button" class="depth-btn" data-depth="medium">Medium</button>
+        <button type="button" class="depth-btn" data-depth="deep">Deep Dive</button>
+      </div>
     </div>
     <div class="sheet-section" id="sheet-flag-section" style="display:none">
       <div class="sheet-label">Stream Flag</div>
@@ -1231,7 +1406,10 @@
   </div>
 
   <div class="drawer-section">
-    <div class="drawer-title">Add Story</div>
+    <div class="drawer-title drawer-title-toggle" id="add-story-toggle">
+      Add Story <span class="toggle-icon">+</span>
+    </div>
+    <div id="add-story-form" class="add-story-form">
     <div class="form-field">
       <label>Name</label>
       <input type="text" id="add-name" placeholder="Story name...">
@@ -1275,29 +1453,45 @@
       <textarea id="add-notes" placeholder="Reminders for filming..." style="min-height:60px"></textarea>
     </div>
     <button class="submit-btn" id="add-story-btn">Add to Hat</button>
+    </div><!-- /add-story-form -->
   </div>
 
   <div class="drawer-section">
-    <div class="drawer-title">Session</div>
-    <button class="export-btn" id="reset-btn" style="margin-bottom:8px">↺ Reset Session — Put All Back</button>
-    <button class="export-btn" id="export-btn">↓ Download All Stories</button>
-  </div>
-
-  <div class="drawer-section">
-    <div class="drawer-title">Used — <span id="used-count">0</span></div>
-    <div id="used-list"></div>
-  </div>
-
-  <div class="drawer-section">
-    <div class="drawer-title">Active — <span id="active-count">0</span></div>
-    <div class="drawer-search">
-      <input type="text" id="search-input" placeholder="Search stories..." autocomplete="off">
-      <button id="search-clear-btn" title="Clear search">×</button>
+    <div class="drawer-title drawer-title-toggle" id="session-toggle">
+      Session <span class="toggle-icon">+</span>
     </div>
-    <div id="drawer-filter-row">
-      <select id="drawer-filter-select"></select>
+    <div id="session-form" class="add-story-form">
+      <div style="height:14px"></div>
+      <button class="export-btn" id="reset-btn" style="margin-bottom:8px">↺ Reset Session — Put All Back</button>
+      <button class="export-btn" id="export-btn">↓ Download All Stories</button>
     </div>
-    <div id="active-list"></div>
+  </div>
+
+  <div class="drawer-section">
+    <div class="drawer-title drawer-title-toggle" id="used-toggle">
+      Used — <span id="used-count">0</span> <span class="toggle-icon">+</span>
+    </div>
+    <div id="used-form" class="add-story-form">
+      <div style="height:14px"></div>
+      <div id="used-list"></div>
+    </div>
+  </div>
+
+  <div class="drawer-section">
+    <div class="drawer-title drawer-title-toggle" id="active-toggle">
+      Active — <span id="active-count">0</span> <span class="toggle-icon">+</span>
+    </div>
+    <div id="active-form" class="add-story-form open">
+      <div style="height:14px"></div>
+      <div class="drawer-search">
+        <input type="text" id="search-input" placeholder="Search stories..." autocomplete="off">
+        <button id="search-clear-btn" title="Clear search">×</button>
+      </div>
+      <div id="drawer-filter-row">
+        <select id="drawer-filter-select"></select>
+      </div>
+      <div id="active-list"></div>
+    </div>
   </div>
 </div>
 
@@ -1575,14 +1769,16 @@ function _applyRemoteState(active, used) {
   DEFAULT_STORIES.forEach(s => { defaultMap[s.name] = s; });
   const merge = arr => arr.map(s => {
     const d = defaultMap[s.name];
+    // If user has manually edited this story, preserve their changes
+    const userEdited = s.edited;
     return {
       ...s,
-      hookShort: d ? d.hookShort : (s.hookShort || null),
-      hook:      d ? d.hook      : (s.hook || s.hookShort || null),
-      cat:       d ? d.cat       : s.cat,
+      hookShort: (d && !userEdited) ? d.hookShort : (s.hookShort || null),
+      hook:      (d && !userEdited) ? d.hook      : (s.hook || s.hookShort || null),
+      cat:       (d && !userEdited) ? d.cat       : s.cat,
       urls:      s.urls || (s.url ? [s.url] : []),
       notes:     s.notes || null,
-      flag:      d ? d.flag : (s.flag || null),
+      flag:      (d && !userEdited) ? (d.flag || null) : (s.flag || null),
     };
   });
   state.active = merge(active);
@@ -1740,6 +1936,15 @@ function pullSlip() {
   void hand.offsetWidth;
   hand.classList.add('animating');
 
+  // Hat shudder fires when hand hits peak (36% of 2.4s), runs 0.55s through the rummage
+  const hatImg = document.getElementById('hat-img');
+  setTimeout(() => {
+    hatImg.classList.remove('shuddering');
+    void hatImg.offsetWidth; // force reflow so animation restarts if pulled again quickly
+    hatImg.classList.add('shuddering');
+    setTimeout(() => hatImg.classList.remove('shuddering'), 560);
+  }, 865);
+
   setTimeout(() => showSlip(story), 1300);
   setTimeout(() => { hand.classList.remove('animating'); state.animating = false; }, 2700);
 }
@@ -1769,14 +1974,36 @@ function showSlip(story) {
     expandBtn.classList.add('hidden');
   }
 
-  // Prep notes + flag
-  const notesEl = document.getElementById('card-notes');
-  const cardText = [story.flag, story.notes].filter(Boolean).join('\n\n');
-  if (cardText) {
-    notesEl.textContent = cardText;
-    notesEl.style.display = 'block';
+  // Flag — prominent warning strip
+  const flagEl = document.getElementById('card-flag');
+  if (story.flag) {
+    flagEl.textContent = story.flag;
+    flagEl.style.display = 'block';
   } else {
-    notesEl.style.display = 'none';
+    flagEl.style.display = 'none';
+  }
+  // User prep notes (static display — quick-note-wrap handles inline editing)
+  document.getElementById('card-notes').style.display = 'none';
+  // Quick inline note
+  const qDisplay = document.getElementById('quick-note-display');
+  const qInput   = document.getElementById('quick-note-input');
+  qInput.style.display = 'none';
+  if (story.notes) {
+    qDisplay.textContent = story.notes;
+    qDisplay.classList.remove('empty');
+  } else {
+    qDisplay.textContent = '+ note';
+    qDisplay.classList.add('empty');
+  }
+  qDisplay.style.display = '';
+  // Depth badge
+  const depthEl = document.getElementById('card-depth');
+  const depthLabels = { quick: '⚡ Quick Hit', medium: '◎ Medium', deep: '🕳 Deep Dive' };
+  if (story.depth && depthLabels[story.depth]) {
+    depthEl.textContent = depthLabels[story.depth];
+    depthEl.style.display = 'block';
+  } else {
+    depthEl.style.display = 'none';
   }
 
   // Source links
@@ -2105,6 +2332,8 @@ function openStorySheet(story, pile) {
   const flagSec = document.getElementById('sheet-flag-section');
   document.getElementById('sheet-flag-box').value = story.flag || '';
   flagSec.style.display = '';
+  // Depth selector
+  document.querySelectorAll('.depth-btn').forEach(b => b.classList.toggle('active', b.dataset.depth === (story.depth || '')));
   document.getElementById('sheet-url-input').value = '';
   const pinBtn = document.getElementById('sheet-pin-btn');
   pinBtn.classList.toggle('pinned', !!story.pinned);
@@ -2115,6 +2344,21 @@ function openStorySheet(story, pile) {
     document.getElementById('sheet-episode-wrap').textContent = '↳ ' + story.episode;
   } else {
     epSec.style.display = 'none';
+  }
+  // Edit button — available for all stories
+  const editBtn = document.getElementById('sheet-edit-btn');
+  const editFields = document.getElementById('sheet-edit-fields');
+  editBtn.style.display = '';
+  // Populate category select with all known cats
+  const allCats = [...Object.keys(CAT_COLORS), ...getCustomCats()].filter((v,i,a)=>a.indexOf(v)===i);
+  const catSel = document.getElementById('sheet-edit-cat');
+  catSel.innerHTML = allCats.map(c => `<option value="${esc(c)}"${c===story.cat?' selected':''}>${esc(c)}</option>`).join('');
+  if (!editBtn.classList.contains('active')) {
+    editFields.classList.remove('visible');
+  } else {
+    document.getElementById('sheet-edit-name').value = story.name;
+    document.getElementById('sheet-edit-hook-short').value = story.hookShort || '';
+    document.getElementById('sheet-edit-hook').value = story.hook || '';
   }
   document.getElementById('story-sheet').classList.add('open');
   document.getElementById('story-sheet-overlay').classList.add('visible');
@@ -2187,6 +2431,17 @@ function saveSheet() {
   story.urls  = [...sheetUrls];
   story.url   = sheetUrls[0] || null; // backwards compat
   story.pinned = document.getElementById('sheet-pin-btn').classList.contains('pinned') || false;
+  const activeDepth = document.querySelector('.depth-btn.active');
+  story.depth = activeDepth ? activeDepth.dataset.depth : null;
+  // Save edits for custom stories
+  if (document.getElementById('sheet-edit-btn').classList.contains('active')) {
+    const newName = document.getElementById('sheet-edit-name').value.trim();
+    if (newName) story.name = newName;
+    story.hookShort = document.getElementById('sheet-edit-hook-short').value.trim() || story.hookShort;
+    story.hook      = document.getElementById('sheet-edit-hook').value.trim() || story.hook;
+    story.cat       = document.getElementById('sheet-edit-cat').value;
+    story.edited    = true; // prevents merge from overwriting with defaults on reload
+  }
   saveState();
   closeStorySheet();
   refreshDrawer();
@@ -2208,7 +2463,7 @@ function addStory() {
     return;
   }
   const urls = url ? [url.startsWith('http') ? url : 'https://' + url] : [];
-  state.active.push({id:Date.now(), name, hookShort, hook: hook || hookShort, cat, url: urls[0] || null, urls, notes});
+  state.active.push({id:Date.now(), name, hookShort, hook: hook || hookShort, cat, url: urls[0] || null, urls, notes, custom: true});
   saveState(); updateCounter();
   document.getElementById('add-name').value = '';
   document.getElementById('add-hook-short').value = '';
@@ -2319,7 +2574,7 @@ document.getElementById('card-pin-btn').addEventListener('click', e => {
   refreshDrawer();
 });
 document.getElementById('card-back').addEventListener('click', (e) => {
-  if (!e.target.closest('.slip-btn') && !e.target.closest('.expand-btn') && !e.target.closest('#episode-input-wrap') && !e.target.closest('#source-btn')) flipCard();
+  if (!e.target.closest('.slip-btn') && !e.target.closest('.expand-btn') && !e.target.closest('#episode-input-wrap') && !e.target.closest('#source-btn') && !e.target.closest('#quick-note-wrap')) flipCard();
 });
 document.getElementById('expand-btn').addEventListener('click', (e) => { e.stopPropagation(); toggleExpand(); });
 document.getElementById('btn-mark-used').addEventListener('click', (e) => { e.stopPropagation(); closeSlip(false); });
@@ -2341,6 +2596,17 @@ document.getElementById('sheet-close-btn').addEventListener('click', maybeCloseS
 document.getElementById('sheet-pin-btn').addEventListener('click', () => {
   document.getElementById('sheet-pin-btn').classList.toggle('pinned');
 });
+document.getElementById('sheet-edit-btn').addEventListener('click', () => {
+  const btn = document.getElementById('sheet-edit-btn');
+  const fields = document.getElementById('sheet-edit-fields');
+  const on = btn.classList.toggle('active');
+  fields.classList.toggle('visible', on);
+  if (on && sheetStory) {
+    document.getElementById('sheet-edit-name').value = sheetStory.name;
+    document.getElementById('sheet-edit-hook-short').value = sheetStory.hookShort || '';
+    document.getElementById('sheet-edit-hook').value = sheetStory.hook || '';
+  }
+});
 document.getElementById('sheet-save-btn').addEventListener('click', saveSheet);
 document.getElementById('sheet-add-link-btn').addEventListener('click', addSheetLink);
 document.getElementById('sheet-url-input').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addSheetLink(); } });
@@ -2353,6 +2619,62 @@ document.getElementById('search-clear-btn').addEventListener('click', () => {
   document.getElementById('search-input').value = '';
   document.getElementById('search-clear-btn').style.display = 'none';
   refreshDrawer();
+});
+
+// Depth buttons
+document.querySelectorAll('.depth-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const already = btn.classList.contains('active');
+    document.querySelectorAll('.depth-btn').forEach(b => b.classList.remove('active'));
+    if (!already) btn.classList.add('active'); // tap again to deselect
+  });
+});
+
+// Collapsible drawer sections
+[
+  ['add-story-toggle', 'add-story-form'],
+  ['session-toggle',   'session-form'],
+  ['used-toggle',      'used-form'],
+  ['active-toggle',    'active-form'],
+].forEach(([toggleId, formId]) => {
+  document.getElementById(toggleId).addEventListener('click', () => {
+    const form   = document.getElementById(formId);
+    const toggle = document.getElementById(toggleId);
+    const open   = form.classList.toggle('open');
+    toggle.classList.toggle('open', open);
+  });
+});
+
+// Quick inline note on card back
+document.getElementById('quick-note-display').addEventListener('click', () => {
+  const story = state.currentSlip;
+  if (!story) return;
+  const qDisplay = document.getElementById('quick-note-display');
+  const qInput   = document.getElementById('quick-note-input');
+  qInput.value = story.notes || '';
+  qDisplay.style.display = 'none';
+  qInput.style.display = 'block';
+  qInput.focus();
+});
+document.getElementById('quick-note-input').addEventListener('blur', () => {
+  const story = state.currentSlip;
+  if (!story) return;
+  const qInput   = document.getElementById('quick-note-input');
+  const qDisplay = document.getElementById('quick-note-display');
+  const val = qInput.value.trim() || null;
+  // Save to state directly
+  const target = state.active.find(s => s.id === story.id) || state.used.find(s => s.id === story.id);
+  if (target) { target.notes = val; story.notes = val; saveState(); }
+  // Update display
+  qInput.style.display = 'none';
+  if (val) {
+    qDisplay.textContent = val;
+    qDisplay.classList.remove('empty');
+  } else {
+    qDisplay.textContent = '+ note';
+    qDisplay.classList.add('empty');
+  }
+  qDisplay.style.display = '';
 });
 
 // Escape key closes whatever is open
