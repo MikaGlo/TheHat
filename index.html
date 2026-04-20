@@ -157,7 +157,7 @@
 
   #hand-container img {
     width: 100%; height: auto; display: block;
-    transform: scaleX(-1);       /* flip: fingers now on RIGHT, arm extends LEFT off-screen */
+    /* no flip needed — cat arm claws are already on the right */
     mix-blend-mode: multiply;    /* remove white background on dark app bg */
     filter: drop-shadow(0px 10px 18px rgba(0,0,0,0.55));  /* depth shadow over scene */
   }
@@ -1107,7 +1107,7 @@
     <div id="hat-shadow"></div>
     <!-- Hand — original style, hidden until pull -->
     <div id="hand-container">
-      <img src="LongHand.png" alt="">
+      <img src="catarm.png" alt="">
     </div>
 
     <div id="hat-rebuild">
