@@ -304,7 +304,7 @@
     perspective: 900px;
     transform: scale(0.78) translateY(36px);
     opacity: 0;
-    transition: transform 0.52s cubic-bezier(0.34,1.56,0.64,1), opacity 0.22s ease;
+    transition: height 0.3s ease, transform 0.52s cubic-bezier(0.34,1.56,0.64,1), opacity 0.22s ease;
     cursor: pointer;
   }
 
@@ -327,45 +327,43 @@
     position: absolute; inset: 0;
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
-    border-radius: 12px;
-    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 18px;
+    border: 1px solid rgba(255,255,255,0.07);
     box-shadow:
-      0 32px 80px rgba(0,0,0,0.85),
-      0 0 60px rgba(255,45,120,0.08),
-      inset 0 1px 0 rgba(255,255,255,0.05);
+      0 12px 40px rgba(0,0,0,0.55),
+      0 32px 72px rgba(0,0,0,0.4),
+      0 0 48px rgba(255,45,120,0.06),
+      inset 0 1px 0 rgba(255,255,255,0.07);
     backdrop-filter: blur(40px);
     -webkit-backdrop-filter: blur(40px);
   }
 
   /* FRONT — name only */
   #card-front {
-    background: linear-gradient(145deg, rgba(22,18,36,0.97) 0%, rgba(14,11,24,0.99) 100%);
-    border-top: 1px solid rgba(255,45,120,0.3);
+    background: linear-gradient(160deg, rgba(24,20,38,0.98) 0%, rgba(13,10,22,0.99) 100%);
+    border-top: 1px solid rgba(255,45,120,0.25);
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
-    padding: 36px 28px;
+    padding: 40px 28px 32px;
     text-align: center;
   }
 
   .slip-category {
-    display: inline-block;
-    padding: 4px 10px;
-    border-radius: 6px;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.1);
     color: var(--cat-color, var(--pink));
-    font-size: 9px; letter-spacing: 2.5px;
+    font-size: 8.5px; letter-spacing: 3px;
     text-transform: uppercase;
-    margin-bottom: 20px;
     font-weight: 600;
+    margin-bottom: 16px;
+    opacity: 0.75;
+    font-family: -apple-system, sans-serif;
   }
 
   .slip-name {
     font-family: 'Georgia', serif;
-    font-size: clamp(22px, 4vw, 38px); font-weight: 200;
-    letter-spacing: 0.02em;
-    color: rgba(255,255,255,0.92);
-    line-height: 1.2;
+    font-size: clamp(22px, 4vw, 38px); font-weight: 300;
+    letter-spacing: 0.01em;
+    color: rgba(255,255,255,0.94);
+    line-height: 1.22;
     margin-bottom: 0;
   }
 
@@ -399,42 +397,49 @@
 
   /* flip hint */
   .flip-hint {
-    position: absolute; bottom: 18px; left: 0; right: 0;
+    position: absolute; bottom: 20px; left: 0; right: 0;
     text-align: center;
-    font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
-    color: rgba(255,255,255,0.48);
+    font-size: 9px; letter-spacing: 2.5px; text-transform: uppercase;
+    color: rgba(255,255,255,0.28);
     font-family: -apple-system, sans-serif;
     animation: hintPulse 2s ease-in-out infinite;
   }
 
-  /* BACK — hook + actions */
+  /* BACK — hook + actions — not bottom-anchored so it can grow */
   #card-back {
-    background: linear-gradient(145deg, rgba(22,18,36,0.97) 0%, rgba(14,11,24,0.99) 100%);
-    border-top: 1px solid rgba(255,45,120,0.3);
+    background: linear-gradient(160deg, rgba(24,20,38,0.98) 0%, rgba(13,10,22,0.99) 100%);
+    border-top: 1px solid rgba(255,45,120,0.22);
     transform: rotateY(180deg);
     display: flex; flex-direction: column;
-    padding: 24px 24px 18px;
+    padding: 22px 22px 20px;
+    /* Override .card-face inset:0 — allow height to follow content */
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: auto;
+    min-height: 100%;
   }
 
   /* Short hook — big, bold, the headline */
   .slip-hook-short {
     font-family: 'Georgia', serif;
-    font-size: 18px; font-weight: bold; line-height: 1.5;
-    color: rgba(255,255,255,0.88);
-    margin-bottom: 10px;
+    font-size: 20px; font-weight: bold; line-height: 1.38;
+    color: rgba(255,255,255,0.92);
+    margin-bottom: 12px;
     flex-shrink: 0;
   }
 
   /* Expand button */
   .expand-btn {
     background: none; border: none;
-    font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase;
+    font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase;
     color: var(--cat-color, var(--pink));
-    cursor: pointer; padding: 0; margin-bottom: 10px;
+    cursor: pointer;
+    padding: 10px 16px 10px 0; /* large tap area, text stays left-aligned */
+    margin-bottom: 2px; /* 10px top pad + 2px = same 12px visual gap as before */
     font-family: -apple-system, sans-serif;
     font-weight: 500; text-align: left;
-    opacity: 0.7; flex-shrink: 0;
+    opacity: 0.5; flex-shrink: 0;
     transition: opacity 0.15s;
+    align-self: flex-start; /* don't stretch full width */
   }
   .expand-btn:active { opacity: 1; }
   .expand-btn.hidden { display: none; }
@@ -443,28 +448,27 @@
   .slip-hook-long {
     font-family: 'Georgia', serif;
     font-size: 13px; line-height: 1.65;
-    color: rgba(255,255,255,0.5);
+    color: rgba(255,255,255,0.48);
     font-style: italic;
-    margin-bottom: 10px;
-    overflow-y: auto;
-    max-height: 120px;
+    margin-bottom: 12px;
     flex-shrink: 0;
     display: none;
   }
   .slip-hook-long.visible { display: block; }
 
   /* Spacer so actions stay at bottom */
-  .hook-spacer { flex: 1; }
+  .hook-spacer { flex: 1; min-height: 10px; }
 
   .slip-actions {
-    display: flex; gap: 8px; flex-shrink: 0;
+    display: flex; gap: 10px; flex-shrink: 0;
+    align-items: center;
   }
 
   .slip-btn {
-    padding: 11px 16px;
-    border-radius: 6px;
+    padding: 13px 16px;
+    border-radius: 100px;
     border: none;
-    font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase;
+    font-size: 11px; letter-spacing: 1px; text-transform: uppercase;
     cursor: pointer;
     font-family: -apple-system, sans-serif;
     font-weight: 500;
@@ -475,18 +479,21 @@
   .slip-btn-used {
     background: var(--cat-color, var(--pink));
     color: white;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.25), 0 0 20px rgba(255,45,120,0.15);
+    flex: 2;
   }
 
   .slip-btn-used:active { transform: scale(0.97); box-shadow: none; }
 
   .slip-btn-close {
-    background: rgba(255,255,255,0.06);
-    color: rgba(255,255,255,0.45);
-    border: 1px solid rgba(255,255,255,0.1);
+    background: transparent;
+    color: rgba(255,255,255,0.3);
+    border: none;
+    font-size: 10px; letter-spacing: 1px;
+    flex: 1;
   }
 
-  .slip-btn-close:active { background: rgba(255,255,255,0.1); }
+  .slip-btn-close:active { color: rgba(255,255,255,0.6); }
 
   /* ── FLY USED ANIMATION ── */
   @keyframes cardFlyUp {
@@ -776,27 +783,31 @@
 
   /* ── EPISODE INPUT ON CARD ── */
   #episode-input-wrap {
-    display: flex; align-items: center; gap: 8px;
-    margin-bottom: 8px; flex-shrink: 0;
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 10px; flex-shrink: 0;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    padding-bottom: 10px;
   }
   #episode-label {
-    font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase;
-    color: rgba(255,255,255,0.25); flex-shrink: 0;
+    font-size: 8.5px; letter-spacing: 1.5px; text-transform: uppercase;
+    color: rgba(255,255,255,0.2); flex-shrink: 0;
     font-family: -apple-system, sans-serif;
   }
   #episode-input {
     flex: 1;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 4px;
-    padding: 5px 9px;
-    font-size: 12px; color: rgba(255,255,255,0.75);
+    background: transparent;
+    border: none;
+    padding: 0;
+    font-size: 12px; color: rgba(255,255,255,0.7);
     outline: none;
     font-family: -apple-system, sans-serif;
-    transition: border-color 0.15s;
+    transition: color 0.2s;
   }
-  #episode-input:focus { border-color: rgba(255,45,120,0.35); }
-  #episode-input::placeholder { color: rgba(255,255,255,0.2); }
+  #episode-input:focus { color: rgba(255,255,255,0.9); }
+  #episode-input::placeholder { color: rgba(255,255,255,0.18); }
+  #episode-input.nudge {
+    color: rgba(255,45,120,0.9);
+  }
 
   /* ── SOURCE LINKS ON CARD ── */
   #source-links {
@@ -824,13 +835,13 @@
   /* ── PREP NOTES ON CARD ── */
   #card-flag {
     display: none;
-    font-size: 11px; line-height: 1.5;
-    color: rgba(255,200,80,0.9);
-    margin-bottom: 8px; flex-shrink: 0;
-    padding: 6px 10px;
-    background: rgba(255,180,0,0.07);
-    border-radius: 4px;
-    border-left: 2px solid rgba(255,180,0,0.4);
+    font-size: 11px; line-height: 1.55;
+    color: rgba(255,200,80,0.82);
+    margin-bottom: 12px; flex-shrink: 0;
+    padding: 9px 12px;
+    background: rgba(255,180,0,0.06);
+    border-radius: 10px;
+    border: 1px solid rgba(255,180,0,0.14);
     font-family: -apple-system, sans-serif;
   }
   #card-notes {
@@ -848,38 +859,85 @@
   /* Quick inline note on card back */
   #quick-note-wrap {
     flex-shrink: 0;
-    margin-bottom: 8px;
+    margin: 2px 0 10px;
+    position: relative;
   }
+
+  /* Idle state — empty or has-note */
   #quick-note-display {
-    font-size: 11.5px; line-height: 1.55;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    min-height: 20px;
+    transition: opacity 0.15s;
+  }
+  #quick-note-display:active { opacity: 0.6; }
+
+  /* Empty: hairline + pencil icon */
+  #quick-note-display.empty::before {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(255,255,255,0.07);
+  }
+  #quick-note-display.empty::after {
+    content: '✎';
+    font-size: 13px;
+    color: rgba(255,255,255,0.2);
+    margin-left: 8px;
+    flex-shrink: 0;
+    transition: color 0.15s;
+  }
+  #quick-note-display.empty:active::after { color: rgba(255,45,120,0.5); }
+
+  /* Has note: faint italic text + tiny edit hint */
+  #quick-note-display:not(.empty) {
+    font-size: 11.5px; line-height: 1.5;
     color: rgba(255,255,255,0.35);
     font-style: italic;
-    padding: 6px 8px;
-    background: rgba(255,255,255,0.04);
-    border-radius: 4px;
-    border-left: 2px solid rgba(255,45,120,0.25);
     font-family: -apple-system, sans-serif;
-    cursor: text; min-height: 30px;
+    padding: 1px 0;
   }
-  #quick-note-display.empty {
-    color: rgba(255,255,255,0.18);
+  #quick-note-display:not(.empty)::after {
+    content: ' ✎';
     font-style: normal;
-    font-size: 11px; letter-spacing: 0.5px;
+    font-size: 11px;
+    color: rgba(255,255,255,0.13);
+    margin-left: 4px;
+    flex-shrink: 0;
   }
+
+  /* Editing: iOS-style underline textarea */
   #quick-note-input {
     display: none;
     width: 100%; box-sizing: border-box;
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,45,120,0.35);
-    border-radius: 4px; border-left: 2px solid rgba(255,45,120,0.5);
-    padding: 6px 8px;
-    color: rgba(255,255,255,0.85);
-    font-size: 11.5px; line-height: 1.55;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid rgba(255,45,120,0.3);
+    padding: 4px 26px 8px 0;
+    color: rgba(255,255,255,0.82);
+    font-size: 12px; line-height: 1.55;
     font-style: italic;
     font-family: -apple-system, sans-serif;
     resize: none; outline: none;
-    min-height: 56px;
+    min-height: 44px;
+    transition: border-color 0.15s;
   }
+  #quick-note-input:focus { border-bottom-color: rgba(255,45,120,0.55); }
+
+  /* Save: small checkmark overlaid at bottom-right of textarea */
+  #quick-note-save-btn {
+    display: none;
+    position: absolute;
+    bottom: 8px; right: 0;
+    background: none; border: none;
+    font-size: 18px; line-height: 1;
+    color: rgba(255,45,120,0.4);
+    cursor: pointer; padding: 0;
+    transition: color 0.15s, transform 0.12s;
+  }
+  #quick-note-save-btn:active { transform: scale(0.82); color: rgba(255,45,120,0.9); }
+  #quick-note-save-btn.saved { color: rgba(80,210,110,0.85); }
   /* Depth badge on card back */
   #card-depth {
     display: none;
@@ -1306,8 +1364,9 @@
         <div id="card-flag"></div>
         <div id="card-notes"></div>
         <div id="quick-note-wrap">
-          <div id="quick-note-display" class="empty">+ note</div>
+          <div id="quick-note-display" class="empty"></div>
           <textarea id="quick-note-input" placeholder="Quick note..." rows="2"></textarea>
+          <button type="button" id="quick-note-save-btn">✓</button>
         </div>
         <div id="source-links"></div>
         <div class="hook-spacer"></div>
@@ -1317,7 +1376,7 @@
         </div>
         <div class="slip-actions">
           <button class="slip-btn slip-btn-used" id="btn-mark-used">✓ Used</button>
-          <button class="slip-btn slip-btn-close" id="btn-close-slip">Return to Deck</button>
+          <button class="slip-btn slip-btn-close" id="btn-close-slip">Return</button>
         </div>
       </div>
     </div>
@@ -1950,6 +2009,9 @@ function pullSlip() {
 }
 
 function showSlip(story) {
+  // Reset card height for each new pull
+  document.getElementById('card-scene').style.height = '320px';
+
   // Set category color
   const color = CAT_COLORS[story.cat] || '#ff2d78';
   document.getElementById('card-scene').style.setProperty('--cat-color', color);
@@ -1988,14 +2050,14 @@ function showSlip(story) {
   const qDisplay = document.getElementById('quick-note-display');
   const qInput   = document.getElementById('quick-note-input');
   qInput.style.display = 'none';
+  document.getElementById('quick-note-save-btn').style.display = 'none';
   if (story.notes) {
     qDisplay.textContent = story.notes;
     qDisplay.classList.remove('empty');
   } else {
-    qDisplay.textContent = '+ note';
+    qDisplay.textContent = '';
     qDisplay.classList.add('empty');
   }
-  qDisplay.style.display = '';
   // Depth badge
   const depthEl = document.getElementById('card-depth');
   const depthLabels = { quick: '⚡ Quick Hit', medium: '◎ Medium', deep: '🕳 Deep Dive' };
@@ -2022,8 +2084,14 @@ function showSlip(story) {
     srcLinks.innerHTML = '';
   }
 
-  // Reset episode input
-  document.getElementById('episode-input').value = '';
+  // Reset episode input and Used button state
+  const epInput = document.getElementById('episode-input');
+  epInput.value = '';
+  epInput.placeholder = 'Ep 1 (optional)';
+  epInput.classList.remove('nudge');
+  const usedBtn = document.getElementById('btn-mark-used');
+  usedBtn.textContent = '✓ Used';
+  delete usedBtn.dataset.confirmed;
 
   // Reflect pin state on card
   document.getElementById('card-pin-btn').classList.toggle('pinned', !!story.pinned);
@@ -2096,9 +2164,22 @@ function spawnSparkles() {  // kept same name so showSlip() call is unchanged
   }
 }
 
+function fitCardToBack() {
+  const scene = document.getElementById('card-scene');
+  const back  = document.getElementById('card-back');
+  const h = Math.max(320, back.scrollHeight);
+  scene.style.height = h + 'px';
+}
+
 function flipCard() {
   haptic(15);
-  document.getElementById('card-inner').classList.toggle('flipped');
+  const inner = document.getElementById('card-inner');
+  inner.classList.toggle('flipped');
+  if (inner.classList.contains('flipped')) {
+    fitCardToBack();
+  } else {
+    document.getElementById('card-scene').style.height = '320px';
+  }
 }
 
 function toggleExpand() {
@@ -2107,11 +2188,13 @@ function toggleExpand() {
   const isOpen = longEl.classList.contains('visible');
   longEl.classList.toggle('visible', !isOpen);
   expandBtn.textContent = isOpen ? 'read more ↓' : 'read less ↑';
+  fitCardToBack();
 }
 
 function closeSlip(putBack) {
   const overlay = document.getElementById('slip-overlay');
   const scene = document.getElementById('card-scene');
+  scene.style.height = '320px'; // collapse before exit animation
 
   if (!putBack) {
     // Fly up animation
@@ -2261,9 +2344,17 @@ function refreshDrawer() {
       const arr = pile === 'used' ? state.used : state.active;
       const story = arr.find(s => s.id === id);
       const name = story ? story.name : 'this story';
-      if (!confirm(`Remove "${name}" from the deck?`)) return;
-      if (pile === 'used') state.used = state.used.filter(s => s.id !== id);
-      else state.active = state.active.filter(s => s.id !== id);
+      if (pile === 'used') {
+        // Move back to active deck, strip episode tag
+        if (!confirm(`Return "${name}" to the deck?`)) return;
+        state.used = state.used.filter(s => s.id !== id);
+        const restored = {...story};
+        delete restored.episode;
+        state.active.push(restored);
+      } else {
+        if (!confirm(`Remove "${name}" from the deck?`)) return;
+        state.active = state.active.filter(s => s.id !== id);
+      }
       saveState(); updateCounter(); refreshDrawer();
     });
   });
@@ -2577,7 +2668,25 @@ document.getElementById('card-back').addEventListener('click', (e) => {
   if (!e.target.closest('.slip-btn') && !e.target.closest('.expand-btn') && !e.target.closest('#episode-input-wrap') && !e.target.closest('#source-btn') && !e.target.closest('#quick-note-wrap')) flipCard();
 });
 document.getElementById('expand-btn').addEventListener('click', (e) => { e.stopPropagation(); toggleExpand(); });
-document.getElementById('btn-mark-used').addEventListener('click', (e) => { e.stopPropagation(); closeSlip(false); });
+document.getElementById('episode-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') { e.preventDefault(); closeSlip(false); }
+});
+document.getElementById('btn-mark-used').addEventListener('click', (e) => {
+  e.stopPropagation();
+  const epInput = document.getElementById('episode-input');
+  const btn = document.getElementById('btn-mark-used');
+  if (!epInput.value.trim() && !btn.dataset.confirmed) {
+    // First tap with no episode — nudge the field
+    epInput.classList.add('nudge');
+    epInput.focus();
+    epInput.placeholder = 'Which episode?';
+    btn.textContent = '✓ Confirm Used';
+    btn.dataset.confirmed = '1';
+    setTimeout(() => epInput.classList.remove('nudge'), 1800);
+    return;
+  }
+  closeSlip(false);
+});
 document.getElementById('btn-close-slip').addEventListener('click', (e) => { e.stopPropagation(); closeSlip(true); });
 document.getElementById('reset-btn').addEventListener('click', () => {
   if (!confirm('Put all used stories back in the deck? This cannot be undone.')) return;
@@ -2646,35 +2755,65 @@ document.querySelectorAll('.depth-btn').forEach(btn => {
 });
 
 // Quick inline note on card back
+function saveQuickNote(andClose) {
+  const story = state.currentSlip;
+  if (!story) return;
+  const qInput   = document.getElementById('quick-note-input');
+  const qDisplay = document.getElementById('quick-note-display');
+  const qSave    = document.getElementById('quick-note-save-btn');
+  const val = qInput.value.trim() || null;
+  const target = state.active.find(s => s.id === story.id) || state.used.find(s => s.id === story.id);
+  if (target) { target.notes = val; story.notes = val; saveState(); }
+  if (andClose) {
+    qInput.style.display = 'none';
+    qSave.style.display = 'none';
+    qDisplay.style.display = '';
+    if (val) {
+      qDisplay.textContent = val;
+      qDisplay.classList.remove('empty');
+    } else {
+      qDisplay.textContent = '';
+      qDisplay.classList.add('empty');
+    }
+    fitCardToBack();
+  } else {
+    // Flash ✓ green, stay open
+    qSave.classList.add('saved');
+    setTimeout(() => qSave.classList.remove('saved'), 1500);
+    fitCardToBack();
+  }
+}
+
 document.getElementById('quick-note-display').addEventListener('click', () => {
   const story = state.currentSlip;
   if (!story) return;
   const qDisplay = document.getElementById('quick-note-display');
   const qInput   = document.getElementById('quick-note-input');
+  const qSave    = document.getElementById('quick-note-save-btn');
   qInput.value = story.notes || '';
   qDisplay.style.display = 'none';
   qInput.style.display = 'block';
+  qSave.style.display = 'block';
+  qSave.classList.remove('saved');
   qInput.focus();
+  fitCardToBack();
 });
+
+document.getElementById('quick-note-save-btn').addEventListener('mousedown', (e) => {
+  // mousedown prevents textarea blur from firing first
+  e.preventDefault();
+});
+document.getElementById('quick-note-save-btn').addEventListener('click', (e) => {
+  e.stopPropagation();
+  saveQuickNote(false); // save + flash, stay open
+});
+
 document.getElementById('quick-note-input').addEventListener('blur', () => {
-  const story = state.currentSlip;
-  if (!story) return;
-  const qInput   = document.getElementById('quick-note-input');
-  const qDisplay = document.getElementById('quick-note-display');
-  const val = qInput.value.trim() || null;
-  // Save to state directly
-  const target = state.active.find(s => s.id === story.id) || state.used.find(s => s.id === story.id);
-  if (target) { target.notes = val; story.notes = val; saveState(); }
-  // Update display
-  qInput.style.display = 'none';
-  if (val) {
-    qDisplay.textContent = val;
-    qDisplay.classList.remove('empty');
-  } else {
-    qDisplay.textContent = '+ note';
-    qDisplay.classList.add('empty');
+  // Only auto-close on blur if save button wasn't just clicked
+  const qSave = document.getElementById('quick-note-save-btn');
+  if (qSave.style.display !== 'none') {
+    saveQuickNote(true);
   }
-  qDisplay.style.display = '';
 });
 
 // Escape key closes whatever is open
