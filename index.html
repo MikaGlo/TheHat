@@ -1054,6 +1054,78 @@
     transition: color 0.15s;
   }
   .sheet-link-del:active { color: var(--pink); }
+
+  /* ── RESEARCH LOG ── */
+  #sheet-log-list {
+    display: flex; flex-direction: column; gap: 8px;
+    margin-bottom: 10px;
+    max-height: 260px; overflow-y: auto;
+  }
+  .sheet-log-entry {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 8px;
+    padding: 10px 12px;
+    position: relative;
+  }
+  .sheet-log-ts {
+    font-size: 10px; letter-spacing: 0.3px;
+    color: rgba(255,255,255,0.25);
+    margin-bottom: 5px;
+    padding-right: 20px;
+    cursor: text;
+    outline: none;
+    border-radius: 3px;
+    transition: background 0.15s, color 0.15s;
+    display: inline-block;
+    min-width: 40px;
+  }
+  .sheet-log-ts:focus {
+    background: rgba(255,255,255,0.07);
+    color: rgba(255,255,255,0.6);
+    padding: 1px 4px;
+  }
+  .sheet-log-text {
+    font-size: 13px; line-height: 1.55;
+    color: rgba(255,255,255,0.72);
+    white-space: pre-wrap; word-break: break-word;
+  }
+  .sheet-log-del {
+    position: absolute; top: 8px; right: 8px;
+    background: none; border: none;
+    color: rgba(255,255,255,0.18); font-size: 15px;
+    cursor: pointer; padding: 0; line-height: 1;
+    transition: color 0.15s;
+  }
+  .sheet-log-del:active { color: var(--pink); }
+  #sheet-log-input {
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px;
+    padding: 10px 12px;
+    color: rgba(255,255,255,0.85);
+    font-size: 13px;
+    font-family: -apple-system, sans-serif;
+    outline: none;
+    resize: none;
+    min-height: 64px;
+    transition: border-color 0.2s;
+  }
+  #sheet-log-input:focus { border-color: rgba(255,45,120,0.35); }
+  #sheet-log-add-btn {
+    background: rgba(255,45,120,0.1);
+    border: 1px solid rgba(255,45,120,0.22);
+    color: var(--pink-light);
+    font-size: 12px; padding: 0 16px;
+    border-radius: 8px; cursor: pointer;
+    white-space: nowrap;
+    font-family: -apple-system, sans-serif;
+    font-weight: 500; flex-shrink: 0;
+    transition: background 0.15s;
+    align-self: flex-end; height: 38px;
+  }
+  #sheet-log-add-btn:active { background: rgba(255,45,120,0.22); }
   #sheet-episode-wrap {
     display: inline-flex; align-items: center; gap: 6px;
     padding: 5px 12px;
@@ -1365,6 +1437,14 @@
       <div class="sheet-label">Used In</div>
       <div id="sheet-episode-wrap"></div>
     </div>
+    <div class="sheet-section">
+      <div class="sheet-label">Research Log</div>
+      <div id="sheet-log-list"></div>
+      <div style="display:flex;gap:8px;align-items:flex-end">
+        <textarea id="sheet-log-input" placeholder="Note a timestamp, a contradiction, a quote, anything..."></textarea>
+        <button type="button" id="sheet-log-add-btn">+ Add</button>
+      </div>
+    </div>
     <button class="sheet-save-btn" id="sheet-save-btn">Save</button>
   </div>
 </div>
@@ -1537,56 +1617,53 @@ let CAT_COLORS = {
 
 // ══════ STORIES ══════
 const DEFAULT_STORIES = [
-  {name:"Greyston Bakery",hookShort:"No application. No interview. No background check. You just show up — and you get a job.",hook:"A bakery in Yonkers, New York has no application, no interview, no background check. You put your name on a list. When a spot opens, it's yours. They supply all the brownies inside Ben & Jerry's. The founder was a Zen Buddhist teacher who believed the purpose of the company was the community it supported — not the product it made. The business case for this kind of hiring is more interesting than it sounds.",cat:"Companies"},
+  {name:"Greyston Bakery",hookShort:"No application. No interview. You just show up. And you get a job.",hook:"A bakery with no application, no interview, no background check. You just show up. And you get a job. They make the brownies inside every Ben & Jerry's.",cat:"Companies"},
   {name:"Cost Plus Drugs",hookShort:"That $500 medication? $8 here.",hook:"A $500 medication. Sold here for $8. The pharmacy industry has been lying to you for decades. Mark Cuban decided to prove it.",cat:"Companies"},
-  {name:"Civica Rx",hookShort:"55 hospitals got so fed up with drug companies they built their own. It's a nonprofit. It sells at cost.",hook:"55 hospitals got so fed up with pharmaceutical pricing and drug shortages that they built their own generic drug manufacturer. It's a nonprofit. They target medications with a history of shortages and price spikes — the kind used every day in ICUs and operating rooms. They sell at cost. The drugs exist. The prices are stable. The question is why the rest of the industry can't do the same.",cat:"Companies"},
-  {name:"Mondragon",hookShort:"A Catholic priest started a worker cooperative with 5 people in 1956. It now has 80,000 owners and $12 billion in revenue.",hook:"In 1956 a Catholic priest in Basque Country, Spain started a worker cooperative with five young men and a secondhand drill press. Seventy years later Mondragon has 80,000 worker-owners, $12 billion in revenue, and its own university. The highest-paid person makes 6x the lowest-paid. The average Fortune 500 CEO makes 350x. Almost nobody outside Europe knows this company exists. The origin story is wilder than the numbers.",cat:"Companies"},
-  {name:"Nudie Jeans",hookShort:"This jeans company fixes your jeans for free. Forever. No receipt.",hook:"This jeans company will repair your jeans for free. No receipt. No time limit. They have repair shops in major cities and will mail you a kit if there isn't one near you. They are actively trying to sell you fewer pairs of jeans. That is the stated business strategy. Their revenue keeps going up.",cat:"Companies"},
+  {name:"Civica Rx",hookShort:"55 hospitals got fed up and built their own drug company.",hook:"55 hospitals got so fed up with pharmaceutical companies that they built their own drug company. It's a nonprofit. It works.",cat:"Companies"},
+  {name:"Mondragon",hookShort:"80,000 people own this company together. Nobody's heard of it.",hook:"80,000 people own this company together. The highest paid person makes 6x the lowest. The average Fortune 500 CEO makes 350x. Nobody has heard of Mondragon.",cat:"Companies"},
+  {name:"Nudie Jeans",hookShort:"This jeans company repairs your jeans for free. Forever. They are trying to sell you fewer jeans.",hook:"This jeans company will repair your jeans for free. Forever. No receipt. They are actively trying to sell you fewer jeans. That is the brand.",cat:"Companies"},
   {name:"iFixit",hookShort:"Apple wouldn't publish repair manuals for its own devices. So iFixit wrote them all. For free.",hook:"Apple refused to publish repair manuals for its own devices. So iFixit wrote them. All of them. For free. Now they're fighting in court for your right to fix your own stuff.",cat:"Companies"},
   {name:"Diaspora Co.",hookShort:"One person with a laptop is paying spice farmers 6x fair trade rate. From her apartment.",hook:"One person with a laptop is paying spice farmers 3 to 6 times fair trade rate and disrupting a billion-dollar industry. From her apartment.",cat:"Companies"},
   {name:"Bookshop.org",hookShort:"Every sale here sends 30% to an independent bookstore. It is growing against Amazon.",hook:"Every sale on this website sends 30% directly to an independent bookstore. It is growing against Amazon. That sentence should not be possible.",cat:"Companies"},
-  {name:"Bob's Red Mill",hookShort:"He was offered millions. He turned it down and gave the company to his employees instead.",hook:"The founder of this company was offered millions to sell. He turned it down. Then gave the entire company to his employees instead.",cat:"Companies",flag:"📋 Bob Moore passed away February 2024, age 94. Tell in past tense. The legacy is locked in — the employees still own the company. Makes the story more complete, not less powerful."},
+  {name:"Bob's Red Mill",hookShort:"He was offered millions. He turned it down and gave the company to his employees instead.",hook:"The founder of this company was offered millions to sell. He turned it down. Then gave the entire company to his employees instead.",cat:"Companies"},
   {name:"Lincoln Electric",hookShort:"Profit-sharing every single year since 1934. Through every recession. Never missed once.",hook:"This company has shared its profits with employees every single year since 1934. Never missed one. Through the Depression. Through every recession. Still going.",cat:"Companies"},
-  {name:"Recology",hookShort:"San Francisco's garbage company is owned by the people who collect your trash. It changed how a whole city thinks about waste.",hook:"Recology is an employee-owned waste management company. Under their operation, San Francisco achieved one of the highest landfill diversion rates in the world — over 80% of waste diverted from landfill. They also run an artist residency program where artists make work entirely from discarded materials. The connection between how a company is owned and what it decides to optimize for is the whole thread.",cat:"Companies"},
-  {name:"Organic Valley",hookShort:"A farmer-owned co-op doing $1.2 billion a year. Almost nobody outside farming has heard of it.",hook:"When industrial dairy processors dropped farmers and drove down milk prices in the 1980s, a group of Wisconsin farmers started their own cooperative instead. Today Organic Valley has over $1.2 billion in annual revenue. Every farmer who supplies milk owns a piece of it. Pricing is set by and for the farmers — not the processors. Most people in cities have no idea a company this size operates entirely for its member-farmers.",cat:"Companies"},
-  {name:"CHS Inc.",hookShort:"$35 billion in revenue. Zero press coverage. Farmer-owned.",hook:"CHS Inc. is a farmer-owned cooperative with $35 billion in annual revenue. It handles grain, energy, and farm supplies across North America. Its owners are the farmers who use its services — not shareholders. It is larger than many companies that get daily business press coverage. The near-total media silence around it is worth understanding. Cooperative ownership in agriculture is structurally invisible to financial media. That invisibility is not accidental.",cat:"Companies"},
+  {name:"Recology",hookShort:"San Francisco's trash company is employee-owned — and it made SF one of the least wasteful cities in America.",hook:"San Francisco's trash company is owned by its employees. It made San Francisco one of the least wasteful cities in the entire United States. A garbage company did that.",cat:"Companies"},
+  {name:"Organic Valley",hookShort:"A farmer-owned co-op doing $1.2 billion. Almost nobody outside farming has heard of it.",hook:"When big dairy dropped its farmers, this farmer-owned co-op refused to drop its prices. $1.2 billion in revenue. Almost nobody outside farming has heard of it.",cat:"Companies"},
+  {name:"CHS Inc.",hookShort:"$35 billion in revenue. Zero press coverage. Farmer-owned.",hook:"Farmer-owned. $35 billion in annual revenue. Zero press coverage. The size versus the obscurity is genuinely hard to explain.",cat:"Companies"},
   {name:"Fairphone",hookShort:"This phone ships with the screwdriver to fix it. Built to last a decade.",hook:"This phone ships with the screwdriver you need to fix it. It was built to last a decade. The entire industry said that was impossible.",cat:"Companies"},
   {name:"Cape",hookShort:"Sign up with only your zip code. No name. No ID. No data sold.",hook:"A phone carrier where you sign up with only a zip code. No name. No ID. No data sold. Ever. Launched 2026.",cat:"Companies"},
   {name:"OnMed CareStations",hookShort:"A full medical clinic inside a kiosk. Walk up. Get diagnosed. Get medication. No appointment.",hook:"A full medical clinic inside a kiosk. Walk up. Get diagnosed. Get medication dispensed. No appointment. It exists right now.",cat:"Companies"},
-  {name:"Kagi Search",hookShort:"A search engine that charges you $10 a month so it never has to sell your attention to anyone.",hook:"Kagi is a paid search engine with no advertising. The premise: ad-funded search creates a structural conflict between what users want and what advertisers pay for. Paying removes that conflict. The founder previously built a search company that got acquired. This one is designed not to be. Whether a paid internet is actually better than a free one is the real conversation underneath this story.",cat:"Companies"},
-  {name:"Vaulted Deep",hookShort:"They bury organic waste deep underground to lock the carbon in permanently. It already works.",hook:"Vaulted Deep injects organic matter — food waste, plant material — deep into geological formations where it won't decompose or release carbon. The carbon stays locked underground. Founded in 2023 and already operating at scale. Most carbon removal technology is decades away from being viable. This one works now. The simplicity of it is either the whole point or the thing nobody wants to admit.",cat:"Companies"},
+  {name:"Kagi Search",hookShort:"A search engine with no ads, no tracking, no Google. The results aren't selling you anything.",hook:"A search engine with no ads, no tracking, and no Google. $10 a month. The results are not trying to sell you something.",cat:"Companies"},
+  {name:"Vaulted Deep",hookShort:"They fight climate change by injecting organic waste deep underground.",hook:"This company fights climate change by injecting organic waste deep underground. It sounds like science fiction. It is not.",cat:"Companies"},
   {name:"Openstreetmap",hookShort:"The entire world mapped by unpaid volunteers. Nobody owns it.",hook:"The entire world — every road, every building, every trail — mapped by unpaid volunteers. More detailed than Google Maps in places. Nobody owns it.",cat:"Companies"},
-  {name:"REI",hookShort:"$4 billion in revenue. Every customer is a part-owner. Closed on Black Friday.",hook:"Four billion dollars in revenue. Every single customer is a part-owner. It closes on Black Friday and pays its employees to go outside.",cat:"Companies",flag:"⚠️ Tension worth knowing: REI workers have been actively unionizing since 2022 — citing poor pay, inconsistent hours, and retaliation from management. The co-op brand and the internal labor reality don't fully match. Not a reason to skip the story, but know someone in chat may bring this up."},
-  {name:"Dr. Bronner's",hookShort:"A soap company caps executive salaries, funds psychedelic research, and prints philosophy on its bottles. 150 years old.",hook:"Dr. Bronner's is a family-owned soap company founded in 1948. Executive pay is capped at five times the lowest-paid worker. They hold one of the highest B-Corp scores in the United States. They have funded MDMA research and lobbied for fair trade certification. Every bottle is covered in text from the founder's philosophy. Most people know the bottles. Almost nobody knows what's actually behind them.",cat:"Companies"},
+  {name:"REI",hookShort:"$4 billion in revenue. Every customer is a part-owner. Closed on Black Friday.",hook:"Four billion dollars in revenue. Every single customer is a part-owner. It closes on Black Friday and pays its employees to go outside.",cat:"Companies"},
+  {name:"Dr. Bronner's",hookShort:"A 150-year-old soap company that caps what its executives can earn.",hook:"A 150-year-old soap company that caps what its executives can earn. B-Corp score of 177. Almost nobody knows this company exists.",cat:"Companies"},
   {name:"MUBI",hookShort:"A streaming service that hand-curates exactly 30 films at a time. It never deletes a film without telling you.",hook:"A streaming service that hand-curates exactly 30 films at a time. It pays filmmakers fairly. It never deletes a film without telling you first.",cat:"Companies"},
-  {name:"Ecosia",hookShort:"You search the internet. It plants a tree. 200 million trees so far.",hook:"You search the internet. It plants a tree. 200 million trees planted so far. You have been reforesting the planet every time you Googled something and used this instead.",cat:"Companies",flag:"⚠️ Fact-check before air: investigative reporting has questioned whether the tree count is accurate — some trees planted in wrong ecosystems, many don't survive, some planting programs have had negative ecological effects. The model is real and genuine but the \"200 million trees\" headline may need caveating."},
+  {name:"Ecosia",hookShort:"You search the internet. It plants a tree. 200 million trees so far.",hook:"You search the internet. It plants a tree. 200 million trees planted so far. You have been reforesting the planet every time you Googled something and used this instead.",cat:"Companies"},
   {name:"Zingerman's",hookShort:"This deli turned down every franchise offer for 40 years. Then built 10 employee-owned businesses instead.",hook:"A deli in Ann Arbor turned down every single franchise offer for over 40 years. Then built 10 separate employee-owned businesses instead.",cat:"Companies"},
-  {name:"Equal Exchange",hookShort:"They were doing fair trade coffee before ethical consumption was a phrase. 1986. Worker-owned. No investors.",hook:"Equal Exchange is a worker-owned cooperative doing fair trade coffee and chocolate since 1986 — before most people knew what fair trade meant. Every employee is an owner. They pay farmers significantly above market rate. They have turned down acquisition offers. No outside investors. The story worth researching is how the math works — and why they can still operate this way when most ethical companies eventually get absorbed.",cat:"Companies"},
+  {name:"Equal Exchange",hookShort:"Worker-owned. Fair trade. Coffee and chocolate. Since 1986.",hook:"Worker-owned. Fair trade. Coffee and chocolate. Since 1986. They were doing this before ethical consumption was a phrase anyone used.",cat:"Companies"},
   {name:"Big Cartel",hookShort:"An artist marketplace that chose to stay small while Etsy went public. Charges artists less. On purpose.",hook:"An artist marketplace that chose to stay small and independent while Etsy went public. It charges artists less. On purpose.",cat:"Companies"},
-  {name:"South Mountain Company",hookShort:"An architecture firm on Martha's Vineyard has the highest ethics score of any company in America. An architecture firm.",hook:"South Mountain Company is an employee-owned architecture and construction firm on Martha's Vineyard. It received the highest B-Corp certification score in the United States — not the highest for a design firm. The highest, full stop, across all sectors. They have operated this way for decades. Most major corporations score in the single digits. The comparison is almost embarrassing.",cat:"Companies"},
+  {name:"South Mountain Company",hookShort:"An architecture firm with the highest B-Corp score in the United States.",hook:"An employee-owned architecture firm on Martha's Vineyard with the highest B-Corp score in the United States. An architecture firm.",cat:"Companies"},
   {name:"Tillamook Creamery",hookShort:"The farmers whose milk goes into this cheese own the entire company.",hook:"The farmers whose milk goes into this cheese own the entire company. They compete directly with Kraft and Dannon.",cat:"Companies"},
-  {name:"Orca Books",hookShort:"Every person who works at this bookstore also owns it. There are almost no others like it in the country.",hook:"Orca Books in Olympia, Washington is a fully worker-owned cooperative bookstore. Every employee is an equal co-owner. It is one of a tiny handful of genuinely worker-owned bookstores in the United States. The independent bookstore industry has brutal economics — most don't survive. Understanding what changes when collective ownership replaces individual ownership, and whether it changes anything at all, is the thread.",cat:"Companies"},
+  {name:"Orca Books",hookShort:"A fully worker-owned independent bookstore. One of the only ones in the country.",hook:"A fully worker-owned independent bookstore. One of the only ones in the entire country.",cat:"Companies"},
   {name:"Buffer",hookShort:"This company publishes every single employee's salary publicly. Has done it for years.",hook:"This social media company publishes every single employee's salary publicly. Every year. Has done it for years.",cat:"Companies"},
-  {name:"Acid League",hookShort:"Two people who got sober were handed sparkling water at every dinner table for years. So they fixed that.",hook:"Acid League makes non-alcoholic wines designed to be genuinely interesting — fermented, acidic, complex. Not a substitute for alcohol but something with its own identity. The founders got sober and were frustrated by what non-drinkers were handed in social eating situations. That frustration became the product. The non-alcoholic category has exploded since they launched — but the philosophy behind Acid League is different from most of the competition.",cat:"Companies"},
-  {name:"Arctic Solar Ventures",hookShort:"A renewable energy company doing what everyone said couldn't be done — in Alaska of all places.",hook:"Arctic Solar Ventures builds and operates renewable energy systems in rural Alaska — some of the most remote and extreme environments on earth. Remote communities. Extreme cold. No grid connection. These communities have paid some of the highest energy costs in the United States for decades. They have one of the highest B-Corp scores in the country. Almost nothing has been written about them outside of Alaska.",cat:"Companies"},
-  {name:"Modo Eyewear",hookShort:"One company secretly owns almost every eyewear brand you've ever heard of. These people aren't one of them.",hook:"Luxottica controls roughly 80% of the global eyewear market — Ray-Ban, Oakley, Persol, Coach, Versace eyewear, Sunglass Hut, LensCrafters. Modo operates entirely outside of this. They use a buy-one-give-one model and have donated over a million pairs of glasses. The real story is the market they're operating in — and what happens to an entire industry when one player quietly owns almost everything.",cat:"Companies"},
+  {name:"Acid League",hookShort:"Two people who got sober were bored of the alternatives. So they made non-alcoholic wines that are actually interesting.",hook:"Two people who got sober were bored of the alternatives. So they made non-alcoholic wines that are actually interesting.",cat:"Companies"},
+  {name:"Arctic Solar Ventures",hookShort:"Renewable energy, entirely in Alaska. One of the highest B-Corp scores in the country.",hook:"A renewable energy company operating entirely in Alaska with one of the highest B-Corp scores in the country. Almost nobody in the lower 48 knows it exists.",cat:"Companies"},
+  {name:"Modo Eyewear",hookShort:"Buy one pair. They donate one. Over a million pairs donated.",hook:"Buy one pair of glasses. They donate one pair. In an industry where one company owns 80% of every brand you've ever heard of. Over a million pairs donated.",cat:"Companies"},
   {name:"Hamdi Ulukaya",hookShort:"He bought a shuttered Kraft factory and hired every worker Kraft just laid off.",hook:"He bought a shuttered Kraft factory. Then hired every single worker Kraft had just laid off. Built Chobani to $10 billion. Gave employees 10% equity. Now says he regrets becoming wealthy.",cat:"People"},
   {name:"Yvon Chouinard",hookShort:"He built a $3 billion company. Then gave it away. Took zero dollars.",hook:"He built a three billion dollar company. Then gave it away. Took zero dollars. He is still alive. Still climbing. The reason why is more interesting than the what.",cat:"People"},
   {name:"Ricardo Semler",hookShort:"He let workers set their own salaries. The company grew 900%.",hook:"In the 1980s he let his workers set their own salaries and their own hours. The company grew 900%. Almost nobody in the United States has heard of him.",cat:"People"},
-  {name:"Muhammad Yunus",hookShort:"He invented microcredit, won the Nobel Prize, got put on trial by his own government — then the revolution came and made him president.",hook:"Muhammad Yunus developed microcredit — a system for lending small amounts to people with no collateral, no credit history, no bank account. Nine million borrowers. Repayment rate that beats conventional banks. Nobel Peace Prize in 2006. Then the Bangladesh government under Sheikh Hasina charged him with corruption and labor violations — charges widely viewed as political persecution. In August 2024, a student-led revolution overthrew Hasina's government. The protesters asked Yunus, at 84 years old, to lead the country. He said yes. He is currently the head of Bangladesh's interim government.",cat:"People",flag:"⚠️ Major story update: the card was written before the 2024 Bangladesh revolution. Yunus is now running the country — this completely changes the arc and makes the story even more extraordinary. Update research accordingly."},
-  {name:"Amanda Palmer",hookShort:"Before crowdfunding existed, she just asked her fans for the money. They gave her $1.2 million.",hook:"Before crowdfunding existed, she asked her fans directly to fund her album. They gave her $1.2 million. No label. No middleman. Just asked.",cat:"People",flag:"⚠️ Stream flag: her ex-husband Neil Gaiman was accused of sexual assault by multiple women in 2024. Widely reported, ongoing. They have since divorced. She hasn't been accused of anything — but the association is live-wire. Chat may bring it up the moment her name appears."},
-  {name:"Aaron Swartz",hookShort:"He helped build the internet as a teenager. Then the federal government decided to make an example of him.",hook:"Aaron Swartz helped build RSS at age 14. Helped launch Reddit. Co-wrote the Creative Commons license. At 24 he was federally indicted for downloading academic research from a database he had legitimate access to. The prosecution sought up to 35 years in prison. He died by suicide at 26. The question of who owns academic knowledge — and who has the right to make it free — is still unresolved.",cat:"People"},
+  {name:"Muhammad Yunus",hookShort:"He lent money to 9 million people with no collateral, no credit, no bank account. His repayment rate beats every bank on earth.",hook:"He invented a way to lend money to people with no collateral, no credit history, and no bank account. Lent to 9 million people. His repayment rate beats every bank on earth. Nobel Prize.",cat:"People"},
+  {name:"Amanda Palmer",hookShort:"Before crowdfunding existed, she just asked her fans for the money. They gave her $1.2 million.",hook:"Before crowdfunding existed, she asked her fans directly to fund her album. They gave her $1.2 million. No label. No middleman. Just asked.",cat:"People"},
+  {name:"Aaron Swartz",hookShort:"He helped build RSS at 14, helped build Reddit, and then fought to make academic research free for everyone.",hook:"He helped build RSS at age 14. Helped build Reddit. Co-wrote Creative Commons. Then fought to make academic research free for everyone. The story of what happened next is one of the most important in the history of the internet.",cat:"People"},
   {name:"Grant Achatz",hookShort:"He cooked through stage 4 tongue cancer and refused to quit.",hook:"The chef behind America's most mind-bending restaurant cooked through stage 4 tongue cancer and refused to quit. His courses arrive as edible balloons and paintings you eat off the table.",cat:"People"},
-  {name:"Chance the Rapper",hookShort:"Three free mixtapes. Three Grammys. Never signed.",hook:"Three free mixtapes. Three Grammys. Never signed to a label in his life. He changed the Grammy eligibility rules just by existing.",cat:"Artists",flag:"📋 Mild flag: his charity Social Works has faced criticism for poor fund management and undelivered programs in Chicago. The music story is completely solid. Just know that \"Chance gives back to Chicago\" may invite pushback from people who followed the charity closely."},
+  {name:"Chance the Rapper",hookShort:"Three free mixtapes. Three Grammys. Never signed.",hook:"Three free mixtapes. Three Grammys. Never signed to a label in his life. He changed the Grammy eligibility rules just by existing.",cat:"Artists"},
   {name:"Radiohead — In Rainbows",hookShort:"They let fans pay whatever they wanted. It made more money than any album they'd ever released.",hook:"In 2007 Radiohead released an album and let fans pay whatever they wanted. It made more money than any album they had ever released. The entire industry said it would destroy them.",cat:"Artists"},
-  {name:"Macklemore and Ryan Lewis",hookShort:"Self-released. Number one on the charts. Four Grammys. Never signed.",hook:"Self-released. Number one on the charts. Four Grammys. Never signed. The industry said independent artists could not do this.",cat:"Artists",flag:"⚠️ Stream flag: Macklemore released a pro-Palestine track called \"Hind's Hall\" in 2024 that was widely circulated and politically divisive. Similar situation to Noname — the music independence story is clean but his name currently carries political charge that could derail chat."},
-  {name:"Jacob Collier",hookShort:"Self-taught. Self-produced. Five Grammys across every genre that exists.",hook:"Self-taught. Self-produced. Five Grammys across every musical genre that exists. The musical ability alone is the entire story.",cat:"Artists"},
   {name:"Pomplamoose",hookShort:"A husband and wife duo published every dollar they earned and spent publicly.",hook:"A husband and wife music duo published every single dollar they earned and spent publicly. Every tour. Every album. Radical transparency before anyone called it that.",cat:"Artists"},
-  {name:"Noname",hookShort:"A rapper paused her career to give away thousands of free books — mostly to people in prison.",hook:"Noname is a Chicago rapper who deprioritized her music career to run Noname's Book Club — a project that sends curated reading lists and free books to incarcerated people. The selections are politically serious. The organization has distributed tens of thousands of books across the country. She has spoken publicly about why she made this choice over touring. The mainstream music press has barely acknowledged any of it.",cat:"Artists",flag:"⚠️ Stream flag: politically charged figure right now. 2020 J. Cole public dispute. 2023–24 very vocal on Palestine — some outlets called statements antisemitic, she disputes. Chat may derail into politics rather than the story. Story itself is great and on-brand. Pull when you're ready to navigate that conversation."},
-  {name:"The Criterion Collection",hookShort:"Netflix deletes films to save on taxes. Criterion has spent 40 years building a permanent library.",hook:"Netflix deletes its own films to save money on taxes. Criterion has spent 40 years building a permanent library of important cinema. Treating film like it actually matters.",cat:"Companies"},
-  {name:"100 Gecs",hookShort:"Two friends made music the internet went genuinely insane for. No label, no genre, no blueprint.",hook:"100 Gecs is a duo that built a massive cult following from a bedroom — making music that borrows from hyperpop, metal, ska, country, and rave without committing to any of them. No A&R. No marketing budget. The internet found them. The discourse around what they make — who it's for, what it even is — is almost as interesting as the music itself. They are proof that the industry gatekeepers are not the ones deciding anymore.",cat:"Artists"},
-  {name:"Phoebe Bridgers",hookShort:"She built an independent label and owns her own masters in an industry designed to prevent that.",hook:"She built a genuinely independent label and owns her own masters in an industry specifically designed to prevent that.",cat:"Artists"},
-  {name:"Library of Things",hookShort:"Your public library will lend you a telescope. A power drill. A tent. A sewing machine. All free.",hook:"Your public library will lend you a telescope, a power drill, a tent, a sewing machine. Free. This exists in dozens of US cities. Beyond libraries, some cities have built standalone tool libraries — collectively owned spaces where any resident can borrow any tool a household might ever need. No membership fee. No ownership required. The idea that access beats ownership is older than most people think — and it's spreading.",cat:"Movements"},
+  {name:"Noname",hookShort:"A rapper who runs a book club that has given away thousands of free books.",hook:"A rapper who runs a book club that has distributed thousands of free books. The cultural impact is almost completely unreported.",cat:"Artists"},
+  {name:"The Criterion Collection",hookShort:"Netflix deletes films to save on taxes. Criterion has spent 40 years building a permanent library.",hook:"Netflix deletes its own films to save money on taxes. Criterion has spent 40 years building a permanent library of important cinema. Treating film like it actually matters.",cat:"Artists"},
+  {name:"100 Gecs",hookShort:"No genre. Self-produced. Zero label support. Cult following.",hook:"No genre. Self-produced. Built a cult following with zero label support. The music itself is the story.",cat:"Artists"},
+  {name:"Library of Things",hookShort:"Your public library will lend you a telescope. Or a power drill. Or a tent. Free.",hook:"Your public library will lend you a telescope. Or a power drill. Or a tent. Free. It exists in dozens of US cities. Most people have no idea.",cat:"Movements"},
   {name:"Repair Café",hookShort:"In 2,500 locations, strangers fix each other's broken things for free.",hook:"In 2,500 locations around the world, strangers meet up to fix each other's broken things for free. No money changes hands. Just people who think stuff shouldn't be thrown away.",cat:"Movements"},
   {name:"Dark Sky Reserves",hookShort:"Some communities have legally banned light pollution. The sky looks completely different there.",hook:"Some communities have legally banned light pollution. There are over 200 of them worldwide. The night sky looks completely different there. Most people have never seen the real sky.",cat:"Movements"},
   {name:"Seed Savers Exchange",hookShort:"They're maintaining 20,000 varieties of seeds. If they stop, those plants go extinct.",hook:"An Iowa nonprofit is maintaining over 20,000 varieties of heirloom seeds — some grown from plants that are over 100 years old. If they stop, those plants go extinct.",cat:"Movements"},
@@ -1594,9 +1671,10 @@ const DEFAULT_STORIES = [
   {name:"Time Banks",hookShort:"An hour of legal advice equals an hour of babysitting. No money changes hands.",hook:"In these communities, an hour of legal advice equals an hour of babysitting equals an hour of cooking. No money changes hands. Some have been running for over 20 years.",cat:"Movements"},
   {name:"Right to Repair",hookShort:"Apple and John Deere spent years in court to stop you from fixing your own stuff.",hook:"For years Apple and John Deere fought in court to prevent you from fixing your own devices and tractors. Multiple states have now passed laws saying you can.",cat:"Movements"},
   {name:"Community Land Trusts",hookShort:"Some neighborhoods permanently removed themselves from real estate speculation.",hook:"Some neighborhoods have permanently removed themselves from real estate speculation. Homes in these trusts can only ever sell at a controlled price. Forever.",cat:"Movements"},
+  {name:"Tool Libraries",hookShort:"Some cities collectively own every tool a household might need. Free to borrow.",hook:"Some cities have collectively purchased every tool a household might ever need and made them free to borrow. You will never need to own a drill again.",cat:"Movements"},
   {name:"Mutual Aid Networks",hookShort:"During COVID, thousands of local mutual aid networks appeared. Most never went away.",hook:"During COVID thousands of hyper-local mutual aid networks appeared. Most of them never went away. Some are extraordinary.",cat:"Movements"},
   {name:"Rewilding Europe",hookShort:"They buy farmland and do absolutely nothing with it. Wolves and bison are returning.",hook:"This organization buys farmland and does absolutely nothing with it. Wolves, bison, and eagles are returning to places they haven't existed in centuries.",cat:"Movements"},
-  {name:"Zooniverse",hookShort:"2.5 million ordinary people are classifying galaxies and counting penguins. The science gets published.",hook:"Real scientists need help classifying galaxies, transcribing ancient manuscripts, and counting penguins in satellite photos. 2.5 million ordinary people are doing it. The science gets published.",cat:"Science"},
+  {name:"Zooniverse",hookShort:"2.5 million ordinary people are classifying galaxies and counting penguins. The science gets published.",hook:"Real scientists need help classifying galaxies, transcribing ancient manuscripts, and counting penguins in satellite photos. 2.5 million ordinary people are doing it. The science gets published.",cat:"Movements"},
   {name:"Self-healing concrete",hookShort:"There is concrete that repairs its own cracks using bacteria living inside it.",hook:"There is concrete that repairs its own cracks using bacteria living inside it. It is already being used in Europe. It could eliminate potholes permanently.",cat:"Science"},
   {name:"DNA data storage",hookShort:"One gram of DNA can store the entire Library of Congress.",hook:"One gram of DNA can store the entire Library of Congress. It stays stable for thousands of years. It could replace every data center on earth.",cat:"Science"},
   {name:"Flamingo filtration",hookShort:"Scientists copied how flamingos filter water. Now it removes microplastics from the ocean.",hook:"Scientists studied how flamingos filter water with their beaks. Then used that exact mechanism to build filters that remove microplastics from the ocean. Georgia Tech. 2025.",cat:"Science"},
@@ -1610,7 +1688,7 @@ const DEFAULT_STORIES = [
   {name:"Sand battery",hookShort:"A giant tank of sand stores renewable energy as heat. Cheap. Scalable. Zero emissions.",hook:"A Finnish company stores renewable energy as heat inside a giant insulated tank of sand. Cheap. Scalable. Zero emissions.",cat:"Science"},
   {name:"The Mpemba Effect",hookShort:"Hot water sometimes freezes faster than cold water. Nobody knows why.",hook:"Hot water sometimes freezes faster than cold water. A Tanzanian schoolboy first described this to scientists in 1963. They are still arguing about why.",cat:"Science"},
   {name:"Tardigrades",hookShort:"Tardigrades survive boiling water and the vacuum of space. In 2019 a spacecraft crashed on the Moon carrying thousands of them.",hook:"Tardigrades survive the vacuum of space, boiling water, and being frozen for 30 years. In 2019 a spacecraft crashed on the Moon carrying thousands of them. They are almost certainly still alive up there.",cat:"Science"},
-  {name:"The Wood Wide Web",hookShort:"Trees in a forest share nutrients underground through a fungal network. A forest is a single organism.",hook:"Trees in a forest are connected underground through a network of fungi. They use it to share nutrients and send chemical warnings to each other. Old trees feed young ones. A forest is a single organism.",cat:"Science",flag:"⚠️ Science flag: the \"wood wide web\" narrative has been seriously contested since 2022. Multiple ecologists argue the nutrient-sharing and communication claims are overstated or misrepresented from the original research. Still a fascinating phenomenon — but the poetic version may be stronger than the actual evidence. Research the counterarguments before presenting as settled science."},
+  {name:"The Wood Wide Web",hookShort:"Trees in a forest share nutrients underground through a fungal network. A forest is a single organism.",hook:"Trees in a forest are connected underground through a network of fungi. They use it to share nutrients and send chemical warnings to each other. Old trees feed young ones. A forest is a single organism.",cat:"Science"},
   {name:"The overview effect",hookShort:"Every astronaut who sees Earth from space describes the same sudden psychological transformation.",hook:"Every astronaut who has seen the Earth from space describes the same sudden psychological transformation — an overwhelming sense of connection and the complete absurdity of human conflict. It has a name.",cat:"Science"},
   {name:"Cymatics",hookShort:"Sound creates geometric patterns in sand. Different frequencies make different shapes. You can see music.",hook:"Sound creates physical geometric patterns. If you put sand on a surface and play a frequency, the sand will self-organize into perfect shapes. Different frequencies make different shapes. You can literally see music.",cat:"Science"},
   {name:"Baader-Meinhof phenomenon",hookShort:"That thing where you learn a word and suddenly hear it everywhere. Your brain was filtering it out before.",hook:"The reason you learn a new word and then hear it everywhere for a week. Your brain was filtering it out before. Reality did not change. Your perception did. This has a name.",cat:"Science"},
@@ -1635,47 +1713,29 @@ const DEFAULT_STORIES = [
   {name:"Windy.com",hookShort:"A real-time map showing every wind pattern and weather system on Earth right now. Built by one person.",hook:"A real-time animated map showing all wind patterns, ocean currents, air quality, and weather systems on Earth right now. Built by one person in Czech Republic. Free.",cat:"Useful Things"},
   {name:"Privnote",hookShort:"A message that destroys itself the moment someone reads it. No app. No account.",hook:"Send a message that destroys itself the moment the recipient reads it. No account. No app. No trace. Just a link that dies on opening.",cat:"Useful Things"},
   {name:"Perma.cc",hookShort:"Harvard Law built a tool that permanently archives any webpage so it can never be deleted.",hook:"Harvard Law School built a free tool that permanently archives any webpage so it can never be deleted, edited, or disappeared. Courts use it to preserve online legal evidence.",cat:"Useful Things"},
-  {name:"Every Noise at Once",hookShort:"A single page mapping every music genre on earth — 6,000 of them. Click any one to hear it.",hook:"A single webpage that maps every music genre on earth — over 6,000 of them — and lets you click any one to hear what it sounds like. Built by one person at Spotify.",cat:"Useful Things",flag:"📋 Verify before air: creator Glenn McDonald was laid off from Spotify in the 2023 mass layoffs. Check whether the site is still live and updated — it may be running on fumes or could be down by the time you pull this card."},
+  {name:"Every Noise at Once",hookShort:"A single page mapping every music genre on earth — 6,000 of them. Click any one to hear it.",hook:"A single webpage that maps every music genre on earth — over 6,000 of them — and lets you click any one to hear what it sounds like. Built by one person at Spotify.",cat:"Useful Things"},
   {name:"Wiby.me",hookShort:"A search engine that only returns old hand-built websites from the early internet. It feels like 1999.",hook:"A search engine that only returns old hand-built personal websites from the early internet. Press search with no query. It takes you somewhere random and human. It feels like 1999.",cat:"Useful Things"},
-  {name:"Wayback Machine",hookShort:"See any website exactly as it appeared on any date back to 1996. Things companies tried to erase. Still there.",hook:"You can see any website exactly as it appeared on any date going back to 1996. Deleted pages. Old versions. Things companies tried to erase. Still there.",cat:"Useful Things",flag:"📋 Context: The Internet Archive (which runs the Wayback Machine) lost a major lawsuit in 2024 — Hachette v. Internet Archive — over their digital lending library. Publishers won. The Archive's future is under real pressure. Actually makes the story more urgent and underdog-ish if you know this going in."},
+  {name:"Wayback Machine",hookShort:"See any website exactly as it appeared on any date back to 1996. Things companies tried to erase. Still there.",hook:"You can see any website exactly as it appeared on any date going back to 1996. Deleted pages. Old versions. Things companies tried to erase. Still there.",cat:"Useful Things"},
   {name:"IMSLP",hookShort:"855,000 music scores — Bach, Beethoven, everything — free to download instantly.",hook:"Over 855,000 music scores — Bach, Beethoven, everything public domain — free to download instantly. Before this existed, finding a rare orchestral score meant months in university libraries.",cat:"Useful Things"},
   {name:"Time Travel Mart",hookShort:"A fake store selling time travel supplies. Behind it is a real tutoring nonprofit for kids.",hook:"A storefront in Los Angeles that sells time travel supplies. It is a completely fake business. Behind it is a real tutoring nonprofit for kids. The fake store is the fundraiser.",cat:"Useful Things"},
-  {name:"Dogue",hookShort:"A restaurant serving seven-course tasting menus exclusively for dogs. Always full.",hook:"A restaurant in San Francisco that serves seven-course tasting menus exclusively for dogs. The owners sit at a table beside their pets and eat human food. Fully serious. Always full.",cat:"Food"},
+  {name:"Dogue",hookShort:"A restaurant serving seven-course tasting menus exclusively for dogs. Always full.",hook:"A restaurant in San Francisco that serves seven-course tasting menus exclusively for dogs. The owners sit at a table beside their pets and eat human food. Fully serious. Always full.",cat:"Useful Things"},
   {name:"Athletic Brewing",hookShort:"Non-alcoholic beer that actually tastes like beer. Top 10 craft brewery in the US.",hook:"Non-alcoholic beer that actually tastes like beer. Now one of the top 10 craft breweries in the United States by volume. $130 million in sales. Partnered with Arsenal and Netflix.",cat:"Food"},
   {name:"Juicy Marbles",hookShort:"Plant-based ribs with edible bones that turn into jerky when you bake them.",hook:"A Slovenian company made plant-based ribs with edible bones made entirely from plant protein — bones that turn into jerky-like snacks when you bake them. Nothing like this exists anywhere else.",cat:"Food"},
   {name:"Row 7 Seed Company",hookShort:"A chef invented new vegetables bred for flavor instead of shelf life.",hook:"A chef invented new vegetables — bred specifically for flavor instead of shelf life. Including a spinach-lettuce hybrid. Now in Whole Foods nationwide.",cat:"Food"},
   {name:"Solely",hookShort:"Every product has exactly one ingredient. One fruit. Nothing else.",hook:"Every product this company makes has exactly one ingredient. One fruit. Nothing else. They became America's largest seller of dried mango and pineapple.",cat:"Food"},
   {name:"Plonts",hookShort:"The first plant-based cheese that is actually stinky. Real aged funk.",hook:"The first plant-based cheese that is genuinely stinky — made using actual bacterial aging from traditional cheesemaking. Not vegan rubber. Real aged funk.",cat:"Food"},
   {name:"Fly by Jing",hookShort:"A multimillion-dollar chili sauce company built with no investors, no retail deals, no marketing budget.",hook:"A woman built a multimillion-dollar Sichuan chili sauce company while living in Chengdu with no investors, no retail deals, and no marketing budget. Just direct sales and word of mouth.",cat:"Food"},
-  {name:"Reduced Denmark",hookShort:"Two ex-cooks from the world's most celebrated restaurant started a company using food that would have been thrown away.",hook:"Reduced Denmark was founded by alumni of Noma — the Copenhagen restaurant widely considered the most influential in modern cooking. Instead of opening another restaurant, they make professional cooking concentrates from produce that didn't make it to market: misshapen mushrooms, invasive shore crabs, overripe fruit. The flavors are extraordinary. The sustainability angle is secondary to the product itself. This is what happens when the best cooks in the world stop caring about Michelin stars.",cat:"Food"},
+  {name:"Reduced Denmark",hookShort:"Two Noma alumni making cooking concentrates from food that would otherwise be wasted.",hook:"Two alumni of Noma's fermentation lab are making professional cooking concentrates from food that would otherwise be wasted — misshapen mushrooms, invasive shore crabs.",cat:"Food"},
   {name:"Pullman Strike of 1894",hookShort:"The company owned their homes, the stores, the church. When wages were cut and rents weren't, they struck.",hook:"Workers built their own town. The railroad company owned everything — their homes, the stores, the church. When wages were cut and rents were not, they struck. The federal government crushed them. That is why you have Labor Day. Almost nobody knows this.",cat:"History"},
-  {name:"Tesla vs Edison — the real story",hookShort:"Tesla won the War of Currents. His technology became the global standard. He still died broke and alone in a hotel room.",hook:"Nikola Tesla and George Westinghouse beat Edison's direct current system. AC became the global electrical standard — it's what powers your home right now. Westinghouse went bankrupt from the legal battle. Tesla's own funding was pulled by JP Morgan the moment it became clear there was no way to meter wireless electricity and charge per use. No monopoly possible, no interest. Tesla died in 1943 in a New York hotel room, alone, owing rent. The company named after him wasn't started until 60 years after his death. Edison is not the villain here. Capital is.",cat:"History"},
+  {name:"Mondragon origin",hookShort:"A Catholic priest started a worker cooperative with 5 people in 1956. It now has 80,000 owners.",hook:"A Catholic priest in Basque Country started a worker cooperative with five people in 1956. Seventy years later it has 80,000 worker-owners and 12 billion dollars in revenue. The origin story is wilder than the company.",cat:"History"},
+  {name:"Tesla vs Edison — the real story",hookShort:"The romanticized version leaves out the actual numbers, the betrayals, and the parts that make it genuinely strange.",hook:"The romanticized version leaves out the actual numbers, the actual betrayals, and the parts that make the whole thing genuinely strange.",cat:"History"},
   {name:"The Wreck of the Titan",hookShort:"14 years before the Titanic sank, a novelist wrote a story about an unsinkable ship named the Titan that hits an iceberg.",hook:"In 1898 — fourteen years before the Titanic sank — a novelist published a story about an unsinkable ocean liner named the Titan that strikes an iceberg in the North Atlantic and sinks. With too few lifeboats.",cat:"History"},
-  {name:"Paris Syndrome",hookShort:"There is a recognized psychiatric condition caused entirely by visiting Paris. Hallucinations. Panic attacks. Real diagnosis.",hook:"Paris Syndrome is a recognized psychological condition where the gap between a tourist's expectations of Paris and the reality causes a genuine breakdown — hallucinations, depersonalization, panic attacks. It affects primarily Japanese tourists. The Japanese embassy in Paris maintains a 24-hour hotline specifically to repatriate sufferers. France and Japan have fundamentally different cultural frameworks around disappointment and social presentation. That collision is the actual story.",cat:"Science"},
-  {name:"James Harrison",hookShort:"He donated blood 1,173 times and saved 2.4 million babies. That is not a typo.",hook:"He donated blood 1,173 times and saved 2.4 million babies. That is not a typo. His blood contains a rare antibody that cures a fatal condition in unborn children called Rhesus disease. He started donating at 18 because a blood transfusion saved his own life as a child. He spent the next 60 years quietly paying it forward. Australia forced him to stop at 77 — the maximum donor age. He cried when they told him.",cat:"People"},
-  {name:"Hedy Lamarr",hookShort:"The most famous actress in Hollywood was also the inventor of WiFi, Bluetooth, and GPS.",hook:"The most famous actress in Hollywood was also the inventor of WiFi, Bluetooth, and GPS. She developed frequency hopping during World War II to guide torpedoes. The US Navy used it. She received no credit, no royalties, and no recognition until 1997, three years before she died. The woman on the silver screen was quietly building the wireless world.",cat:"People"},
-  {name:"Billie Eilish at Sofar Sounds",hookShort:"Before the Grammys, before the world tours, Billie Eilish played to 40 strangers in someone's living room.",hook:"Sofar Sounds is a concert format where the venue is a stranger's home and the address only arrives by email the day before. In 2016 a then-unknown 14-year-old named Billie Eilish played one in Los Angeles. 40 people sitting on the floor in silence. No phones allowed. She performed Six Feet Under. Three years later she was the most nominated artist in Grammy history. The video still exists. The Sofar model — and what it does for emerging artists — is worth understanding.",cat:"People"},
-  {name:"The Seat Belt",hookShort:"Volvo invented the three-point seatbelt in 1959 and gave the patent away for free.",hook:"Volvo invented the three-point seatbelt in 1959 and gave the patent away for free. Engineer Nils Bohlin designed it. Volvo owned it. They calculated it would save more lives if every car company could use it — so they gave it to all of them at no cost. Car manufacturers still lobbied against making it mandatory for 20 years. They lost. The seatbelt has saved over a million lives in the US alone. One company decided saving lives mattered more than owning the invention.",cat:"Inventions"},
-  {name:"The Faroe Islands",hookShort:"54,000 people between Norway and Iceland are quietly doing nearly everything right and nobody is paying attention.",hook:"54,000 people between Norway and Iceland are quietly doing nearly everything right and nobody is paying attention. The Faroe Islands generate half their electricity from renewables and are on track for 100% by 2030. They have their own language, their own FIFA football team, their own internet domain, their own postage stamps. Their people are among the highest earners in the world. Almost nobody can find them on a map.",cat:"Movements",flag:"⚠️ Know before you go: the Faroe Islands practice grindadráp — a traditional annual hunt of pilot whales and dolphins that draws international condemnation every year. Graphic images circulate widely. Anyone who knows the islands likely knows this. You don't have to mention it, but someone in chat will."},
-  {name:"Aarhus Model",hookShort:"When ISIS fighters came home, this Danish city offered them therapy and jobs instead of prison. Every expert said it would fail.",hook:"In 2012 the city of Aarhus, Denmark developed a program for returning foreign fighters — young men who had traveled to Syria to join ISIS. Instead of prosecution, they were offered housing, counseling, mentorship, education, and employment. Aarhus had one of the highest ISIS recruitment rates in Western Europe. After the program, recruitment dropped to near zero. The men went home and became taxi drivers and electricians. Multiple governments have studied the model. Almost none have adopted it. The political reasons why are the part worth researching.",cat:"Movements"},
-  {name:"Sea Otters",hookShort:"Sea otters sleep holding hands so the current doesn't separate them.",hook:"Sea otters sleep holding hands so the current doesn't separate them. When a mother dives for food she wraps her pup in kelp so it doesn't float away. They carry their favorite rock tucked under their armpit wherever they go. They were hunted almost to extinction. We stopped. They came back. A 2024 study found that wherever sea otters return, kelp forests grow back. One small animal holding hands while it sleeps is holding an entire ecosystem together.",cat:"Science"},
-  {name:"Crows and Gifts",hookShort:"Crows remember human faces and bring gifts to people they trust.",hook:"Crows remember human faces and bring gifts to people they trust. Buttons, shiny glass, small stones. A girl in Seattle has been feeding crows since she was four years old. They now leave objects at her feeding spot regularly. Scientists at the University of Washington have documented crows holding grudges against specific human faces for five years and passing those memories to their offspring. The crow on the telephone wire may already know your reputation.",cat:"Science"},
-  {name:"Jadav Payeng",hookShort:"A 16-year-old boy watched snakes die on a barren sandbar and decided to plant some trees. He never stopped.",hook:"A 16-year-old boy watched snakes die on a barren sandbar and decided to plant some trees. He never stopped. 40 years later a wildlife photographer stumbled into a 1,300-acre forest that hadn't existed before — larger than Central Park — with Bengal tigers, rhinoceroses, and a herd of elephants that gives birth there every year. Nobody told him to do any of it.",cat:"People"},
-  {name:"Sixto Rodriguez",hookShort:"He released two albums that nobody bought and went back to construction work. He had no idea he was bigger than Elvis in South Africa.",hook:"A Detroit singer-songwriter released two albums in 1970 that critics called genius. Nobody bought them. He went back to construction work. What he didn't know was that his records had made it to South Africa, where he was bigger than Elvis and The Rolling Stones — the soundtrack of an entire generation's fight against apartheid. He was working demolition jobs with no phone and no internet while South Africans assumed he was dead. Two fans tracked him down. He was alive. In his same small house. He had absolutely no idea. A 2012 Oscar-winning documentary told the story. He finally toured South Africa to packed venues. He passed away in July 2023, age 81.",cat:"Artists",flag:"⚠️ Rodriguez passed away July 2023. Tell the story in past tense. The arc is complete and even more powerful for it — he did eventually get to see what he meant to people."},
-  {name:"The Velvet Underground",hookShort:"Their first album sold fewer than 30,000 copies. Everyone who bought it formed a band.",hook:"Their first album sold fewer than 30,000 copies in 1967. The band broke up thinking they had failed. Then Brian Eno observed that everyone who bought that album formed a band. Lou Reed and Nico had no idea they had just defined punk, alternative, and indie rock. They thought nobody was listening. Everyone who mattered was.",cat:"Artists"},
-  {name:"The Bonobo Tea Party",hookShort:"A scientist handed a bonobo an empty cup and asked him to pour imaginary juice. He did. And tracked where it went.",hook:"Kanzi is a bonobo who has been the subject of decades of cognitive research. In one experiment, scientists gave him an empty cup and asked him to pour imaginary juice. He poured it. He tracked where the imaginary liquid went. He offered to share it. He maintained a shared fictional reality across the entire test. Pretend play — the capacity to sustain a fiction together — was considered uniquely human. Kanzi also learned to communicate using symbols, start fires, and cook food on a stove.",cat:"Science"},
-  {name:"The Bone Collector Caterpillar",hookShort:"Scientists found a caterpillar in Hawaii that wears its victims' body parts as armor. They named it the Bone Collector.",hook:"The Bone Collector caterpillar was discovered in the mountains of Oahu in 2024. It is carnivorous — fewer than 0.1% of caterpillar species eat other insects — and stitches the dismembered shells and limbs of its prey onto its own body as camouflage. It has been living in Hawaii for millions of years. Nobody knew it existed. It lives only in isolated rocky outcrops. The scientists who found it chose the name. It is one of the most remarkable things found in a Hawaiian ecosystem in decades.",cat:"Science"},
-  {name:"Sudbury Valley School",hookShort:"A school with no classes, no grades, no curriculum — where students and staff vote equally on every rule, including who gets fired. Running since 1968.",hook:"Since 1968 this school has had no curriculum, no required classes, no grades, and no homework. Students ages 4 to 19 do exactly what they want, every day. Every student who has ever wanted to go to college has gotten in. The data on what happens to graduates is surprising. The uncomfortable question isn't whether it works — it's why almost nobody has tried to replicate it.",cat:"Education"},
-  {name:"John Holt",hookShort:"A teacher who kept asking one question — I teach, but they don't learn. Why? — and didn't stop until he burned his whole career down.",hook:"He concluded schools weren't failing to teach — they were successfully training children to perform something else entirely. He got fired from several schools. He wrote two books that sold two million copies. Then he quit and accidentally founded an entire movement from his Boston apartment. He died at 62. He never stopped asking the question.",cat:"Education"},
-  {name:"Kerbal Space Program",hookShort:"A silly game about green aliens blowing up rockets. NASA engineers use it. Teachers assign it without asking permission. Nobody planned any of that.",hook:"A tiny Mexican studio made a game about green aliens trying to reach space. The physics engine turned out to be accurate enough that people far outside the gaming world started paying attention. Teachers began assigning it without asking anyone's permission. NASA engineers used it for thought experiments. Nobody at the studio set out to teach anyone anything. The learning was a side effect.",cat:"Education"},
-  {name:"Portal 2",hookShort:"Math and science teachers started emailing a video game company out of nowhere. The company had no idea what to do about it.",hook:"Teachers across the country were using Portal 2 to teach physics — and it was working better than their textbooks. Valve had never thought of itself as an education company. They were confused. Then curious. What they built in response is worth looking into.",cat:"Education"},
-  {name:"The Met School",hookShort:"A public high school in Providence with no grades, no tests, and no traditional classes — where kids spend two days a week out in the real world.",hook:"Two educators convinced the state of Rhode Island to fund a public high school built around one idea: school and real life shouldn't be separate. Students spend two days a week interning with mentors in whatever field interests them. The outcomes data — especially what happens years after graduation — is the interesting part.",cat:"Education"},
-  {name:"Reggio Emilia",hookShort:"Days after WWII ended, Italian villagers sold a German tank, nine horses, and two military trucks — and used the money to build a school.",hook:"The women of a small Italian village built it by hand from bombed-out brick. The philosophy that developed inside it — about what children actually are and what learning actually looks like — eventually spread to 80 countries. Newsweek called it the best early childhood school system in the world. It started with a tank.",cat:"Education"},
-  {name:"Quest to Learn",hookShort:"A public school in New York City where every class is a quest, every subject is a mission, and the whole thing was designed by a video game designer.",hook:"In 2009 a game designer sat down with the New York City Department of Education and proposed something strange. The school that opened is fully public, open by lottery to any kid in the city. The way it measures success is different from any other school. The NYC school board's first move was to block any URL with the word \"game\" in it.",cat:"Education"},
+  {name:"Paris Syndrome",hookShort:"The gap between what visitors expect of Paris and reality is so severe it causes hallucinations. This is a real diagnosis.",hook:"A recognized psychological condition in which the gap between a visitor's expectations of Paris and the reality is so severe it produces vomiting, heart palpitations, hallucinations, and panic attacks. This is a real diagnosis.",cat:"History"},
+  {name:"Aaron Swartz origin",hookShort:"He co-wrote RSS at 14. Helped build Reddit. Then fought to make academic research free for everyone.",hook:"He co-wrote the RSS specification at age 14. Helped build Reddit. Co-authored Creative Commons. Then spent years fighting to make academic research freely available to everyone. The story of what happened to him is one of the most important in internet history.",cat:"History"},
 ];
 
 // ══════ STATE ══════
-let state = { active:[], used:[], lastPulled:null, filter:'All', animating:false, currentSlip:null };
+let state = { active:[], used:[], deleted:[], lastPulled:null, filter:'All', animating:false, currentSlip:null };
 
 // ══════ FIREBASE ══════
 // 1. Go to https://console.firebase.google.com → New project → "TheHat"
@@ -1717,9 +1777,9 @@ function _initFirestore() {
       .onSnapshot(snap => {
         if (!snap.exists) return;
         const data = snap.data();
-        _applyRemoteState(data.active || [], data.used || []);
+        _applyRemoteState(data.active || [], data.used || [], data.deleted || []);
         // also mirror to localStorage for offline fallback
-        localStorage.setItem('hat-app-v4', JSON.stringify({active: state.active, used: state.used}));
+        localStorage.setItem('hat-app-v4', JSON.stringify({active: state.active, used: state.used, deleted: state.deleted}));
         updateCounter();
       }, err => console.warn('Firestore listener error:', err));
 
@@ -1736,7 +1796,9 @@ function _initFirestore() {
   }
 }
 
-function _applyRemoteState(active, used) {
+function _applyRemoteState(active, used, deleted) {
+  state.deleted = deleted || [];
+  const deletedSet = new Set(state.deleted);
   const defaultMap = {};
   DEFAULT_STORIES.forEach(s => { defaultMap[s.name] = s; });
   const merge = arr => arr.map(s => {
@@ -1755,9 +1817,9 @@ function _applyRemoteState(active, used) {
   });
   state.active = merge(active);
   state.used   = merge(used);
-  // Inject any new DEFAULT_STORIES not already in active or used
+  // Inject any new DEFAULT_STORIES not already in active, used, or intentionally deleted
   const existingNames = new Set([...state.active, ...state.used].map(s => s.name));
-  const toAdd = DEFAULT_STORIES.filter(s => !existingNames.has(s.name));
+  const toAdd = DEFAULT_STORIES.filter(s => !existingNames.has(s.name) && !deletedSet.has(s.name));
   if (toAdd.length > 0) {
     const maxId = Math.max(0, ...[...state.active, ...state.used].map(s => s.id || 0));
     toAdd.forEach((s, i) => state.active.push({...s, id: maxId + i + 1}));
@@ -1772,7 +1834,7 @@ function loadState() {
     const saved = localStorage.getItem('hat-app-v4');
     if (saved) {
       const p = JSON.parse(saved);
-      _applyRemoteState(p.active || [], p.used || []);
+      _applyRemoteState(p.active || [], p.used || [], p.deleted || []);
     } else {
       state.active = DEFAULT_STORIES.map((s,i) => ({...s, id:i}));
       state.used = [];
@@ -1784,7 +1846,7 @@ function loadState() {
 }
 
 function saveState() {
-  const payload = JSON.stringify({active:state.active, used:state.used});
+  const payload = JSON.stringify({active:state.active, used:state.used, deleted:state.deleted});
   // Always write to localStorage (instant, works offline)
   localStorage.setItem('hat-app-v4', payload);
   // Write to Firestore when available (syncs all devices)
@@ -2242,6 +2304,8 @@ function refreshDrawer() {
       } else {
         if (!confirm(`Remove "${name}" from the deck?`)) return;
         state.active = state.active.filter(s => s.id !== id);
+        // Track deleted story name so it doesn't come back on reload
+        if (!state.deleted.includes(name)) state.deleted.push(name);
       }
       saveState(); updateCounter(); refreshDrawer();
     });
@@ -2339,6 +2403,8 @@ function openStorySheet(story, pile) {
     document.getElementById('sheet-edit-hook-short').value = story.hookShort || '';
     document.getElementById('sheet-edit-hook').value = story.hook || '';
   }
+  renderResearchLog(story.researchLog || []);
+  document.getElementById('sheet-log-input').value = '';
   document.getElementById('story-sheet').classList.add('open');
   document.getElementById('story-sheet-overlay').classList.add('visible');
   sheetSnapshot = {
@@ -2388,6 +2454,72 @@ function renderSheetLinks(urls) {
       renderSheetLinks(sheetUrls);
     });
   });
+}
+
+function renderResearchLog(entries) {
+  const list = document.getElementById('sheet-log-list');
+  if (!entries || entries.length === 0) {
+    list.innerHTML = '<div style="color:rgba(255,255,255,0.18);font-size:12px;padding:2px 0 6px">No notes yet.</div>';
+    return;
+  }
+  // Newest first
+  list.innerHTML = [...entries].reverse().map((e, ri) => {
+    const realIdx = entries.length - 1 - ri;
+    return `<div class="sheet-log-entry">
+      <button class="sheet-log-del" data-idx="${realIdx}">×</button>
+      <div class="sheet-log-ts" contenteditable="true" data-idx="${realIdx}">${esc(e.ts)}</div>
+      <div class="sheet-log-text">${esc(e.text)}</div>
+    </div>`;
+  }).join('');
+  // Delete buttons
+  list.querySelectorAll('.sheet-log-del').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (!sheetStory) return;
+      const arr = sheetPile === 'used' ? state.used : state.active;
+      const story = arr.find(s => s.id === sheetStory.id);
+      if (!story) return;
+      story.researchLog.splice(parseInt(btn.dataset.idx), 1);
+      saveState();
+      renderResearchLog(story.researchLog);
+    });
+  });
+  // Editable timestamps — save on blur
+  list.querySelectorAll('.sheet-log-ts').forEach(el => {
+    el.addEventListener('blur', () => {
+      if (!sheetStory) return;
+      const arr = sheetPile === 'used' ? state.used : state.active;
+      const story = arr.find(s => s.id === sheetStory.id);
+      if (!story) return;
+      const idx = parseInt(el.dataset.idx);
+      const newTs = el.textContent.trim();
+      if (newTs && story.researchLog[idx]) {
+        story.researchLog[idx].ts = newTs;
+        saveState();
+      }
+    });
+    // Prevent enter key from inserting newline in timestamp
+    el.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); el.blur(); }
+    });
+  });
+}
+
+function addLogEntry() {
+  const input = document.getElementById('sheet-log-input');
+  const text = input.value.trim();
+  if (!text || !sheetStory) return;
+  const arr = sheetPile === 'used' ? state.used : state.active;
+  const story = arr.find(s => s.id === sheetStory.id);
+  if (!story) return;
+  if (!story.researchLog) story.researchLog = [];
+  const now = new Date();
+  const ts = now.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'})
+           + ' — ' + now.toLocaleTimeString('en-US', {hour:'numeric', minute:'2-digit'});
+  story.researchLog.push({text, ts});
+  saveState();
+  input.value = '';
+  renderResearchLog(story.researchLog);
+  showToast('Note saved ✓', 1500);
 }
 
 function addSheetLink() {
@@ -2615,6 +2747,8 @@ document.getElementById('sheet-edit-btn').addEventListener('click', () => {
 document.getElementById('sheet-save-btn').addEventListener('click', saveSheet);
 document.getElementById('sheet-add-link-btn').addEventListener('click', addSheetLink);
 document.getElementById('sheet-url-input').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addSheetLink(); } });
+document.getElementById('sheet-log-add-btn').addEventListener('click', addLogEntry);
+document.getElementById('sheet-log-input').addEventListener('keydown', e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); addLogEntry(); } });
 document.getElementById('search-input').addEventListener('input', () => {
   refreshDrawer();
   document.getElementById('search-clear-btn').style.display =
