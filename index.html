@@ -1123,6 +1123,22 @@
     border-color: rgba(255,45,120,0.3);
     color: var(--pink-light);
   }
+  #log-context-menu {
+    position: fixed;
+    display: none;
+    gap: 3px;
+    background: rgba(22,18,36,0.97);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 6px;
+    z-index: 9999;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+    backdrop-filter: blur(12px);
+  }
+  #log-context-menu.visible { display: flex; }
+  #log-context-menu .log-fmt-btn {
+    width: 32px; height: 30px; font-size: 12px;
+  }
   #sheet-log-input {
     width: 100%;
     background: rgba(255,255,255,0.04);
@@ -1435,6 +1451,17 @@
       </div>
     </div>
   </div>
+</div>
+
+<!-- Log Format Context Menu -->
+<div id="log-context-menu">
+  <button type="button" class="log-fmt-btn" data-cmd="bold" title="Bold"><b>B</b></button>
+  <button type="button" class="log-fmt-btn" data-cmd="italic" title="Italic"><i>I</i></button>
+  <button type="button" class="log-fmt-btn" data-cmd="underline" title="Underline"><u>U</u></button>
+  <button type="button" class="log-fmt-btn" data-cmd="insertUnorderedList" title="Bullet">•</button>
+  <button type="button" class="log-fmt-btn" data-cmd="insertOrderedList" title="Numbered">1.</button>
+  <button type="button" class="log-fmt-btn" data-cmd="indent" title="Indent">→</button>
+  <button type="button" class="log-fmt-btn" data-cmd="outdent" title="Outdent">←</button>
 </div>
 
 <!-- Story Profile Sheet -->
@@ -2603,7 +2630,7 @@ function renderResearchLog(entries) {
       if (e.key === 'Enter') { e.preventDefault(); el.blur(); }
     });
   });
-  // Editable text — save innerHTML on blur to preserve formatting
+  // Editable text — save innerHTML on blur, tab to indent, right-click for toolbar
   list.querySelectorAll('.sheet-log-text').forEach(el => {
     el.addEventListener('blur', () => {
       if (!sheetStory) return;
@@ -2617,6 +2644,10 @@ function renderResearchLog(entries) {
         saveState();
       }
     });
+    el.addEventListener('keydown', e => {
+      if (e.key === 'Tab') { e.preventDefault(); document.execCommand(e.shiftKey ? 'outdent' : 'indent'); }
+    });
+    el.addEventListener('contextmenu', showLogContextMenu);
   });
 }
 
@@ -2902,8 +2933,41 @@ function exportResearchLog() {
   URL.revokeObjectURL(a.href);
 }
 
+// ── LOG CONTEXT MENU ──
+const logContextMenu = document.getElementById('log-context-menu');
+function hideLogContextMenu() { logContextMenu.classList.remove('visible'); }
+function showLogContextMenu(e) {
+  e.preventDefault();
+  const x = Math.min(e.clientX, window.innerWidth - 260);
+  const y = Math.min(e.clientY, window.innerHeight - 60);
+  logContextMenu.style.left = x + 'px';
+  logContextMenu.style.top  = y + 'px';
+  logContextMenu.classList.add('visible');
+}
+logContextMenu.querySelectorAll('.log-fmt-btn').forEach(btn => {
+  btn.addEventListener('mousedown', e => {
+    e.preventDefault();
+    document.execCommand(btn.dataset.cmd, false, null);
+    hideLogContextMenu();
+  });
+  btn.addEventListener('touchstart', e => {
+    e.preventDefault();
+    document.execCommand(btn.dataset.cmd, false, null);
+    hideLogContextMenu();
+  }, {passive: false});
+});
+document.addEventListener('click', e => {
+  if (!logContextMenu.contains(e.target)) hideLogContextMenu();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') hideLogContextMenu(); });
+
+// ── LOG INPUT HANDLERS ──
 document.getElementById('sheet-log-add-btn').addEventListener('click', addLogEntry);
-document.getElementById('sheet-log-input').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addLogEntry(); } });
+document.getElementById('sheet-log-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addLogEntry(); return; }
+  if (e.key === 'Tab') { e.preventDefault(); document.execCommand(e.shiftKey ? 'outdent' : 'indent'); }
+});
+document.getElementById('sheet-log-input').addEventListener('contextmenu', showLogContextMenu);
 document.querySelectorAll('.log-fmt-btn').forEach(btn => {
   btn.addEventListener('mousedown', e => {
     e.preventDefault(); // don't steal focus from input
