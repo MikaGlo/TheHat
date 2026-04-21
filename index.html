@@ -1462,6 +1462,7 @@
   <button type="button" class="log-fmt-btn" data-cmd="insertOrderedList" title="Numbered">1.</button>
   <button type="button" class="log-fmt-btn" data-cmd="indent" title="Indent">→</button>
   <button type="button" class="log-fmt-btn" data-cmd="outdent" title="Outdent">←</button>
+  <button type="button" class="log-fmt-btn" data-cmd="undo" title="Undo">↩</button>
 </div>
 
 <!-- Story Profile Sheet -->
@@ -1541,6 +1542,7 @@
         <button type="button" class="log-fmt-btn" data-cmd="underline" title="Underline"><u>U</u></button>
         <button type="button" class="log-fmt-btn" data-cmd="insertUnorderedList" title="Bullet list">•</button>
         <button type="button" class="log-fmt-btn" data-cmd="insertOrderedList" title="Numbered list">1.</button>
+        <button type="button" class="log-fmt-btn" data-cmd="undo" title="Undo">↩</button>
       </div>
       <div style="display:flex;gap:8px;align-items:flex-end;margin-bottom:12px">
         <div id="sheet-log-input" contenteditable="true" data-placeholder="Note a timestamp, a contradiction, a quote, anything..."></div>
@@ -2935,10 +2937,23 @@ function exportResearchLog() {
 
 // ── LOG CONTEXT MENU ──
 const logContextMenu = document.getElementById('log-context-menu');
+let _savedLogRange = null;
+
+function saveLogSelection() {
+  const sel = window.getSelection();
+  _savedLogRange = (sel && sel.rangeCount > 0) ? sel.getRangeAt(0).cloneRange() : null;
+}
+function restoreLogSelection() {
+  if (!_savedLogRange) return;
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(_savedLogRange);
+}
 function hideLogContextMenu() { logContextMenu.classList.remove('visible'); }
 function showLogContextMenu(e) {
   e.preventDefault();
-  const x = Math.min(e.clientX, window.innerWidth - 260);
+  saveLogSelection(); // capture selection before focus shifts
+  const x = Math.min(e.clientX, window.innerWidth - 290);
   const y = Math.min(e.clientY, window.innerHeight - 60);
   logContextMenu.style.left = x + 'px';
   logContextMenu.style.top  = y + 'px';
@@ -2947,11 +2962,13 @@ function showLogContextMenu(e) {
 logContextMenu.querySelectorAll('.log-fmt-btn').forEach(btn => {
   btn.addEventListener('mousedown', e => {
     e.preventDefault();
+    restoreLogSelection(); // put selection back before executing
     document.execCommand(btn.dataset.cmd, false, null);
     hideLogContextMenu();
   });
   btn.addEventListener('touchstart', e => {
     e.preventDefault();
+    restoreLogSelection();
     document.execCommand(btn.dataset.cmd, false, null);
     hideLogContextMenu();
   }, {passive: false});
@@ -2968,7 +2985,7 @@ document.getElementById('sheet-log-input').addEventListener('keydown', e => {
   if (e.key === 'Tab') { e.preventDefault(); document.execCommand(e.shiftKey ? 'outdent' : 'indent'); }
 });
 document.getElementById('sheet-log-input').addEventListener('contextmenu', showLogContextMenu);
-document.querySelectorAll('.log-fmt-btn').forEach(btn => {
+document.querySelectorAll('.log-format-bar .log-fmt-btn').forEach(btn => {
   btn.addEventListener('mousedown', e => {
     e.preventDefault(); // don't steal focus from input
     document.execCommand(btn.dataset.cmd, false, null);
