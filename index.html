@@ -1038,15 +1038,34 @@
     border: 1px solid rgba(255,255,255,0.07);
     border-radius: 8px;
   }
-  .sheet-link-anchor {
-    flex: 1; min-width: 0;
-    color: var(--pink-light);
-    font-size: 12px; letter-spacing: 0.3px;
-    text-decoration: none;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  .sheet-link-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  .sheet-link-label, .sheet-link-url-edit {
     font-family: -apple-system, sans-serif;
+    outline: none; border-radius: 3px; cursor: text;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    transition: background 0.15s, color 0.15s;
+    display: block;
   }
-  .sheet-link-anchor:active { opacity: 0.7; }
+  .sheet-link-label {
+    font-size: 12px; font-weight: 500;
+    color: rgba(255,255,255,0.8);
+  }
+  .sheet-link-url-edit {
+    font-size: 10px; letter-spacing: 0.2px;
+    color: rgba(255,107,168,0.5);
+  }
+  .sheet-link-label:focus, .sheet-link-url-edit:focus {
+    background: rgba(255,255,255,0.07);
+    color: rgba(255,255,255,0.9);
+    padding: 1px 4px; white-space: normal; overflow: visible;
+  }
+  .sheet-link-open {
+    background: none; border: none;
+    color: rgba(255,107,168,0.45); font-size: 13px;
+    cursor: pointer; padding: 2px 4px; flex-shrink: 0;
+    transition: color 0.15s;
+  }
+  .sheet-link-open:active { color: var(--pink-light); }
   .sheet-link-del {
     background: none; border: none;
     color: rgba(255,255,255,0.2); font-size: 16px;
@@ -1549,9 +1568,12 @@
     <div class="sheet-section">
       <div class="sheet-label">Research Links</div>
       <div id="sheet-links-list"></div>
-      <div style="display:flex;gap:8px;margin-top:8px;align-items:stretch">
-        <input type="url" id="sheet-url-input" placeholder="https://..." style="flex:1;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:10px 12px;color:rgba(255,255,255,0.85);font-size:14px;font-family:-apple-system,sans-serif;outline:none;transition:border-color 0.2s;-webkit-appearance:none;">
-        <button type="button" id="sheet-add-link-btn" style="background:rgba(255,45,120,0.1);border:1px solid rgba(255,45,120,0.22);color:var(--pink-light);font-size:12px;padding:0 16px;border-radius:8px;cursor:pointer;white-space:nowrap;font-family:-apple-system,sans-serif;font-weight:500;flex-shrink:0;transition:background 0.15s">+ Add</button>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-top:8px">
+        <input type="text" id="sheet-link-label-input" placeholder='Label — e.g. "Loonshots YouTube", "His website"' style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:9px 12px;color:rgba(255,255,255,0.85);font-size:13px;font-family:-apple-system,sans-serif;outline:none;transition:border-color 0.2s;-webkit-appearance:none;">
+        <div style="display:flex;gap:8px;align-items:stretch">
+          <input type="url" id="sheet-url-input" placeholder="https://..." style="flex:1;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:10px 12px;color:rgba(255,255,255,0.85);font-size:14px;font-family:-apple-system,sans-serif;outline:none;transition:border-color 0.2s;-webkit-appearance:none;">
+          <button type="button" id="sheet-add-link-btn" style="background:rgba(255,45,120,0.1);border:1px solid rgba(255,45,120,0.22);color:var(--pink-light);font-size:12px;padding:0 16px;border-radius:8px;cursor:pointer;white-space:nowrap;font-family:-apple-system,sans-serif;font-weight:500;flex-shrink:0;transition:background 0.15s">+ Add</button>
+        </div>
       </div>
     </div>
     <div class="sheet-section">
@@ -1940,7 +1962,7 @@ function _applyRemoteState(active, used, deleted) {
       hookShort: (d && !userEdited) ? d.hookShort : (s.hookShort || null),
       hook:      (d && !userEdited) ? d.hook      : (s.hook || s.hookShort || null),
       cat:       (d && !userEdited) ? d.cat       : s.cat,
-      urls:      s.urls || (s.url ? [s.url] : []),
+      urls:      (s.urls || (s.url ? [s.url] : [])).map(u => typeof u === 'string' ? {url: u, label: u.replace(/^https?:\/\/(www\.)?/,'').split('/')[0]} : u),
       notes:     s.notes || null,
       flag:      (d && !userEdited) ? (d.flag || null) : (s.flag || null),
     };
@@ -2578,18 +2600,46 @@ let sheetUrls = [];
 let logSort = 'newest'; // 'newest' | 'oldest'
 let logSearch = '';
 
+function normalizeLink(u) {
+  if (typeof u === 'string') return {url: u, label: u.replace(/^https?:\/\/(www\.)?/,'').split('/')[0]};
+  return {url: u.url || '', label: u.label || u.url.replace(/^https?:\/\/(www\.)?/,'').split('/')[0]};
+}
+
 function renderSheetLinks(urls) {
-  sheetUrls = [...urls];
+  sheetUrls = urls.map(normalizeLink);
   const list = document.getElementById('sheet-links-list');
   list.innerHTML = sheetUrls.map((u, i) => `
     <div class="sheet-link-item">
-      <a class="sheet-link-anchor" href="${esc(u)}" target="_blank" rel="noopener noreferrer">${esc(u.replace(/^https?:\/\/(www\.)?/,'').split('/')[0])}</a>
+      <div class="sheet-link-info">
+        <span class="sheet-link-label" contenteditable="true" data-idx="${i}" data-field="label">${esc(u.label)}</span>
+        <span class="sheet-link-url-edit" contenteditable="true" data-idx="${i}" data-field="url">${esc(u.url)}</span>
+      </div>
+      <button class="sheet-link-open" data-idx="${i}" title="Open link">↗</button>
       <button class="sheet-link-del" data-idx="${i}">×</button>
     </div>`).join('');
+
   list.querySelectorAll('.sheet-link-del').forEach(btn => {
     btn.addEventListener('click', () => {
       sheetUrls.splice(parseInt(btn.dataset.idx), 1);
       renderSheetLinks(sheetUrls);
+    });
+  });
+  list.querySelectorAll('.sheet-link-open').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const u = sheetUrls[parseInt(btn.dataset.idx)];
+      if (u) window.open(u.url, '_blank', 'noopener');
+    });
+  });
+  list.querySelectorAll('[data-field]').forEach(el => {
+    el.addEventListener('blur', () => {
+      const idx = parseInt(el.dataset.idx);
+      const val = el.textContent.trim();
+      if (!val || !sheetUrls[idx]) return;
+      if (el.dataset.field === 'label') sheetUrls[idx].label = val;
+      if (el.dataset.field === 'url') sheetUrls[idx].url = val.startsWith('http') ? val : 'https://' + val;
+    });
+    el.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); el.blur(); }
     });
   });
 }
@@ -2706,12 +2756,24 @@ function addLogEntry() {
 
 function addSheetLink() {
   const input = document.getElementById('sheet-url-input');
+  const labelInput = document.getElementById('sheet-link-label-input');
   const val = input.value.trim();
   if (!val) return;
   const url = val.startsWith('http') ? val : 'https://' + val;
-  if (!sheetUrls.includes(url)) sheetUrls.push(url);
+  const rawLabel = labelInput ? labelInput.value.trim() : '';
+  const label = rawLabel || url.replace(/^https?:\/\/(www\.)?/,'').split('/')[0];
+  // Snapshot current labels from any focused contenteditable before re-render
+  document.querySelectorAll('#sheet-links-list [data-field]').forEach(el => {
+    const idx = parseInt(el.dataset.idx);
+    const val = el.textContent.trim();
+    if (!val || !sheetUrls[idx]) return;
+    if (el.dataset.field === 'label') sheetUrls[idx].label = val;
+    if (el.dataset.field === 'url') sheetUrls[idx].url = val.startsWith('http') ? val : 'https://' + val;
+  });
+  sheetUrls.push({url, label});
   renderSheetLinks(sheetUrls);
   input.value = '';
+  if (labelInput) labelInput.value = '';
 }
 
 function saveSheetData() {
@@ -2721,8 +2783,8 @@ function saveSheetData() {
   if (!story) return false;
   story.notes = document.getElementById('sheet-notes-input').value.trim() || null;
   story.flag  = document.getElementById('sheet-flag-box').value.trim() || null;
-  story.urls  = [...sheetUrls];
-  story.url   = sheetUrls[0] || null; // backwards compat
+  story.urls  = sheetUrls.map(u => ({url: u.url, label: u.label}));
+  story.url   = sheetUrls[0] ? sheetUrls[0].url : null; // backwards compat
   story.pinned = document.getElementById('sheet-pin-btn').classList.contains('pinned') || false;
   const activeDepth = document.querySelector('.depth-btn.active');
   story.depth = activeDepth ? activeDepth.dataset.depth : null;
@@ -2987,6 +3049,7 @@ document.getElementById('sheet-edit-btn').addEventListener('click', () => {
 document.getElementById('sheet-save-btn').addEventListener('click', saveSheet);
 document.getElementById('sheet-add-link-btn').addEventListener('click', addSheetLink);
 document.getElementById('sheet-url-input').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addSheetLink(); } });
+document.getElementById('sheet-link-label-input').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('sheet-url-input').focus(); } });
 function exportResearchLog() {
   if (!sheetStory) return;
   const arr = sheetPile === 'used' ? state.used : state.active;
