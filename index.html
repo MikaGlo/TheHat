@@ -1126,18 +1126,37 @@
   #log-context-menu {
     position: fixed;
     display: none;
-    gap: 3px;
-    background: rgba(22,18,36,0.97);
+    flex-direction: column;
+    min-width: 160px;
+    background: rgba(20,16,32,0.98);
     border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 8px;
-    padding: 6px;
+    border-radius: 10px;
+    padding: 4px;
     z-index: 9999;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.6);
-    backdrop-filter: blur(12px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.7);
+    backdrop-filter: blur(16px);
   }
   #log-context-menu.visible { display: flex; }
-  #log-context-menu .log-fmt-btn {
-    width: 32px; height: 30px; font-size: 12px;
+  .ctx-item {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    background: none; border: none;
+    color: rgba(255,255,255,0.75);
+    font-size: 13px; font-family: -apple-system, sans-serif;
+    cursor: pointer; text-align: left; width: 100%;
+    transition: background 0.1s;
+    white-space: nowrap;
+  }
+  .ctx-item:hover, .ctx-item:active { background: rgba(255,45,120,0.12); color: white; }
+  .ctx-shortcut {
+    font-size: 10px; color: rgba(255,255,255,0.28);
+    letter-spacing: 0.3px; flex-shrink: 0;
+  }
+  .ctx-divider {
+    height: 1px; background: rgba(255,255,255,0.07);
+    margin: 3px 4px;
   }
   #sheet-log-input {
     width: 100%;
@@ -1455,14 +1474,15 @@
 
 <!-- Log Format Context Menu -->
 <div id="log-context-menu">
-  <button type="button" class="log-fmt-btn" data-cmd="bold" title="Bold"><b>B</b></button>
-  <button type="button" class="log-fmt-btn" data-cmd="italic" title="Italic"><i>I</i></button>
-  <button type="button" class="log-fmt-btn" data-cmd="underline" title="Underline"><u>U</u></button>
-  <button type="button" class="log-fmt-btn" data-cmd="insertUnorderedList" title="Bullet">•</button>
-  <button type="button" class="log-fmt-btn" data-cmd="insertOrderedList" title="Numbered">1.</button>
-  <button type="button" class="log-fmt-btn" data-cmd="indent" title="Indent">→</button>
-  <button type="button" class="log-fmt-btn" data-cmd="outdent" title="Outdent">←</button>
-  <button type="button" class="log-fmt-btn" data-cmd="undo" title="Undo">↩</button>
+  <button type="button" class="ctx-item" data-cmd="bold"><span><b>Bold</b></span><span class="ctx-shortcut">⌘B</span></button>
+  <button type="button" class="ctx-item" data-cmd="italic"><span><i>Italic</i></span><span class="ctx-shortcut">⌘I</span></button>
+  <button type="button" class="ctx-item" data-cmd="underline"><span><u>Underline</u></span><span class="ctx-shortcut">⌘U</span></button>
+  <div class="ctx-divider"></div>
+  <button type="button" class="ctx-item" data-cmd="insertUnorderedList"><span>Bullet List</span></button>
+  <button type="button" class="ctx-item" data-cmd="insertOrderedList"><span>Numbered List</span></button>
+  <div class="ctx-divider"></div>
+  <button type="button" class="ctx-item" id="ctx-copy-btn"><span>Copy</span><span class="ctx-shortcut">⌘C</span></button>
+  <button type="button" class="ctx-item" id="ctx-paste-btn"><span>Paste</span><span class="ctx-shortcut">⌘V</span></button>
 </div>
 
 <!-- Story Profile Sheet -->
@@ -1545,7 +1565,7 @@
         <button type="button" class="log-fmt-btn" data-cmd="undo" title="Undo">↩</button>
       </div>
       <div style="display:flex;gap:8px;align-items:flex-end;margin-bottom:12px">
-        <div id="sheet-log-input" contenteditable="true" data-placeholder="Note a timestamp, a contradiction, a quote, anything..."></div>
+        <div id="sheet-log-input" contenteditable="true" spellcheck="true" autocapitalize="sentences" data-placeholder="Note a timestamp, a contradiction, a quote, anything..."></div>
         <button type="button" id="sheet-log-add-btn">+ Add</button>
       </div>
       <div class="log-controls">
@@ -2521,6 +2541,7 @@ function openStorySheet(story, pile) {
   document.getElementById('sheet-log-input').innerHTML = '';
   document.getElementById('story-sheet').classList.add('open');
   document.getElementById('story-sheet-overlay').classList.add('visible');
+  startSheetAutoSave();
   sheetSnapshot = {
     notes: document.getElementById('sheet-notes-input').value,
     flag:  document.getElementById('sheet-flag-box').value,
@@ -2547,6 +2568,7 @@ function maybeCloseSheet() {
 }
 
 function closeStorySheet() {
+  stopSheetAutoSave();
   document.getElementById('story-sheet').classList.remove('open');
   document.getElementById('story-sheet-overlay').classList.remove('visible');
   sheetStory = null; sheetPile = null; sheetSnapshot = null;
@@ -2599,7 +2621,7 @@ function renderResearchLog(entries) {
     return `<div class="sheet-log-entry">
       <button class="sheet-log-del" data-idx="${realIdx}">×</button>
       <div class="sheet-log-ts" contenteditable="true" data-idx="${realIdx}">${esc(e.ts)}</div>
-      <div class="sheet-log-text" contenteditable="true" data-idx="${realIdx}">${e.text}</div>
+      <div class="sheet-log-text" contenteditable="true" spellcheck="true" autocapitalize="sentences" data-idx="${realIdx}">${e.text}</div>
     </div>`;
   }).join('');
   // Delete buttons
@@ -2647,7 +2669,17 @@ function renderResearchLog(entries) {
       }
     });
     el.addEventListener('keydown', e => {
-      if (e.key === 'Tab') { e.preventDefault(); document.execCommand(e.shiftKey ? 'outdent' : 'indent'); }
+      if (e.key === 'Tab') { e.preventDefault(); document.execCommand(e.shiftKey ? 'outdent' : 'indent'); return; }
+      if ((e.metaKey || e.ctrlKey) && e.key === 'b') { e.preventDefault(); document.execCommand('bold'); return; }
+      if ((e.metaKey || e.ctrlKey) && e.key === 'i') { e.preventDefault(); document.execCommand('italic'); return; }
+      if ((e.metaKey || e.ctrlKey) && e.key === 'u') { e.preventDefault(); document.execCommand('underline'); return; }
+      if ((e.metaKey || e.ctrlKey) && e.key === 'c') { document.execCommand('copy'); return; }
+      if ((e.metaKey || e.ctrlKey) && e.key === 'v') {
+        e.preventDefault();
+        navigator.clipboard.readText().then(text => document.execCommand('insertText', false, text)).catch(() => document.execCommand('paste'));
+        return;
+      }
+      handleAutoCapitalize(e);
     });
     el.addEventListener('contextmenu', showLogContextMenu);
   });
@@ -2682,11 +2714,11 @@ function addSheetLink() {
   input.value = '';
 }
 
-function saveSheet() {
-  if (!sheetStory || !sheetPile) return;
+function saveSheetData() {
+  if (!sheetStory || !sheetPile) return false;
   const arr = sheetPile === 'used' ? state.used : state.active;
   const story = arr.find(s => s.id === sheetStory.id);
-  if (!story) return;
+  if (!story) return false;
   story.notes = document.getElementById('sheet-notes-input').value.trim() || null;
   story.flag  = document.getElementById('sheet-flag-box').value.trim() || null;
   story.urls  = [...sheetUrls];
@@ -2701,12 +2733,53 @@ function saveSheet() {
     story.hookShort = document.getElementById('sheet-edit-hook-short').value.trim() || story.hookShort;
     story.hook      = document.getElementById('sheet-edit-hook').value.trim() || story.hook;
     story.cat       = document.getElementById('sheet-edit-cat').value;
-    story.edited    = true; // prevents merge from overwriting with defaults on reload
+    story.edited    = true;
   }
   saveState();
+  return true;
+}
+
+function saveSheet() {
+  if (!saveSheetData()) return;
   closeStorySheet();
   refreshDrawer();
   showToast('Saved ✓');
+}
+
+// ── AUTO-SAVE every 15 min while sheet is open ──
+let _sheetAutoSaveTimer = null;
+
+function startSheetAutoSave() {
+  clearInterval(_sheetAutoSaveTimer);
+  _sheetAutoSaveTimer = setInterval(() => {
+    if (!sheetStory) return;
+    // Flush any unsubmitted log input as an auto-saved entry
+    const input = document.getElementById('sheet-log-input');
+    const html = input ? input.innerHTML.trim() : '';
+    const text = input ? input.textContent.trim() : '';
+    if (text) {
+      const arr = sheetPile === 'used' ? state.used : state.active;
+      const story = arr.find(s => s.id === sheetStory.id);
+      if (story) {
+        if (!story.researchLog) story.researchLog = [];
+        const now = new Date();
+        const ts = now.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'})
+                 + ' — ' + now.toLocaleTimeString('en-US', {hour:'numeric', minute:'2-digit'})
+                 + ' (auto)';
+        story.researchLog.push({text: html, ts});
+        input.innerHTML = '';
+        renderResearchLog(story.researchLog);
+      }
+    }
+    // Save all sheet fields silently
+    saveSheetData();
+    showToast('Auto-saved ✓', 2000);
+  }, 15 * 60 * 1000);
+}
+
+function stopSheetAutoSave() {
+  clearInterval(_sheetAutoSaveTimer);
+  _sheetAutoSaveTimer = null;
 }
 function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
@@ -2959,10 +3032,10 @@ function showLogContextMenu(e) {
   logContextMenu.style.top  = y + 'px';
   logContextMenu.classList.add('visible');
 }
-logContextMenu.querySelectorAll('.log-fmt-btn').forEach(btn => {
+logContextMenu.querySelectorAll('.ctx-item[data-cmd]').forEach(btn => {
   btn.addEventListener('mousedown', e => {
     e.preventDefault();
-    restoreLogSelection(); // put selection back before executing
+    restoreLogSelection();
     document.execCommand(btn.dataset.cmd, false, null);
     hideLogContextMenu();
   });
@@ -2973,16 +3046,58 @@ logContextMenu.querySelectorAll('.log-fmt-btn').forEach(btn => {
     hideLogContextMenu();
   }, {passive: false});
 });
+document.getElementById('ctx-copy-btn').addEventListener('mousedown', e => {
+  e.preventDefault();
+  restoreLogSelection();
+  document.execCommand('copy');
+  hideLogContextMenu();
+});
+document.getElementById('ctx-paste-btn').addEventListener('mousedown', e => {
+  e.preventDefault();
+  restoreLogSelection();
+  navigator.clipboard.readText().then(text => {
+    document.execCommand('insertText', false, text);
+  }).catch(() => {
+    document.execCommand('paste');
+  });
+  hideLogContextMenu();
+});
 document.addEventListener('click', e => {
   if (!logContextMenu.contains(e.target)) hideLogContextMenu();
 });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') hideLogContextMenu(); });
 
+// ── AUTO-CAPITALIZE ──
+function handleAutoCapitalize(e) {
+  if (e.key.length !== 1 || !/[a-z]/.test(e.key)) return;
+  const sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0) return;
+  const range = sel.getRangeAt(0);
+  const temp = range.cloneRange();
+  temp.selectNodeContents(e.currentTarget);
+  temp.setEnd(range.startContainer, range.startOffset);
+  const before = temp.toString();
+  if (before.trim() === '' || /[.!?]\s+$/.test(before) || /[.!?]\s*$/.test(before.trimEnd())) {
+    e.preventDefault();
+    document.execCommand('insertText', false, e.key.toUpperCase());
+  }
+}
+
 // ── LOG INPUT HANDLERS ──
 document.getElementById('sheet-log-add-btn').addEventListener('click', addLogEntry);
 document.getElementById('sheet-log-input').addEventListener('keydown', e => {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addLogEntry(); return; }
-  if (e.key === 'Tab') { e.preventDefault(); document.execCommand(e.shiftKey ? 'outdent' : 'indent'); }
+  if (e.key === 'Tab') { e.preventDefault(); document.execCommand(e.shiftKey ? 'outdent' : 'indent'); return; }
+  if ((e.metaKey || e.ctrlKey) && e.key === 'b') { e.preventDefault(); document.execCommand('bold'); return; }
+  if ((e.metaKey || e.ctrlKey) && e.key === 'i') { e.preventDefault(); document.execCommand('italic'); return; }
+  if ((e.metaKey || e.ctrlKey) && e.key === 'u') { e.preventDefault(); document.execCommand('underline'); return; }
+  if ((e.metaKey || e.ctrlKey) && e.key === 'c') { document.execCommand('copy'); return; }
+  if ((e.metaKey || e.ctrlKey) && e.key === 'v') {
+    e.preventDefault();
+    navigator.clipboard.readText().then(text => document.execCommand('insertText', false, text)).catch(() => document.execCommand('paste'));
+    return;
+  }
+  handleAutoCapitalize(e);
 });
 document.getElementById('sheet-log-input').addEventListener('contextmenu', showLogContextMenu);
 document.querySelectorAll('.log-format-bar .log-fmt-btn').forEach(btn => {
