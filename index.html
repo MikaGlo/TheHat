@@ -1104,6 +1104,25 @@
     transition: color 0.15s;
   }
   .sheet-log-del:active { color: var(--pink); }
+  .log-format-bar {
+    display: flex; gap: 3px; margin-bottom: 6px; flex-wrap: wrap;
+  }
+  .log-fmt-btn {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 5px;
+    color: rgba(255,255,255,0.45);
+    font-size: 11px; font-family: -apple-system, sans-serif;
+    width: 28px; height: 26px;
+    cursor: pointer; line-height: 1;
+    transition: background 0.12s, color 0.12s, border-color 0.12s;
+    flex-shrink: 0;
+  }
+  .log-fmt-btn:active, .log-fmt-btn.active {
+    background: rgba(255,45,120,0.15);
+    border-color: rgba(255,45,120,0.3);
+    color: var(--pink-light);
+  }
   #sheet-log-input {
     width: 100%;
     background: rgba(255,255,255,0.04);
@@ -1114,11 +1133,55 @@
     font-size: 13px;
     font-family: -apple-system, sans-serif;
     outline: none;
-    resize: none;
     min-height: 64px;
     transition: border-color 0.2s;
+    line-height: 1.55;
   }
   #sheet-log-input:focus { border-color: rgba(255,45,120,0.35); }
+  #sheet-log-input:empty::before {
+    content: attr(data-placeholder);
+    color: rgba(255,255,255,0.22);
+    pointer-events: none;
+  }
+  #sheet-log-input ul, #sheet-log-input ol,
+  .sheet-log-text ul, .sheet-log-text ol {
+    padding-left: 18px; margin: 4px 0;
+  }
+  #sheet-log-input b, .sheet-log-text b { color: rgba(255,255,255,0.92); }
+  #sheet-log-input u, .sheet-log-text u { text-decoration-color: rgba(255,255,255,0.4); }
+  .log-controls {
+    display: flex; gap: 6px; align-items: center;
+    margin-bottom: 8px;
+  }
+  #log-search {
+    flex: 1; min-width: 0;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 7px;
+    padding: 6px 10px;
+    color: rgba(255,255,255,0.75);
+    font-size: 12px; font-family: -apple-system, sans-serif;
+    outline: none; transition: border-color 0.2s;
+    -webkit-appearance: none;
+  }
+  #log-search:focus { border-color: rgba(255,45,120,0.3); }
+  #log-search::placeholder { color: rgba(255,255,255,0.2); }
+  .log-ctrl-btn {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 7px;
+    color: rgba(255,255,255,0.4);
+    font-size: 10px; letter-spacing: 0.5px;
+    font-family: -apple-system, sans-serif;
+    padding: 0 10px; height: 30px;
+    cursor: pointer; white-space: nowrap; flex-shrink: 0;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+  }
+  .log-ctrl-btn:active, .log-ctrl-btn.active {
+    background: rgba(255,45,120,0.12);
+    border-color: rgba(255,45,120,0.25);
+    color: var(--pink-light);
+  }
   #sheet-log-add-btn {
     background: rgba(255,45,120,0.1);
     border: 1px solid rgba(255,45,120,0.22);
@@ -1407,6 +1470,10 @@
         <select id="sheet-edit-cat" class="sheet-edit-input"></select>
       </div>
     </div>
+    <div class="sheet-section" id="sheet-episode-section" style="display:none">
+      <div class="sheet-label">Used In</div>
+      <div id="sheet-episode-wrap"></div>
+    </div>
     <div class="sheet-section" id="sheet-hook-short-section">
       <div class="sheet-label">Hook</div>
       <div id="sheet-hook-short" class="sheet-hook-short"></div>
@@ -1439,17 +1506,25 @@
         <button type="button" id="sheet-add-link-btn" style="background:rgba(255,45,120,0.1);border:1px solid rgba(255,45,120,0.22);color:var(--pink-light);font-size:12px;padding:0 16px;border-radius:8px;cursor:pointer;white-space:nowrap;font-family:-apple-system,sans-serif;font-weight:500;flex-shrink:0;transition:background 0.15s">+ Add</button>
       </div>
     </div>
-    <div class="sheet-section" id="sheet-episode-section" style="display:none">
-      <div class="sheet-label">Used In</div>
-      <div id="sheet-episode-wrap"></div>
-    </div>
     <div class="sheet-section">
       <div class="sheet-label">Research Log</div>
-      <div id="sheet-log-list"></div>
-      <div style="display:flex;gap:8px;align-items:flex-end">
-        <textarea id="sheet-log-input" placeholder="Note a timestamp, a contradiction, a quote, anything..."></textarea>
+      <div class="log-format-bar">
+        <button type="button" class="log-fmt-btn" data-cmd="bold" title="Bold"><b>B</b></button>
+        <button type="button" class="log-fmt-btn" data-cmd="italic" title="Italic"><i>I</i></button>
+        <button type="button" class="log-fmt-btn" data-cmd="underline" title="Underline"><u>U</u></button>
+        <button type="button" class="log-fmt-btn" data-cmd="insertUnorderedList" title="Bullet list">•</button>
+        <button type="button" class="log-fmt-btn" data-cmd="insertOrderedList" title="Numbered list">1.</button>
+      </div>
+      <div style="display:flex;gap:8px;align-items:flex-end;margin-bottom:12px">
+        <div id="sheet-log-input" contenteditable="true" data-placeholder="Note a timestamp, a contradiction, a quote, anything..."></div>
         <button type="button" id="sheet-log-add-btn">+ Add</button>
       </div>
+      <div class="log-controls">
+        <input type="text" id="log-search" placeholder="Search notes...">
+        <button type="button" class="log-ctrl-btn" id="log-sort-btn">Oldest ↑</button>
+        <button type="button" class="log-ctrl-btn" id="log-export-btn">Export</button>
+      </div>
+      <div id="sheet-log-list"></div>
     </div>
     <button class="sheet-save-btn" id="sheet-save-btn">Save</button>
   </div>
@@ -2409,8 +2484,12 @@ function openStorySheet(story, pile) {
     document.getElementById('sheet-edit-hook-short').value = story.hookShort || '';
     document.getElementById('sheet-edit-hook').value = story.hook || '';
   }
+  logSearch = ''; logSort = 'newest';
+  document.getElementById('log-search').value = '';
+  document.getElementById('log-sort-btn').textContent = 'Oldest ↑';
+  document.getElementById('log-sort-btn').classList.remove('active');
   renderResearchLog(story.researchLog || []);
-  document.getElementById('sheet-log-input').value = '';
+  document.getElementById('sheet-log-input').innerHTML = '';
   document.getElementById('story-sheet').classList.add('open');
   document.getElementById('story-sheet-overlay').classList.add('visible');
   sheetSnapshot = {
@@ -2445,6 +2524,8 @@ function closeStorySheet() {
 }
 
 let sheetUrls = [];
+let logSort = 'newest'; // 'newest' | 'oldest'
+let logSearch = '';
 
 function renderSheetLinks(urls) {
   sheetUrls = [...urls];
@@ -2468,13 +2549,28 @@ function renderResearchLog(entries) {
     list.innerHTML = '<div style="color:rgba(255,255,255,0.18);font-size:12px;padding:2px 0 6px">No notes yet.</div>';
     return;
   }
-  // Newest first
-  list.innerHTML = [...entries].reverse().map((e, ri) => {
-    const realIdx = entries.length - 1 - ri;
+  // Tag each entry with its real index before filtering/sorting
+  let indexed = entries.map((e, i) => ({...e, realIdx: i}));
+  // Search filter
+  if (logSearch.trim()) {
+    const q = logSearch.toLowerCase();
+    indexed = indexed.filter(e => {
+      const plain = (e.text || '').replace(/<[^>]+>/g, '').toLowerCase();
+      return plain.includes(q) || (e.ts || '').toLowerCase().includes(q);
+    });
+  }
+  // Sort
+  if (logSort === 'newest') indexed = [...indexed].reverse();
+  if (!indexed.length) {
+    list.innerHTML = '<div style="color:rgba(255,255,255,0.18);font-size:12px;padding:2px 0 6px">No matches.</div>';
+    return;
+  }
+  list.innerHTML = indexed.map(e => {
+    const realIdx = e.realIdx;
     return `<div class="sheet-log-entry">
       <button class="sheet-log-del" data-idx="${realIdx}">×</button>
       <div class="sheet-log-ts" contenteditable="true" data-idx="${realIdx}">${esc(e.ts)}</div>
-      <div class="sheet-log-text" contenteditable="true" data-idx="${realIdx}">${esc(e.text)}</div>
+      <div class="sheet-log-text" contenteditable="true" data-idx="${realIdx}">${e.text}</div>
     </div>`;
   }).join('');
   // Delete buttons
@@ -2507,7 +2603,7 @@ function renderResearchLog(entries) {
       if (e.key === 'Enter') { e.preventDefault(); el.blur(); }
     });
   });
-  // Editable text — save on blur
+  // Editable text — save innerHTML on blur to preserve formatting
   list.querySelectorAll('.sheet-log-text').forEach(el => {
     el.addEventListener('blur', () => {
       if (!sheetStory) return;
@@ -2515,9 +2611,9 @@ function renderResearchLog(entries) {
       const story = arr.find(s => s.id === sheetStory.id);
       if (!story) return;
       const idx = parseInt(el.dataset.idx);
-      const newText = el.textContent.trim();
-      if (newText && story.researchLog[idx]) {
-        story.researchLog[idx].text = newText;
+      const newHtml = el.innerHTML.trim();
+      if (newHtml && story.researchLog[idx]) {
+        story.researchLog[idx].text = newHtml;
         saveState();
       }
     });
@@ -2526,7 +2622,8 @@ function renderResearchLog(entries) {
 
 function addLogEntry() {
   const input = document.getElementById('sheet-log-input');
-  const text = input.value.trim();
+  const html = input.innerHTML.trim();
+  const text = input.textContent.trim();
   if (!text || !sheetStory) return;
   const arr = sheetPile === 'used' ? state.used : state.active;
   const story = arr.find(s => s.id === sheetStory.id);
@@ -2535,9 +2632,9 @@ function addLogEntry() {
   const now = new Date();
   const ts = now.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'})
            + ' — ' + now.toLocaleTimeString('en-US', {hour:'numeric', minute:'2-digit'});
-  story.researchLog.push({text, ts});
+  story.researchLog.push({text: html, ts});
   saveState();
-  input.value = '';
+  input.innerHTML = '';
   renderResearchLog(story.researchLog);
   showToast('Note saved ✓', 1500);
 }
@@ -2747,6 +2844,23 @@ document.getElementById('add-story-btn').addEventListener('click', addStory);
 document.getElementById('new-cat-btn').addEventListener('click', addCustomCat);
 document.getElementById('new-cat-input').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addCustomCat(); } });
 document.getElementById('export-btn').addEventListener('click', exportStories);
+document.getElementById('log-search').addEventListener('input', e => {
+  logSearch = e.target.value;
+  if (!sheetStory) return;
+  const arr = sheetPile === 'used' ? state.used : state.active;
+  const story = arr.find(s => s.id === sheetStory.id);
+  if (story) renderResearchLog(story.researchLog || []);
+});
+document.getElementById('log-sort-btn').addEventListener('click', () => {
+  logSort = logSort === 'newest' ? 'oldest' : 'newest';
+  document.getElementById('log-sort-btn').textContent = logSort === 'newest' ? 'Oldest ↑' : 'Newest ↓';
+  document.getElementById('log-sort-btn').classList.toggle('active', logSort === 'oldest');
+  if (!sheetStory) return;
+  const arr = sheetPile === 'used' ? state.used : state.active;
+  const story = arr.find(s => s.id === sheetStory.id);
+  if (story) renderResearchLog(story.researchLog || []);
+});
+document.getElementById('log-export-btn').addEventListener('click', exportResearchLog);
 document.getElementById('story-sheet-overlay').addEventListener('click', maybeCloseSheet);
 document.getElementById('sheet-close-btn').addEventListener('click', maybeCloseSheet);
 document.getElementById('sheet-pin-btn').addEventListener('click', () => {
@@ -2767,8 +2881,39 @@ document.getElementById('sheet-edit-btn').addEventListener('click', () => {
 document.getElementById('sheet-save-btn').addEventListener('click', saveSheet);
 document.getElementById('sheet-add-link-btn').addEventListener('click', addSheetLink);
 document.getElementById('sheet-url-input').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addSheetLink(); } });
+function exportResearchLog() {
+  if (!sheetStory) return;
+  const arr = sheetPile === 'used' ? state.used : state.active;
+  const story = arr.find(s => s.id === sheetStory.id);
+  if (!story || !story.researchLog || !story.researchLog.length) {
+    showToast('No notes to export', 1800); return;
+  }
+  const lines = [`RESEARCH LOG — ${story.name}`, `Exported ${new Date().toLocaleDateString()}`, ''];
+  story.researchLog.forEach((e, i) => {
+    lines.push(`[${e.ts}]`);
+    lines.push((e.text || '').replace(/<[^>]+>/g, '').trim());
+    if (i < story.researchLog.length - 1) lines.push('');
+  });
+  const blob = new Blob([lines.join('\n')], {type:'text/plain'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `${story.name.replace(/[^a-z0-9]/gi,'_')}_research_log.txt`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
 document.getElementById('sheet-log-add-btn').addEventListener('click', addLogEntry);
-document.getElementById('sheet-log-input').addEventListener('keydown', e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); addLogEntry(); } });
+document.getElementById('sheet-log-input').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addLogEntry(); } });
+document.querySelectorAll('.log-fmt-btn').forEach(btn => {
+  btn.addEventListener('mousedown', e => {
+    e.preventDefault(); // don't steal focus from input
+    document.execCommand(btn.dataset.cmd, false, null);
+  });
+  btn.addEventListener('touchstart', e => {
+    e.preventDefault();
+    document.execCommand(btn.dataset.cmd, false, null);
+  }, {passive: false});
+});
 document.getElementById('search-input').addEventListener('input', () => {
   refreshDrawer();
   document.getElementById('search-clear-btn').style.display =
