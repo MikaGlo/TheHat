@@ -1089,6 +1089,12 @@
     font-size: 13px; line-height: 1.55;
     color: rgba(255,255,255,0.72);
     white-space: pre-wrap; word-break: break-word;
+    outline: none; border-radius: 3px; cursor: text;
+    transition: background 0.15s;
+  }
+  .sheet-log-text:focus {
+    background: rgba(255,255,255,0.05);
+    padding: 2px 4px; margin: -2px -4px;
   }
   .sheet-log-del {
     position: absolute; top: 8px; right: 8px;
@@ -2468,7 +2474,7 @@ function renderResearchLog(entries) {
     return `<div class="sheet-log-entry">
       <button class="sheet-log-del" data-idx="${realIdx}">×</button>
       <div class="sheet-log-ts" contenteditable="true" data-idx="${realIdx}">${esc(e.ts)}</div>
-      <div class="sheet-log-text">${esc(e.text)}</div>
+      <div class="sheet-log-text" contenteditable="true" data-idx="${realIdx}">${esc(e.text)}</div>
     </div>`;
   }).join('');
   // Delete buttons
@@ -2497,9 +2503,23 @@ function renderResearchLog(entries) {
         saveState();
       }
     });
-    // Prevent enter key from inserting newline in timestamp
     el.addEventListener('keydown', e => {
       if (e.key === 'Enter') { e.preventDefault(); el.blur(); }
+    });
+  });
+  // Editable text — save on blur
+  list.querySelectorAll('.sheet-log-text').forEach(el => {
+    el.addEventListener('blur', () => {
+      if (!sheetStory) return;
+      const arr = sheetPile === 'used' ? state.used : state.active;
+      const story = arr.find(s => s.id === sheetStory.id);
+      if (!story) return;
+      const idx = parseInt(el.dataset.idx);
+      const newText = el.textContent.trim();
+      if (newText && story.researchLog[idx]) {
+        story.researchLog[idx].text = newText;
+        saveState();
+      }
     });
   });
 }
