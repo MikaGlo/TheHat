@@ -2217,7 +2217,7 @@ function renderDeckLibrary() {
   const list = document.getElementById('deck-list');
   const allDecks = [
     { id: 'stories', name: 'Stories', emoji: '📖', count: state.active.length + ' cards' },
-    ...customDecks.map(d => ({ id: d.id, name: d.name, emoji: d.emoji || '🎴', count: d.cards.length + ' cards' }))
+    ...customDecks.map(d => ({ id: d.id, name: d.name, emoji: d.emoji || '🎴', count: (d.cards || []).length + ' cards' }))
   ];
   list.innerHTML = allDecks.map(d => `
     <div class="deck-item ${d.id === activeDeckId ? 'active-deck' : ''}" data-id="${d.id}">
@@ -2253,11 +2253,11 @@ function renderDeckCardsList() {
   const deck = getActiveDeck();
   const list = document.getElementById('custom-deck-cards-list');
   if (!deck) { list.innerHTML = ''; return; }
-  if (!deck.cards.length) {
+  if (!(deck.cards || []).length) {
     list.innerHTML = '<div style="color:rgba(255,255,255,0.2);font-size:12px;padding:8px 20px">No cards yet.</div>';
     return;
   }
-  list.innerHTML = deck.cards.map(c => `
+  list.innerHTML = (deck.cards || []).map(c => `
     <div style="display:flex;align-items:center;gap:10px;padding:8px 16px;border-radius:8px">
       <div style="flex:1;min-width:0">
         <div style="font-size:13px;color:rgba(255,255,255,0.75);font-family:-apple-system,sans-serif">${esc(c.name)}</div>
@@ -2533,11 +2533,12 @@ function pullSlip() {
   // Custom deck pull
   if (activeDeckId !== 'stories') {
     const deck = getActiveDeck();
-    if (!deck || !deck.cards.length) return;
+    const deckCards = deck ? (deck.cards || []) : [];
+    if (!deck || !deckCards.length) return;
     state.animating = true;
     positionHand();
     haptic(30);
-    const card = deck.cards[Math.floor(Math.random() * deck.cards.length)];
+    const card = deckCards[Math.floor(Math.random() * deckCards.length)];
     state.currentSlip = { ...card, _deckCard: true, _deckId: activeDeckId };
     const sL = document.getElementById('slips-left');
     const sR = document.getElementById('slips-right');
