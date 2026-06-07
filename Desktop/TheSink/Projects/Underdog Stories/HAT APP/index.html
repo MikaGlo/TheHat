@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <!-- Firebase SDK — must load before main script -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -2122,14 +2125,15 @@ const DEFAULT_STORIES = [
 ];
 
 // ══════ STATE ══════
-let state = { active:[], used:[], deleted:[], lastPulled:null, filter:'All', animating:false, currentSlip:null };
+let state = { active:[], used:[], deleted:[], customDecks:[], lastPulled:null, filter:'All', animating:false, currentSlip:null };
 
 // ══════ CUSTOM DECKS ══════
-let customDecks = [];
+// customDecks is a direct reference to state.customDecks — syncs via main state doc
+Object.defineProperty(window, 'customDecks', { get: () => state.customDecks, set: v => { state.customDecks = v; } });
 let activeDeckId = 'stories';
 
 function loadCustomDecks() {
-  try { customDecks = JSON.parse(localStorage.getItem('hat-custom-decks') || '[]'); } catch(e) { customDecks = []; }
+  try { state.customDecks = JSON.parse(localStorage.getItem('hat-custom-decks') || '[]'); } catch(e) { state.customDecks = []; }
   try { activeDeckId = localStorage.getItem('hat-active-deck') || 'stories'; } catch(e) { activeDeckId = 'stories'; }
 }
 function saveCustomDecks() {
@@ -2312,8 +2316,7 @@ function _initFirestore() {
         if (!snap.exists) return;
         const data = snap.data();
         _applyRemoteState(data.active || [], data.used || [], data.deleted || [], data.customDecks || []);
-        // also mirror to localStorage for offline fallback
-        localStorage.setItem('hat-app-v4', JSON.stringify({active: state.active, used: state.used, deleted: state.deleted, customDecks}));
+        localStorage.setItem('hat-app-v4', JSON.stringify({active: state.active, used: state.used, deleted: state.deleted, customDecks: state.customDecks}));
         updateCounter();
       }, err => console.warn('Firestore listener error:', err));
 
@@ -2325,19 +2328,18 @@ function _initFirestore() {
         renderCustomCats();
       }, err => console.warn('Firestore cats listener error:', err));
 
-    // Listen to customDecks2 (phone old-code writes here)
-    db.collection('hat').doc('customDecks2')
-      .onSnapshot(snap => {
-        if (!snap || !snap.exists) return;
-        _applyRemoteDecksData(snap.data().decks || []);
-      }, err => console.warn('Firestore decks listener error:', err));
-
-    // Polling fallback every 8s — catches anything the listener misses
+    // Poll customDecks2 every 8s as migration bridge for old-code devices
     setInterval(() => {
       if (!db) return;
-      db.collection('hat').doc('customDecks2').get()
-        .then(snap => { if (snap && snap.exists) _applyRemoteDecksData(snap.data().decks || []); })
-        .catch(e => console.warn('Decks poll failed:', e));
+      db.collection('hat').doc('customDecks2').get().then(snap => {
+        if (!snap || !snap.exists) return;
+        const d = snap.data().decks || [];
+        if (d.length > 0 && d.length > state.customDecks.length) {
+          state.customDecks = d;
+          saveState();
+          updateDeckSwitcher(); updateFiltersVisibility(); updateCounter(); refreshDrawer(); renderDeckLibrary();
+        }
+      }).catch(() => {});
     }, 8000);
 
   } catch(e) {
@@ -2345,22 +2347,19 @@ function _initFirestore() {
   }
 }
 
-function _applyRemoteDecksData(incoming) {
-  if (!incoming) return;
-  // Never overwrite real deck data with an empty array — prevents state listener race
-  if (incoming.length === 0 && customDecks.length > 0) return;
-  if (JSON.stringify(incoming) === JSON.stringify(customDecks)) return;
-  customDecks = incoming;
-  localStorage.setItem('hat-custom-decks', JSON.stringify(customDecks));
-  updateDeckSwitcher();
-  updateFiltersVisibility();
-  updateCounter();
-  refreshDrawer();
-  renderDeckLibrary();
-}
-
 function _applyRemoteState(active, used, deleted, remoteDecks) {
-  _applyRemoteDecksData(remoteDecks || []);
+  // Apply custom decks — only update if incoming has content or we have nothing
+  const incoming = remoteDecks || [];
+  if (incoming.length > 0 || state.customDecks.length === 0) {
+    if (JSON.stringify(incoming) !== JSON.stringify(state.customDecks)) {
+      state.customDecks = incoming;
+      updateDeckSwitcher();
+      updateFiltersVisibility();
+      updateCounter();
+      refreshDrawer();
+      renderDeckLibrary();
+    }
+  }
   state.deleted = deleted || [];
   const deletedSet = new Set(state.deleted);
   const defaultMap = {};
@@ -2410,7 +2409,7 @@ function loadState() {
 }
 
 function saveState() {
-  const payload = JSON.stringify({active:state.active, used:state.used, deleted:state.deleted, customDecks});
+  const payload = JSON.stringify({active:state.active, used:state.used, deleted:state.deleted, customDecks:state.customDecks});
   // Always write to localStorage (instant, works offline)
   localStorage.setItem('hat-app-v4', payload);
   // Write to Firestore when available (syncs all devices)
