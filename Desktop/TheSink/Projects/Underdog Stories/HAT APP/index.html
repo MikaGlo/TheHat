@@ -2134,16 +2134,7 @@ function loadCustomDecks() {
 }
 function saveCustomDecks() {
   localStorage.setItem('hat-custom-decks', JSON.stringify(customDecks));
-  if (_firestoreReady && db) {
-    // Use merge so we never accidentally wipe data from another device
-    db.collection('hat').doc('customDecks2')
-      .set({ decks: customDecks }, { merge: true })
-      .then(() => console.log('Decks saved to Firestore ✓', customDecks.length, 'decks'))
-      .catch(e => {
-        console.warn('Firestore decks save failed:', e);
-        showToast('Sync failed — saved locally only', 3000);
-      });
-  }
+  saveState(); // custom decks now live inside the main state document — same sync that already works
 }
 function getActiveDeck() {
   return activeDeckId === 'stories' ? null : customDecks.find(d => d.id === activeDeckId);
@@ -2320,9 +2311,9 @@ function _initFirestore() {
       .onSnapshot(snap => {
         if (!snap.exists) return;
         const data = snap.data();
-        _applyRemoteState(data.active || [], data.used || [], data.deleted || []);
+        _applyRemoteState(data.active || [], data.used || [], data.deleted || [], data.customDecks || []);
         // also mirror to localStorage for offline fallback
-        localStorage.setItem('hat-app-v4', JSON.stringify({active: state.active, used: state.used, deleted: state.deleted}));
+        localStorage.setItem('hat-app-v4', JSON.stringify({active: state.active, used: state.used, deleted: state.deleted, customDecks}));
         updateCounter();
       }, err => console.warn('Firestore listener error:', err));
 
@@ -2370,7 +2361,16 @@ function _initFirestore() {
   }
 }
 
-function _applyRemoteState(active, used, deleted) {
+function _applyRemoteState(active, used, deleted, remoteDecks) {
+  if (remoteDecks && JSON.stringify(remoteDecks) !== JSON.stringify(customDecks)) {
+    customDecks = remoteDecks;
+    localStorage.setItem('hat-custom-decks', JSON.stringify(customDecks));
+    updateDeckSwitcher();
+    updateFiltersVisibility();
+    updateCounter();
+    refreshDrawer();
+    renderDeckLibrary();
+  }
   state.deleted = deleted || [];
   const deletedSet = new Set(state.deleted);
   const defaultMap = {};
@@ -2408,7 +2408,7 @@ function loadState() {
     const saved = localStorage.getItem('hat-app-v4');
     if (saved) {
       const p = JSON.parse(saved);
-      _applyRemoteState(p.active || [], p.used || [], p.deleted || []);
+      _applyRemoteState(p.active || [], p.used || [], p.deleted || [], p.customDecks || []);
     } else {
       state.active = DEFAULT_STORIES.map((s,i) => ({...s, id:i}));
       state.used = [];
@@ -2420,7 +2420,7 @@ function loadState() {
 }
 
 function saveState() {
-  const payload = JSON.stringify({active:state.active, used:state.used, deleted:state.deleted});
+  const payload = JSON.stringify({active:state.active, used:state.used, deleted:state.deleted, customDecks});
   // Always write to localStorage (instant, works offline)
   localStorage.setItem('hat-app-v4', payload);
   // Write to Firestore when available (syncs all devices)
