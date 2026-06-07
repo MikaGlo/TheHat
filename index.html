@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <!-- Firebase SDK — must load before main script -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -2122,30 +2125,28 @@ const DEFAULT_STORIES = [
 ];
 
 // ══════ STATE ══════
-let state = { active:[], used:[], deleted:[], lastPulled:null, filter:'All', animating:false, currentSlip:null };
+let state = { active:[], used:[], deleted:[], customDecks:[], lastPulled:null, filter:'All', animating:false, currentSlip:null };
 
 // ══════ CUSTOM DECKS ══════
-let customDecks = [];
+// customDecks is a direct reference to state.customDecks — syncs via main state doc
+Object.defineProperty(window, 'customDecks', { get: () => state.customDecks, set: v => { state.customDecks = v; } });
 let activeDeckId = 'stories';
 
 function loadCustomDecks() {
-  try { customDecks = JSON.parse(localStorage.getItem('hat-custom-decks') || '[]'); } catch(e) { customDecks = []; }
+  try { state.customDecks = JSON.parse(localStorage.getItem('hat-custom-decks') || '[]'); } catch(e) { state.customDecks = []; }
   try { activeDeckId = localStorage.getItem('hat-active-deck') || 'stories'; } catch(e) { activeDeckId = 'stories'; }
 }
 function saveCustomDecks() {
   localStorage.setItem('hat-custom-decks', JSON.stringify(customDecks));
-  localStorage.setItem('hat-active-deck', activeDeckId);
-  if (_firestoreReady && db) {
-    db.collection('hat').doc('customDecks2').set({ decks: customDecks, activeDeckId })
-      .catch(e => console.warn('Firestore decks save failed:', e));
-  }
+  saveState(); // custom decks now live inside the main state document — same sync that already works
 }
 function getActiveDeck() {
   return activeDeckId === 'stories' ? null : customDecks.find(d => d.id === activeDeckId);
 }
 function setActiveDeck(id) {
   activeDeckId = id;
-  saveCustomDecks();
+  // Only persist active deck locally — never write to Firestore on deck switch
+  localStorage.setItem('hat-active-deck', activeDeckId);
   // Close anything open from the previous deck
   const overlay = document.getElementById('slip-overlay');
   if (overlay && overlay.classList.contains('visible')) {
@@ -2211,7 +2212,7 @@ function renderDeckLibrary() {
   const list = document.getElementById('deck-list');
   const allDecks = [
     { id: 'stories', name: 'Stories', emoji: '📖', count: state.active.length + ' cards' },
-    ...customDecks.map(d => ({ id: d.id, name: d.name, emoji: d.emoji || '🎴', count: d.cards.length + ' cards' }))
+    ...customDecks.map(d => ({ id: d.id, name: d.name, emoji: d.emoji || '🎴', count: (d.cards || []).length + ' cards' }))
   ];
   list.innerHTML = allDecks.map(d => `
     <div class="deck-item ${d.id === activeDeckId ? 'active-deck' : ''}" data-id="${d.id}">
@@ -2247,11 +2248,11 @@ function renderDeckCardsList() {
   const deck = getActiveDeck();
   const list = document.getElementById('custom-deck-cards-list');
   if (!deck) { list.innerHTML = ''; return; }
-  if (!deck.cards.length) {
+  if (!(deck.cards || []).length) {
     list.innerHTML = '<div style="color:rgba(255,255,255,0.2);font-size:12px;padding:8px 20px">No cards yet.</div>';
     return;
   }
-  list.innerHTML = deck.cards.map(c => `
+  list.innerHTML = (deck.cards || []).map(c => `
     <div style="display:flex;align-items:center;gap:10px;padding:8px 16px;border-radius:8px">
       <div style="flex:1;min-width:0">
         <div style="font-size:13px;color:rgba(255,255,255,0.75);font-family:-apple-system,sans-serif">${esc(c.name)}</div>
@@ -2314,9 +2315,8 @@ function _initFirestore() {
       .onSnapshot(snap => {
         if (!snap.exists) return;
         const data = snap.data();
-        _applyRemoteState(data.active || [], data.used || [], data.deleted || []);
-        // also mirror to localStorage for offline fallback
-        localStorage.setItem('hat-app-v4', JSON.stringify({active: state.active, used: state.used, deleted: state.deleted}));
+        _applyRemoteState(data.active || [], data.used || [], data.deleted || [], data.customDecks || []);
+        localStorage.setItem('hat-app-v4', JSON.stringify({active: state.active, used: state.used, deleted: state.deleted, customDecks: state.customDecks}));
         updateCounter();
       }, err => console.warn('Firestore listener error:', err));
 
@@ -2328,12 +2328,38 @@ function _initFirestore() {
         renderCustomCats();
       }, err => console.warn('Firestore cats listener error:', err));
 
+    // Poll customDecks2 every 8s as migration bridge for old-code devices
+    setInterval(() => {
+      if (!db) return;
+      db.collection('hat').doc('customDecks2').get().then(snap => {
+        if (!snap || !snap.exists) return;
+        const d = snap.data().decks || [];
+        if (d.length > 0 && d.length > state.customDecks.length) {
+          state.customDecks = d;
+          saveState();
+          updateDeckSwitcher(); updateFiltersVisibility(); updateCounter(); refreshDrawer(); renderDeckLibrary();
+        }
+      }).catch(() => {});
+    }, 8000);
+
   } catch(e) {
     console.warn('Firebase init failed, using localStorage only:', e);
   }
 }
 
-function _applyRemoteState(active, used, deleted) {
+function _applyRemoteState(active, used, deleted, remoteDecks) {
+  // Apply custom decks — only update if incoming has content or we have nothing
+  const incoming = remoteDecks || [];
+  if (incoming.length > 0 || state.customDecks.length === 0) {
+    if (JSON.stringify(incoming) !== JSON.stringify(state.customDecks)) {
+      state.customDecks = incoming;
+      updateDeckSwitcher();
+      updateFiltersVisibility();
+      updateCounter();
+      refreshDrawer();
+      renderDeckLibrary();
+    }
+  }
   state.deleted = deleted || [];
   const deletedSet = new Set(state.deleted);
   const defaultMap = {};
@@ -2371,7 +2397,7 @@ function loadState() {
     const saved = localStorage.getItem('hat-app-v4');
     if (saved) {
       const p = JSON.parse(saved);
-      _applyRemoteState(p.active || [], p.used || [], p.deleted || []);
+      _applyRemoteState(p.active || [], p.used || [], p.deleted || [], p.customDecks || []);
     } else {
       state.active = DEFAULT_STORIES.map((s,i) => ({...s, id:i}));
       state.used = [];
@@ -2383,7 +2409,7 @@ function loadState() {
 }
 
 function saveState() {
-  const payload = JSON.stringify({active:state.active, used:state.used, deleted:state.deleted});
+  const payload = JSON.stringify({active:state.active, used:state.used, deleted:state.deleted, customDecks:state.customDecks});
   // Always write to localStorage (instant, works offline)
   localStorage.setItem('hat-app-v4', payload);
   // Write to Firestore when available (syncs all devices)
@@ -2496,11 +2522,12 @@ function pullSlip() {
   // Custom deck pull
   if (activeDeckId !== 'stories') {
     const deck = getActiveDeck();
-    if (!deck || !deck.cards.length) return;
+    const deckCards = deck ? (deck.cards || []) : [];
+    if (!deck || !deckCards.length) return;
     state.animating = true;
     positionHand();
     haptic(30);
-    const card = deck.cards[Math.floor(Math.random() * deck.cards.length)];
+    const card = deckCards[Math.floor(Math.random() * deckCards.length)];
     state.currentSlip = { ...card, _deckCard: true, _deckId: activeDeckId };
     const sL = document.getElementById('slips-left');
     const sR = document.getElementById('slips-right');
