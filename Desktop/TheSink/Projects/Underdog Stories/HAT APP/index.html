@@ -81,6 +81,186 @@
     pointer-events: none;
   }
 
+  /* ── DECK SWITCHER ── */
+  #deck-switcher {
+    position: fixed; top: clamp(100px, 15vh, 165px); left: 50%; transform: translateX(-50%);
+    z-index: 101;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px;
+    padding: 4px 14px;
+    font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase;
+    color: rgba(255,255,255,0.35);
+    font-family: -apple-system, sans-serif;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+    white-space: nowrap;
+  }
+  #deck-switcher:active { background: rgba(255,45,120,0.1); color: var(--pink-light); border-color: rgba(255,45,120,0.25); }
+  #deck-switcher.custom-active {
+    background: rgba(255,45,120,0.08);
+    border-color: rgba(255,45,120,0.2);
+    color: rgba(255,107,168,0.7);
+  }
+
+  /* ── DECK LIBRARY ── */
+  #deck-library-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 500;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.22s;
+    backdrop-filter: blur(4px);
+  }
+  #deck-library-overlay.visible { opacity: 1; pointer-events: all; }
+  #deck-library {
+    position: fixed; bottom: -100%; left: 0; right: 0;
+    background: linear-gradient(180deg, #0f0c1a 0%, #09070f 100%);
+    border-top: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px 20px 0 0;
+    z-index: 501;
+    max-height: 80vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    transition: bottom 0.32s cubic-bezier(0.4,0,0.2,1);
+    padding-bottom: env(safe-area-inset-bottom, 20px);
+  }
+  #deck-library.open { bottom: 0; }
+  .deck-library-handle {
+    width: 36px; height: 4px;
+    background: rgba(255,255,255,0.12);
+    border-radius: 2px;
+    margin: 14px auto 4px;
+  }
+  .deck-library-title {
+    font-size: 11px; letter-spacing: 3px; text-transform: uppercase;
+    color: rgba(255,255,255,0.25); font-weight: 400;
+    text-align: center; padding: 10px 0 18px;
+    font-family: -apple-system, sans-serif;
+  }
+  .deck-item {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 22px;
+    cursor: pointer;
+    transition: background 0.15s;
+    border-radius: 10px; margin: 0 10px 4px;
+  }
+  .deck-item:active { background: rgba(255,255,255,0.05); }
+  .deck-item.active-deck { background: rgba(255,45,120,0.08); }
+  .deck-emoji {
+    font-size: 22px; width: 36px; text-align: center; flex-shrink: 0;
+  }
+  .deck-info { flex: 1; min-width: 0; }
+  .deck-name {
+    font-size: 15px; font-weight: 500;
+    color: rgba(255,255,255,0.85);
+    font-family: -apple-system, sans-serif;
+  }
+  .deck-count {
+    font-size: 11px; color: rgba(255,255,255,0.3);
+    font-family: -apple-system, sans-serif;
+    margin-top: 2px;
+  }
+  .deck-active-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--pink); flex-shrink: 0;
+    display: none;
+  }
+  .deck-item.active-deck .deck-active-dot { display: block; }
+  .deck-del-btn {
+    background: none; border: none;
+    color: rgba(255,255,255,0.18); font-size: 18px;
+    cursor: pointer; padding: 4px 6px; flex-shrink: 0;
+    transition: color 0.15s;
+  }
+  .deck-del-btn:active { color: var(--pink); }
+  .deck-divider {
+    height: 1px; background: rgba(255,255,255,0.06);
+    margin: 8px 20px 12px;
+  }
+  #new-deck-form {
+    padding: 4px 20px 24px;
+  }
+  .new-deck-row {
+    display: flex; gap: 8px; align-items: stretch; margin-bottom: 8px;
+  }
+  #new-deck-emoji {
+    width: 46px; text-align: center;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 8px; font-size: 18px;
+    color: white; outline: none;
+    font-family: -apple-system, sans-serif;
+    flex-shrink: 0;
+  }
+  #new-deck-name {
+    flex: 1;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 8px; padding: 10px 12px;
+    color: rgba(255,255,255,0.85); font-size: 14px;
+    font-family: -apple-system, sans-serif; outline: none;
+    transition: border-color 0.2s;
+  }
+  #new-deck-name:focus { border-color: rgba(255,45,120,0.3); }
+  #new-deck-btn {
+    background: rgba(255,45,120,0.12);
+    border: 1px solid rgba(255,45,120,0.25);
+    color: var(--pink-light); font-size: 12px;
+    letter-spacing: 1px; font-weight: 500;
+    border-radius: 8px; padding: 0 18px;
+    cursor: pointer; white-space: nowrap;
+    font-family: -apple-system, sans-serif;
+    transition: background 0.15s;
+  }
+  #new-deck-btn:active { background: rgba(255,45,120,0.22); }
+
+  /* ── CUSTOM DECK CARD PANEL ── */
+  #custom-deck-panel {
+    position: fixed; bottom: -100%; left: 0; right: 0;
+    background: linear-gradient(180deg, #0f0c1a 0%, #09070f 100%);
+    border-top: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px 20px 0 0;
+    z-index: 300;
+    padding: 0 0 env(safe-area-inset-bottom, 24px);
+    transition: bottom 0.32s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  #custom-deck-panel.open { bottom: 0; }
+  #custom-card-deck-label {
+    font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+    color: rgba(255,255,255,0.25); text-align: center;
+    padding: 18px 0 4px; font-family: -apple-system, sans-serif;
+  }
+  #custom-card-name {
+    font-size: clamp(22px, 5vw, 32px);
+    font-weight: 600; text-align: center;
+    color: rgba(255,255,255,0.9);
+    padding: 10px 28px 8px;
+    font-family: -apple-system, sans-serif;
+    line-height: 1.25;
+  }
+  #custom-card-text {
+    font-size: 15px; line-height: 1.6;
+    color: rgba(255,255,255,0.5);
+    text-align: center; padding: 0 28px 24px;
+    font-family: 'Georgia', serif;
+    font-style: italic;
+    min-height: 24px;
+  }
+  #custom-card-actions {
+    display: flex; gap: 10px; padding: 0 20px 8px;
+  }
+  .custom-card-btn {
+    flex: 1; padding: 13px;
+    border: none; border-radius: 10px;
+    font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase;
+    font-family: -apple-system, sans-serif; font-weight: 500;
+    cursor: pointer; transition: opacity 0.15s;
+  }
+  .custom-card-btn:active { opacity: 0.75; }
+  #custom-btn-next { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.6); }
+  #custom-btn-done { background: var(--pink); color: white; }
+
   /* ── HAT STAGE ── */
   #hat-stage {
     position: relative;
@@ -143,28 +323,59 @@
   #slips-right.parting { animation: slipPartR 1.6s ease-in-out forwards; }
 
   /* ── HAND ── */
-  /* top:-60px + translateY(280px) = hand bottom fully hidden below stage */
   #hand-container {
     position: absolute;
-    top: -60px; left: 50%;
-    transform: translateX(-50%) translateY(280px);
-    width: 120px; height: 200px;
-    pointer-events: none; z-index: 30;
+    left: 0;
+    top: -25%;            /* JS overrides this with exact px after image loads */
+    width: clamp(500px, 120vw, 860px);
+    height: auto;
+    pointer-events: none;
+    z-index: 30;
     opacity: 0;
+    transform: translateX(var(--hand-x-start, -130vw));
+  }
+
+  #hand-container img {
+    width: 100%; height: auto; display: block;
+    /* no flip needed — cat arm claws are already on the right */
+    mix-blend-mode: multiply;    /* remove white background on dark app bg */
+    filter: drop-shadow(0px 10px 18px rgba(0,0,0,0.55));  /* depth shadow over scene */
   }
 
   #hand-container.animating {
-    animation: handPull 2s cubic-bezier(0.4,0,0.2,1) forwards;
+    animation: handPull 2.4s cubic-bezier(0.4,0,0.2,1) forwards;
   }
 
+  /* Long arm sweeps in from left, fingers reach hat, retreats left — arm end never seen.
+     CSS variables set dynamically by positionHand() for perfect alignment on every device.
+     translateY arc + rotation give a natural human reach feel. */
   @keyframes handPull {
-    0%   { opacity:0;   transform:translateX(-50%) translateY(280px)  rotate(4deg); }
-    12%  { opacity:1;   transform:translateX(-50%) translateY(200px)  rotate(2deg); }
-    35%  { opacity:1;   transform:translateX(-50%) translateY(170px)  rotate(0deg); }
-    55%  { opacity:1;   transform:translateX(-50%) translateY(180px)  rotate(-2deg); }
-    72%  { opacity:1;   transform:translateX(-50%) translateY(80px)   rotate(-5deg); }
-    88%  { opacity:0.4; transform:translateX(-50%) translateY(-60px)  rotate(-8deg); }
-    100% { opacity:0;   transform:translateX(-50%) translateY(-180px) rotate(-10deg); }
+    0%   { opacity: 0;   transform: translateX(var(--hand-x-start, -130vw)) translateY(0px)   rotate(-4deg); }
+    10%  { opacity: 1;   transform: translateX(var(--hand-x-enter, -80vw))  translateY(6px)   rotate(-3deg); }
+    36%  { opacity: 1;   transform: translateX(var(--hand-x-peak,  -55vw))  translateY(16px)  rotate(-1deg); }
+    /* rummage — digging around in the hat */
+    41%  { opacity: 1;   transform: translateX(var(--hand-x-hold,  -57vw))  translateY(22px)  rotate(-2.5deg); }
+    46%  { opacity: 1;   transform: translateX(var(--hand-x-peak,  -55vw))  translateY(13px)  rotate(0.5deg); }
+    51%  { opacity: 1;   transform: translateX(var(--hand-x-hold,  -57vw))  translateY(20px)  rotate(-2deg); }
+    /* snap — grabbed something, yanks up */
+    57%  { opacity: 1;   transform: translateX(var(--hand-x-hold,  -57vw))  translateY(2px)   rotate(-4deg); }
+    74%  { opacity: 1;   transform: translateX(var(--hand-x-enter, -80vw))  translateY(6px)   rotate(-3deg); }
+    90%  { opacity: 0.4; transform: translateX(var(--hand-x-exit,  -110vw)) translateY(2px)   rotate(-4deg); }
+    100% { opacity: 0;   transform: translateX(var(--hand-x-start, -130vw)) translateY(0px)   rotate(-4deg); }
+  }
+
+  /* Hat shudder when the arm is rummaging inside */
+  @keyframes hatShudder {
+    0%   { transform: rotate(0deg)    translateX(0px); }
+    18%  { transform: rotate(-1.8deg) translateX(-3px); }
+    36%  { transform: rotate(1.4deg)  translateX(2px); }
+    52%  { transform: rotate(-1.1deg) translateX(-2px); }
+    68%  { transform: rotate(0.7deg)  translateX(1px); }
+    84%  { transform: rotate(-0.4deg) translateX(0px); }
+    100% { transform: rotate(0deg)    translateX(0px); }
+  }
+  #hat-img.shuddering {
+    animation: hatShudder 0.55s ease-in-out;
   }
 
   /* ── TAP HINT ── */
@@ -209,6 +420,16 @@
     z-index: 100;
   }
   #filters::-webkit-scrollbar { display: none; }
+  /* Right-edge fade — standalone fixed div, never inside the overflow container */
+  #filter-fade {
+    position: fixed;
+    bottom: 0; right: 0;
+    width: 44px;
+    height: 80px;
+    background: linear-gradient(to left, rgba(7,7,13,0.92) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 101;
+  }
 
   .filter-btn {
     padding: clamp(6px, 0.75vh, 10px) clamp(14px, 1.2vw, 24px);
@@ -232,6 +453,7 @@
     color: white;
     box-shadow: 0 0 16px rgba(255,45,120,0.4);
   }
+
 
   /* ── SLIP OVERLAY ── */
   #slip-overlay {
@@ -260,9 +482,9 @@
     width: min(360px, 92vw);
     height: 320px;
     perspective: 900px;
-    transform: scale(0.85) translateY(20px);
+    transform: scale(0.78) translateY(36px);
     opacity: 0;
-    transition: transform 0.45s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s ease;
+    transition: height 0.3s ease, transform 0.52s cubic-bezier(0.34,1.56,0.64,1), opacity 0.22s ease;
     cursor: pointer;
   }
 
@@ -285,86 +507,119 @@
     position: absolute; inset: 0;
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
-    border-radius: 12px;
-    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 18px;
+    border: 1px solid rgba(255,255,255,0.07);
     box-shadow:
-      0 32px 80px rgba(0,0,0,0.85),
-      0 0 60px rgba(255,45,120,0.08),
-      inset 0 1px 0 rgba(255,255,255,0.05);
+      0 12px 40px rgba(0,0,0,0.55),
+      0 32px 72px rgba(0,0,0,0.4),
+      0 0 48px rgba(255,45,120,0.06),
+      inset 0 1px 0 rgba(255,255,255,0.07);
     backdrop-filter: blur(40px);
     -webkit-backdrop-filter: blur(40px);
   }
 
   /* FRONT — name only */
   #card-front {
-    background: linear-gradient(145deg, rgba(22,18,36,0.97) 0%, rgba(14,11,24,0.99) 100%);
-    border-top: 1px solid rgba(255,45,120,0.3);
+    background: linear-gradient(160deg, rgba(24,20,38,0.98) 0%, rgba(13,10,22,0.99) 100%);
+    border-top: 1px solid rgba(255,45,120,0.25);
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
-    padding: 36px 28px;
+    padding: 40px 28px 32px;
     text-align: center;
   }
 
   .slip-category {
-    display: inline-block;
-    padding: 4px 10px;
-    border-radius: 6px;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.1);
     color: var(--cat-color, var(--pink));
-    font-size: 9px; letter-spacing: 2.5px;
+    font-size: 8.5px; letter-spacing: 3px;
     text-transform: uppercase;
-    margin-bottom: 20px;
     font-weight: 600;
+    margin-bottom: 16px;
+    opacity: 0.75;
+    font-family: -apple-system, sans-serif;
   }
 
   .slip-name {
     font-family: 'Georgia', serif;
-    font-size: clamp(22px, 4vw, 38px); font-weight: 200;
-    letter-spacing: 0.02em;
-    color: rgba(255,255,255,0.92);
-    line-height: 1.2;
+    font-size: clamp(22px, 4vw, 38px); font-weight: 300;
+    letter-spacing: 0.01em;
+    color: rgba(255,255,255,0.94);
+    line-height: 1.22;
     margin-bottom: 0;
   }
 
+  /* ── CARD PIN BUTTON ── */
+  #card-pin-btn {
+    position: absolute;
+    top: 14px; right: 14px;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.05);
+    border: none;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: transform 0.15s, background 0.18s;
+    z-index: 2;
+  }
+  #card-pin-btn::after {
+    content: '★';
+    font-size: 13px;
+    color: rgba(255,255,255,0.2);
+    transition: color 0.2s;
+    line-height: 1;
+  }
+  #card-pin-btn.pinned {
+    background: rgba(255,255,255,0.09);
+  }
+  #card-pin-btn.pinned::after {
+    color: rgba(255,255,255,0.85);
+  }
+  #card-pin-btn:active { transform: scale(0.82); }
+
   /* flip hint */
   .flip-hint {
-    position: absolute; bottom: 18px; left: 0; right: 0;
+    position: absolute; bottom: 20px; left: 0; right: 0;
     text-align: center;
-    font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
-    color: rgba(255,255,255,0.2);
+    font-size: 9px; letter-spacing: 2.5px; text-transform: uppercase;
+    color: rgba(255,255,255,0.28);
     font-family: -apple-system, sans-serif;
     animation: hintPulse 2s ease-in-out infinite;
   }
 
-  /* BACK — hook + actions */
+  /* BACK — hook + actions — not bottom-anchored so it can grow */
   #card-back {
-    background: linear-gradient(145deg, rgba(22,18,36,0.97) 0%, rgba(14,11,24,0.99) 100%);
-    border-top: 1px solid rgba(255,45,120,0.3);
+    background: linear-gradient(160deg, rgba(24,20,38,0.98) 0%, rgba(13,10,22,0.99) 100%);
+    border-top: 1px solid rgba(255,45,120,0.22);
     transform: rotateY(180deg);
     display: flex; flex-direction: column;
-    padding: 24px 24px 18px;
+    padding: 22px 22px 20px;
+    /* Override .card-face inset:0 — allow height to follow content */
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: auto;
+    min-height: 100%;
   }
 
   /* Short hook — big, bold, the headline */
   .slip-hook-short {
     font-family: 'Georgia', serif;
-    font-size: 18px; font-weight: bold; line-height: 1.5;
-    color: rgba(255,255,255,0.88);
-    margin-bottom: 10px;
+    font-size: 20px; font-weight: bold; line-height: 1.38;
+    color: rgba(255,255,255,0.92);
+    margin-bottom: 12px;
     flex-shrink: 0;
   }
 
   /* Expand button */
   .expand-btn {
     background: none; border: none;
-    font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase;
+    font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase;
     color: var(--cat-color, var(--pink));
-    cursor: pointer; padding: 0; margin-bottom: 10px;
+    cursor: pointer;
+    padding: 10px 16px 10px 0; /* large tap area, text stays left-aligned */
+    margin-bottom: 2px; /* 10px top pad + 2px = same 12px visual gap as before */
     font-family: -apple-system, sans-serif;
     font-weight: 500; text-align: left;
-    opacity: 0.7; flex-shrink: 0;
+    opacity: 0.5; flex-shrink: 0;
     transition: opacity 0.15s;
+    align-self: flex-start; /* don't stretch full width */
   }
   .expand-btn:active { opacity: 1; }
   .expand-btn.hidden { display: none; }
@@ -373,28 +628,27 @@
   .slip-hook-long {
     font-family: 'Georgia', serif;
     font-size: 13px; line-height: 1.65;
-    color: rgba(255,255,255,0.5);
+    color: rgba(255,255,255,0.48);
     font-style: italic;
-    margin-bottom: 10px;
-    overflow-y: auto;
-    max-height: 120px;
+    margin-bottom: 12px;
     flex-shrink: 0;
     display: none;
   }
   .slip-hook-long.visible { display: block; }
 
   /* Spacer so actions stay at bottom */
-  .hook-spacer { flex: 1; }
+  .hook-spacer { flex: 1; min-height: 10px; }
 
   .slip-actions {
-    display: flex; gap: 8px; flex-shrink: 0;
+    display: flex; gap: 10px; flex-shrink: 0;
+    align-items: center;
   }
 
   .slip-btn {
-    padding: 11px 16px;
-    border-radius: 6px;
+    padding: 13px 16px;
+    border-radius: 100px;
     border: none;
-    font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase;
+    font-size: 11px; letter-spacing: 1px; text-transform: uppercase;
     cursor: pointer;
     font-family: -apple-system, sans-serif;
     font-weight: 500;
@@ -405,18 +659,21 @@
   .slip-btn-used {
     background: var(--cat-color, var(--pink));
     color: white;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.25), 0 0 20px rgba(255,45,120,0.15);
+    flex: 2;
   }
 
   .slip-btn-used:active { transform: scale(0.97); box-shadow: none; }
 
   .slip-btn-close {
-    background: rgba(255,255,255,0.06);
-    color: rgba(255,255,255,0.45);
-    border: 1px solid rgba(255,255,255,0.1);
+    background: transparent;
+    color: rgba(255,255,255,0.3);
+    border: none;
+    font-size: 10px; letter-spacing: 1px;
+    flex: 1;
   }
 
-  .slip-btn-close:active { background: rgba(255,255,255,0.1); }
+  .slip-btn-close:active { color: rgba(255,255,255,0.6); }
 
   /* ── FLY USED ANIMATION ── */
   @keyframes cardFlyUp {
@@ -447,8 +704,6 @@
   }
   .icon-btn:active { background: rgba(255,45,120,0.15); border-color: var(--pink-dim); color: var(--pink-light); }
 
-  #undo-btn { top: 16px; left: 16px; opacity: 0.3; }
-  #undo-btn.has-undo { opacity: 1; border-color: rgba(255,45,120,0.3); color: var(--pink-light); }
   #menu-btn { top: 16px; right: 16px; }
 
   /* ── DRAWER ── */
@@ -504,6 +759,44 @@
     color: rgba(255,45,120,0.7);
     font-size: 9px; letter-spacing: 2.5px; text-transform: uppercase;
     margin-bottom: 14px; font-weight: 500;
+  }
+  .drawer-title-toggle {
+    display: flex; align-items: center; justify-content: space-between;
+    cursor: pointer; user-select: none; margin-bottom: 0;
+  }
+  .drawer-title-toggle .toggle-icon {
+    font-size: 14px; color: rgba(255,45,120,0.5); transition: transform 0.2s;
+    margin-bottom: 0; line-height: 1;
+  }
+  .drawer-title-toggle.open .toggle-icon { transform: rotate(45deg); }
+  .add-story-form, #add-story-form {
+    display: none; margin-top: 14px;
+  }
+  .add-story-form.open, #add-story-form.open { display: block; }
+  #drawer-filter-row {
+    margin-bottom: 14px;
+  }
+  #drawer-filter-select {
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px;
+    padding: 9px 12px;
+    color: rgba(255,255,255,0.6);
+    font-size: 12px;
+    font-family: -apple-system, sans-serif;
+    cursor: pointer;
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='rgba(255,255,255,0.3)' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 32px;
+    transition: border-color 0.2s;
+  }
+  #drawer-filter-select:focus {
+    border-color: rgba(255,255,255,0.18);
   }
 
   .form-field { margin-bottom: 12px; }
@@ -601,15 +894,7 @@
     from { opacity: 0; }
     to   { opacity: 1; }
   }
-  @keyframes slideUpFade {
-    from { opacity: 0; transform: translateY(24px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-  #branding  { animation: fadeIn 0.8s ease 0.2s both; }
-  #counter   { animation: fadeIn 0.8s ease 0.5s both; }
-  #hat-stage { animation: slideUpFade 1.1s cubic-bezier(0.16,1,0.3,1) 0.5s both; }
-  #tap-hint  { animation: fadeIn 0.8s ease 1.0s both; }
-  #filters   { animation: fadeIn 0.8s ease 1.1s both; }
+  /* entrance animations defined later in PAGE ENTRANCE block */
 
   /* ── MOBILE ── */
   @media (max-width: 680px) {
@@ -648,10 +933,12 @@
     }
     /* Filter strip — proper mobile touch targets */
     #filters {
-      padding: 12px 20px env(safe-area-inset-bottom, 26px);
-      padding-bottom: max(26px, env(safe-area-inset-bottom, 26px));
+      padding: 12px 52px max(26px, env(safe-area-inset-bottom, 26px)) 20px;
       gap: 8px;
       justify-content: flex-start;
+    }
+    #filter-fade {
+      height: calc(72px + env(safe-area-inset-bottom, 0px));
     }
     .filter-btn {
       padding: 11px 18px;
@@ -676,52 +963,57 @@
 
   /* ── EPISODE INPUT ON CARD ── */
   #episode-input-wrap {
-    display: flex; align-items: center; gap: 8px;
-    margin-bottom: 8px; flex-shrink: 0;
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 6px; flex-shrink: 0;
   }
   #episode-label {
-    font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase;
-    color: rgba(255,255,255,0.25); flex-shrink: 0;
+    font-size: 8.5px; letter-spacing: 1.5px; text-transform: uppercase;
+    color: rgba(255,255,255,0.2); flex-shrink: 0;
     font-family: -apple-system, sans-serif;
   }
   #episode-input {
     flex: 1;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 4px;
-    padding: 5px 9px;
-    font-size: 12px; color: rgba(255,255,255,0.75);
+    background: transparent;
+    border: none;
+    padding: 0;
+    font-size: 12px; color: rgba(255,255,255,0.7);
     outline: none;
     font-family: -apple-system, sans-serif;
-    transition: border-color 0.15s;
+    transition: color 0.2s;
   }
-  #episode-input:focus { border-color: rgba(255,45,120,0.35); }
-  #episode-input::placeholder { color: rgba(255,255,255,0.2); }
+  #episode-input:focus { color: rgba(255,255,255,0.9); }
+  #episode-input::placeholder { color: rgba(255,255,255,0.18); }
+  #episode-input.nudge {
+    color: rgba(255,45,120,0.9);
+  }
 
-  /* ── SOURCE LINKS ON CARD ── */
-  #source-links {
-    display: none;
-    flex-direction: column;
-    gap: 4px;
-    margin-bottom: 6px;
-    flex-shrink: 0;
-  }
-  #source-links.has-links { display: flex; }
-  .source-link-btn {
+  /* ── VIEW PROFILE BUTTON ON CARD ── */
+  #card-profile-btn {
     background: none; border: none;
-    font-size: 10px; letter-spacing: 1px; text-transform: uppercase;
-    color: var(--cat-color, var(--pink));
-    cursor: pointer; padding: 0;
-    opacity: 0.65; text-align: left;
+    font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase;
+    color: rgba(255,255,255,0.2);
+    cursor: pointer;
+    padding: 8px 0 12px 16px;
     font-family: -apple-system, sans-serif;
     font-weight: 500;
-    transition: opacity 0.15s;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    max-width: 100%;
+    align-self: flex-end;
+    flex-shrink: 0;
+    transition: color 0.15s;
   }
-  .source-link-btn:active { opacity: 1; }
+  #card-profile-btn:active { color: rgba(255,255,255,0.55); }
 
   /* ── PREP NOTES ON CARD ── */
+  #card-flag {
+    display: none;
+    font-size: 11px; line-height: 1.55;
+    color: rgba(255,200,80,0.82);
+    margin-bottom: 12px; flex-shrink: 0;
+    padding: 9px 12px;
+    background: rgba(255,180,0,0.06);
+    border-radius: 10px;
+    border: 1px solid rgba(255,180,0,0.14);
+    font-family: -apple-system, sans-serif;
+  }
   #card-notes {
     display: none;
     font-size: 11.5px; line-height: 1.55;
@@ -733,6 +1025,30 @@
     border-radius: 4px;
     border-left: 2px solid rgba(255,45,120,0.25);
     font-family: -apple-system, sans-serif;
+  }
+  /* Depth badge on card back */
+  #card-depth {
+    display: none;
+    font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase;
+    color: rgba(255,255,255,0.3);
+    font-family: -apple-system, sans-serif;
+    margin-bottom: 10px; flex-shrink: 0;
+  }
+  /* Depth selector in story sheet */
+  .depth-selector {
+    display: flex; gap: 8px;
+  }
+  .depth-btn {
+    flex: 1; padding: 8px 4px; border-radius: 8px; font-size: 11px;
+    font-family: -apple-system, sans-serif; font-weight: 500; cursor: pointer;
+    letter-spacing: 0.5px; text-align: center; transition: all 0.15s;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.4);
+  }
+  .depth-btn.active {
+    border-color: rgba(255,45,120,0.5);
+    background: rgba(255,45,120,0.12);
+    color: rgba(255,255,255,0.88);
   }
 
   /* ── STORY PROFILE SHEET ── */
@@ -776,6 +1092,27 @@
     font-size: 9px; letter-spacing: 2px; text-transform: uppercase;
     font-weight: 600; color: var(--pink);
   }
+  #sheet-pin-btn {
+    background: none; border: none;
+    color: rgba(255,140,0,0.55); font-size: 18px;
+    cursor: pointer; padding: 4px 6px; line-height: 1;
+    transition: color 0.2s, transform 0.2s;
+    margin-right: 2px;
+  }
+  #sheet-pin-btn.pinned {
+    color: rgb(255,140,0);
+    transform: rotate(-20deg);
+  }
+  #sheet-pin-btn:active { transform: scale(0.85) rotate(-20deg); }
+  .story-pin-star {
+    font-size: 9px;
+    color: #ffd700;
+    margin-right: 5px;
+    flex-shrink: 0;
+    line-height: 1;
+    filter: drop-shadow(0 0 3px rgba(255,215,0,0.7));
+    align-self: center;
+  }
   #sheet-close-btn {
     background: none; border: none;
     color: rgba(255,255,255,0.3); font-size: 20px;
@@ -783,6 +1120,40 @@
     transition: color 0.2s;
   }
   #sheet-close-btn:active { color: var(--pink); }
+  #sheet-edit-btn {
+    background: rgba(255,45,120,0.1);
+    border: 1px solid rgba(255,45,120,0.25);
+    border-radius: 100px;
+    color: rgba(255,45,120,0.75);
+    font-size: 11px; letter-spacing: 0.5px;
+    font-family: -apple-system, sans-serif;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 5px 12px;
+    line-height: 1;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+    margin-right: 6px;
+  }
+  #sheet-edit-btn:active { background: rgba(255,45,120,0.2); }
+  #sheet-edit-btn.active {
+    background: var(--pink);
+    border-color: var(--pink);
+    color: white;
+  }
+  /* Editable fields shown when editing a custom story */
+  #sheet-edit-fields { display: none; }
+  #sheet-edit-fields.visible { display: block; }
+  .sheet-edit-input {
+    width: 100%; box-sizing: border-box;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px; padding: 10px 12px;
+    color: rgba(255,255,255,0.85); font-size: 14px;
+    font-family: -apple-system, sans-serif;
+    outline: none; resize: vertical;
+    transition: border-color 0.2s;
+  }
+  .sheet-edit-input:focus { border-color: rgba(255,45,120,0.4); }
 
   .sheet-body { padding: 10px 20px 32px; }
   #sheet-name {
@@ -818,6 +1189,25 @@
     transition: border-color 0.2s; -webkit-appearance: none;
   }
   #sheet-notes-input:focus { border-color: rgba(255,45,120,0.35); }
+  #sheet-flag-box {
+    width: 100%;
+    font-size: 11.5px; line-height: 1.6;
+    color: rgba(255,200,80,0.85);
+    background: rgba(255,200,80,0.05);
+    border: 1px solid rgba(255,200,80,0.18);
+    border-left: 2px solid rgba(255,200,80,0.45);
+    border-radius: 4px;
+    padding: 8px 10px;
+    font-family: -apple-system, sans-serif;
+    resize: none; outline: none;
+    min-height: 64px;
+    -webkit-appearance: none;
+    transition: border-color 0.2s;
+  }
+  #sheet-flag-box:focus {
+    border-color: rgba(255,200,80,0.5);
+    background: rgba(255,200,80,0.08);
+  }
   #sheet-url-input:focus { border-color: rgba(255,45,120,0.35) !important; }
 
   #sheet-links-list { display: flex; flex-direction: column; gap: 6px; }
@@ -828,15 +1218,34 @@
     border: 1px solid rgba(255,255,255,0.07);
     border-radius: 8px;
   }
-  .sheet-link-anchor {
-    flex: 1; min-width: 0;
-    color: var(--pink-light);
-    font-size: 12px; letter-spacing: 0.3px;
-    text-decoration: none;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  .sheet-link-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  .sheet-link-label, .sheet-link-url-edit {
     font-family: -apple-system, sans-serif;
+    outline: none; border-radius: 3px; cursor: text;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    transition: background 0.15s, color 0.15s;
+    display: block;
   }
-  .sheet-link-anchor:active { opacity: 0.7; }
+  .sheet-link-label {
+    font-size: 12px; font-weight: 500;
+    color: rgba(255,255,255,0.8);
+  }
+  .sheet-link-url-edit {
+    font-size: 10px; letter-spacing: 0.2px;
+    color: rgba(255,107,168,0.5);
+  }
+  .sheet-link-label:focus, .sheet-link-url-edit:focus {
+    background: rgba(255,255,255,0.07);
+    color: rgba(255,255,255,0.9);
+    padding: 1px 4px; white-space: normal; overflow: visible;
+  }
+  .sheet-link-open {
+    background: none; border: none;
+    color: rgba(255,107,168,0.45); font-size: 13px;
+    cursor: pointer; padding: 2px 4px; flex-shrink: 0;
+    transition: color 0.15s;
+  }
+  .sheet-link-open:active { color: var(--pink-light); }
   .sheet-link-del {
     background: none; border: none;
     color: rgba(255,255,255,0.2); font-size: 16px;
@@ -844,6 +1253,182 @@
     transition: color 0.15s;
   }
   .sheet-link-del:active { color: var(--pink); }
+
+  /* ── RESEARCH LOG ── */
+  #sheet-log-list {
+    display: flex; flex-direction: column; gap: 8px;
+    margin-bottom: 10px;
+    max-height: 260px; overflow-y: auto;
+  }
+  .sheet-log-entry {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 8px;
+    padding: 10px 12px;
+    position: relative;
+  }
+  .sheet-log-ts {
+    font-size: 10px; letter-spacing: 0.3px;
+    color: rgba(255,255,255,0.25);
+    margin-bottom: 5px;
+    padding-right: 20px;
+    cursor: text;
+    outline: none;
+    border-radius: 3px;
+    transition: background 0.15s, color 0.15s;
+    display: inline-block;
+    min-width: 40px;
+  }
+  .sheet-log-ts:focus {
+    background: rgba(255,255,255,0.07);
+    color: rgba(255,255,255,0.6);
+    padding: 1px 4px;
+  }
+  .sheet-log-text {
+    font-size: 13px; line-height: 1.55;
+    color: rgba(255,255,255,0.72);
+    white-space: pre-wrap; word-break: break-word;
+    outline: none; border-radius: 3px; cursor: text;
+    transition: background 0.15s;
+  }
+  .sheet-log-text:focus {
+    background: rgba(255,255,255,0.05);
+    padding: 2px 4px; margin: -2px -4px;
+  }
+  .sheet-log-del {
+    position: absolute; top: 8px; right: 8px;
+    background: none; border: none;
+    color: rgba(255,255,255,0.18); font-size: 15px;
+    cursor: pointer; padding: 0; line-height: 1;
+    transition: color 0.15s;
+  }
+  .sheet-log-del:active { color: var(--pink); }
+  .log-format-bar {
+    display: flex; gap: 3px; margin-bottom: 6px; flex-wrap: wrap;
+  }
+  .log-fmt-btn {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 5px;
+    color: rgba(255,255,255,0.45);
+    font-size: 11px; font-family: -apple-system, sans-serif;
+    width: 28px; height: 26px;
+    cursor: pointer; line-height: 1;
+    transition: background 0.12s, color 0.12s, border-color 0.12s;
+    flex-shrink: 0;
+  }
+  .log-fmt-btn:active, .log-fmt-btn.active {
+    background: rgba(255,45,120,0.15);
+    border-color: rgba(255,45,120,0.3);
+    color: var(--pink-light);
+  }
+  #log-context-menu {
+    position: fixed;
+    display: none;
+    flex-direction: column;
+    min-width: 160px;
+    background: rgba(20,16,32,0.98);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    padding: 4px;
+    z-index: 9999;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.7);
+    backdrop-filter: blur(16px);
+  }
+  #log-context-menu.visible { display: flex; }
+  .ctx-item {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    background: none; border: none;
+    color: rgba(255,255,255,0.75);
+    font-size: 13px; font-family: -apple-system, sans-serif;
+    cursor: pointer; text-align: left; width: 100%;
+    transition: background 0.1s;
+    white-space: nowrap;
+  }
+  .ctx-item:hover, .ctx-item:active { background: rgba(255,45,120,0.12); color: white; }
+  .ctx-shortcut {
+    font-size: 10px; color: rgba(255,255,255,0.28);
+    letter-spacing: 0.3px; flex-shrink: 0;
+  }
+  .ctx-divider {
+    height: 1px; background: rgba(255,255,255,0.07);
+    margin: 3px 4px;
+  }
+  #sheet-log-input {
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px;
+    padding: 10px 12px;
+    color: rgba(255,255,255,0.85);
+    font-size: 13px;
+    font-family: -apple-system, sans-serif;
+    outline: none;
+    min-height: 64px;
+    transition: border-color 0.2s;
+    line-height: 1.55;
+  }
+  #sheet-log-input:focus { border-color: rgba(255,45,120,0.35); }
+  #sheet-log-input:empty::before {
+    content: attr(data-placeholder);
+    color: rgba(255,255,255,0.22);
+    pointer-events: none;
+  }
+  #sheet-log-input ul, #sheet-log-input ol,
+  .sheet-log-text ul, .sheet-log-text ol {
+    padding-left: 18px; margin: 4px 0;
+  }
+  #sheet-log-input b, .sheet-log-text b { color: rgba(255,255,255,0.92); }
+  #sheet-log-input u, .sheet-log-text u { text-decoration-color: rgba(255,255,255,0.4); }
+  .log-controls {
+    display: flex; gap: 6px; align-items: center;
+    margin-bottom: 8px;
+  }
+  #log-search {
+    flex: 1; min-width: 0;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 7px;
+    padding: 6px 10px;
+    color: rgba(255,255,255,0.75);
+    font-size: 12px; font-family: -apple-system, sans-serif;
+    outline: none; transition: border-color 0.2s;
+    -webkit-appearance: none;
+  }
+  #log-search:focus { border-color: rgba(255,45,120,0.3); }
+  #log-search::placeholder { color: rgba(255,255,255,0.2); }
+  .log-ctrl-btn {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 7px;
+    color: rgba(255,255,255,0.4);
+    font-size: 10px; letter-spacing: 0.5px;
+    font-family: -apple-system, sans-serif;
+    padding: 0 10px; height: 30px;
+    cursor: pointer; white-space: nowrap; flex-shrink: 0;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+  }
+  .log-ctrl-btn:active, .log-ctrl-btn.active {
+    background: rgba(255,45,120,0.12);
+    border-color: rgba(255,45,120,0.25);
+    color: var(--pink-light);
+  }
+  #sheet-log-add-btn {
+    background: rgba(255,45,120,0.1);
+    border: 1px solid rgba(255,45,120,0.22);
+    color: var(--pink-light);
+    font-size: 12px; padding: 0 16px;
+    border-radius: 8px; cursor: pointer;
+    white-space: nowrap;
+    font-family: -apple-system, sans-serif;
+    font-weight: 500; flex-shrink: 0;
+    transition: background 0.15s;
+    align-self: flex-end; height: 38px;
+  }
+  #sheet-log-add-btn:active { background: rgba(255,45,120,0.22); }
   #sheet-episode-wrap {
     display: inline-flex; align-items: center; gap: 6px;
     padding: 5px 12px;
@@ -864,9 +1449,7 @@
 
   /* ── DRAWER SEARCH ── */
   .drawer-search {
-    padding: 12px 20px;
-    border-bottom: 1px solid rgba(255,255,255,0.04);
-    position: sticky; top: 0; background: #0c0c14; z-index: 2;
+    margin-bottom: 10px;
   }
   .drawer-search input {
     width: 100%;
@@ -913,6 +1496,88 @@
     transition: border-color 0.15s;
   }
   .story-notes-edit textarea:focus { border-color: rgba(255,45,120,0.3); }
+
+  /* ── TOAST ── */
+  #toast {
+    position: fixed; bottom: 88px; left: 50%; transform: translateX(-50%);
+    background: rgba(20,16,36,0.96);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.82);
+    font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase;
+    padding: 10px 20px; border-radius: 100px;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.18s;
+    white-space: nowrap; z-index: 500;
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  }
+  #toast.visible { opacity: 1; }
+  #toast.undoable { pointer-events: all; cursor: pointer; border-color: rgba(255,45,120,0.35); color: white; }
+
+  /* ── FIELD SHAKE ── */
+  @keyframes fieldShake {
+    0%,100% { transform: translateX(0); }
+    20%,60% { transform: translateX(-5px); }
+    40%,80% { transform: translateX(5px); }
+  }
+  .field-error { border-color: rgba(255,45,120,0.7) !important; animation: fieldShake 0.35s ease; }
+
+  /* ── SEARCH CLEAR ── */
+  .drawer-search { position: relative; }
+  #search-clear-btn {
+    position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+    background: none; border: none;
+    color: rgba(255,255,255,0.25); font-size: 16px;
+    cursor: pointer; padding: 0; line-height: 1;
+    display: none; transition: color 0.15s;
+  }
+  #search-clear-btn:active { color: var(--pink); }
+
+  /* ── PAGE ENTRANCE ── */
+  @keyframes enterUp {
+    from { opacity: 0; transform: translateY(22px); }
+    to   { opacity: 1; transform: translateY(0);    }
+  }
+  @keyframes enterFade {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  /* #branding uses transform:translateX(-50%) for centering — fade only, no translateY */
+  #branding  { animation: enterFade 0.72s ease                       0.05s both; }
+  #hat-stage { animation: enterUp   0.85s cubic-bezier(0.4,0,0.2,1) 0.18s both; }
+  #counter   { animation: enterFade 0.55s ease                       0.32s both; }
+  #tap-hint  { animation: enterFade 0.55s ease                       0.52s both; }
+  #filters   { animation: enterUp   0.65s cubic-bezier(0.4,0,0.2,1) 0.38s both; }
+
+  /* ── CARD GLITTER ── */
+  .glitter {
+    position: fixed;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 250;
+    animation: glitterDrift var(--dur, 1.6s) ease-out var(--delay, 0s) both;
+  }
+  @keyframes glitterDrift {
+    0%   { opacity: 0;                      transform: translate(0,0) scale(1); }
+    18%  { opacity: var(--peak-op, 0.75);                                        }
+    100% { opacity: 0;                      transform: translate(var(--tx), var(--ty)) scale(0.2); }
+  }
+
+  /* ── SHOOTING STAR ── */
+  .shooting-star {
+    position: fixed;
+    width: 90px; height: 1px;
+    border-radius: 1px;
+    background: linear-gradient(to right, transparent 0%, rgba(255,255,255,0.45) 60%, rgba(255,255,255,0.7) 100%);
+    pointer-events: none;
+    z-index: 2; /* below hat (z-index 5) — star stays in sky layer, never crosses hat */
+    animation: shootStar 1.1s ease-out forwards;
+  }
+  @keyframes shootStar {
+    0%   { opacity: 0;   transform: rotate(var(--angle)) translateX(0px);   }
+    15%  { opacity: 0.6;                                                      }
+    100% { opacity: 0;   transform: rotate(var(--angle)) translateX(220px); }
+  }
 </style>
 </head>
 <body>
@@ -926,31 +1591,13 @@
     <div id="branding-sub">Mika Glo</div>
   </div>
   <div id="counter">— slips remaining</div>
+  <button id="deck-switcher">📖 Stories</button>
 
   <div id="hat-stage">
     <div id="hat-shadow"></div>
     <!-- Hand — original style, hidden until pull -->
     <div id="hand-container">
-      <svg viewBox="0 0 120 200" fill="none" xmlns="http://www.w3.org/2000/svg" width="120" height="200">
-        <!-- Simple stylized hand -->
-        <g opacity="0.9">
-          <!-- Palm -->
-          <ellipse cx="60" cy="140" rx="32" ry="38" fill="#c4956a"/>
-          <!-- Fingers -->
-          <rect x="32" y="90" width="14" height="58" rx="7" fill="#c4956a"/>
-          <rect x="48" y="78" width="14" height="66" rx="7" fill="#c8a070"/>
-          <rect x="64" y="80" width="14" height="64" rx="7" fill="#c8a070"/>
-          <rect x="80" y="88" width="14" height="56" rx="7" fill="#c4956a"/>
-          <!-- Thumb -->
-          <rect x="14" y="112" width="24" height="13" rx="6.5" fill="#c4956a" transform="rotate(-20 14 112)"/>
-          <!-- Knuckle lines -->
-          <line x1="36" y1="110" x2="44" y2="108" stroke="#a07850" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
-          <line x1="52" y1="100" x2="60" y2="98" stroke="#a07850" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
-          <line x1="68" y1="102" x2="76" y2="100" stroke="#a07850" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
-          <!-- Paper slip in hand -->
-          <rect x="44" y="68" width="32" height="22" rx="2" fill="#ede0c4" opacity="0.9" transform="rotate(-5 44 68)"/>
-        </g>
-      </svg>
+      <img src="catarm.png" alt="">
     </div>
 
     <div id="hat-rebuild">
@@ -980,11 +1627,14 @@
     <button class="filter-btn" data-cat="Food">Food</button>
     <button class="filter-btn" data-cat="History">History</button>
     <button class="filter-btn" data-cat="Movements">Movements</button>
+    <button class="filter-btn" data-cat="Education">Education</button>
   </div>
 </div>
 
+<!-- Filter right-edge fade — must be outside #filters (overflow container) -->
+<div id="filter-fade"></div>
+
 <!-- Buttons -->
-<button class="icon-btn" id="undo-btn" title="Undo">↩</button>
 <button class="icon-btn" id="menu-btn">≡</button>
 
 <!-- Slip overlay -->
@@ -994,29 +1644,72 @@
     <div id="card-inner">
       <!-- FRONT: name only -->
       <div class="card-face" id="card-front">
+        <button id="card-pin-btn" aria-label="Pin story"></button>
         <div class="slip-category" id="slip-cat-badge">Companies</div>
         <div class="slip-name" id="slip-name-text">Story Name</div>
         <div class="flip-hint">tap to reveal</div>
       </div>
       <!-- BACK: hook + actions -->
       <div class="card-face" id="card-back">
+        <div id="card-depth"></div>
         <div class="slip-hook-short" id="slip-hook-short"></div>
         <button class="expand-btn" id="expand-btn">read more ↓</button>
         <div class="slip-hook-long" id="slip-hook-long"></div>
+        <div id="card-flag"></div>
         <div id="card-notes"></div>
-        <div id="source-links"></div>
         <div class="hook-spacer"></div>
         <div id="episode-input-wrap">
           <span id="episode-label">Episode</span>
           <input type="text" id="episode-input" placeholder="Ep 1 (optional)" maxlength="40">
         </div>
+        <button type="button" id="card-profile-btn">View Profile →</button>
         <div class="slip-actions">
           <button class="slip-btn slip-btn-used" id="btn-mark-used">✓ Used</button>
-          <button class="slip-btn slip-btn-close" id="btn-close-slip">Put Back</button>
+          <button class="slip-btn slip-btn-close" id="btn-close-slip">Return</button>
         </div>
       </div>
     </div>
   </div>
+</div>
+
+<!-- Deck Library -->
+<div id="deck-library-overlay"></div>
+<div id="deck-library">
+  <div class="deck-library-handle"></div>
+  <div class="deck-library-title">Your Decks</div>
+  <div id="deck-list"></div>
+  <div class="deck-divider"></div>
+  <div id="new-deck-form">
+    <div class="new-deck-row">
+      <input type="text" id="new-deck-emoji" placeholder="🎴" maxlength="2">
+      <input type="text" id="new-deck-name" placeholder="Name your deck...">
+      <button type="button" id="new-deck-btn">+ Create</button>
+    </div>
+  </div>
+</div>
+
+<!-- Custom Deck Card Panel -->
+<div id="custom-deck-panel">
+  <div id="custom-card-deck-label"></div>
+  <div id="custom-card-name"></div>
+  <div id="custom-card-text"></div>
+  <div id="custom-card-actions">
+    <button class="custom-card-btn" id="custom-btn-next">↩ Return</button>
+    <button class="custom-card-btn" id="custom-btn-done">Done</button>
+  </div>
+</div>
+
+<!-- Log Format Context Menu -->
+<div id="log-context-menu">
+  <button type="button" class="ctx-item" data-cmd="bold"><span><b>Bold</b></span><span class="ctx-shortcut">⌘B</span></button>
+  <button type="button" class="ctx-item" data-cmd="italic"><span><i>Italic</i></span><span class="ctx-shortcut">⌘I</span></button>
+  <button type="button" class="ctx-item" data-cmd="underline"><span><u>Underline</u></span><span class="ctx-shortcut">⌘U</span></button>
+  <div class="ctx-divider"></div>
+  <button type="button" class="ctx-item" data-cmd="insertUnorderedList"><span>Bullet List</span></button>
+  <button type="button" class="ctx-item" data-cmd="insertOrderedList"><span>Numbered List</span></button>
+  <div class="ctx-divider"></div>
+  <button type="button" class="ctx-item" id="ctx-copy-btn"><span>Copy</span><span class="ctx-shortcut">⌘C</span></button>
+  <button type="button" class="ctx-item" id="ctx-paste-btn"><span>Paste</span><span class="ctx-shortcut">⌘V</span></button>
 </div>
 
 <!-- Story Profile Sheet -->
@@ -1025,10 +1718,37 @@
   <div class="sheet-handle"></div>
   <div class="sheet-header">
     <div id="sheet-cat-badge"></div>
-    <button id="sheet-close-btn">✕</button>
+    <div style="display:flex;align-items:center;gap:4px">
+      <button id="sheet-edit-btn" title="Edit story" style="display:none">✏ Edit</button>
+      <button id="sheet-pin-btn" title="Pin story">📌</button>
+      <button id="sheet-close-btn">✕</button>
+    </div>
   </div>
   <div class="sheet-body">
     <div id="sheet-name"></div>
+    <!-- Edit fields — only shown for custom (user-added) stories -->
+    <div id="sheet-edit-fields">
+      <div class="sheet-section">
+        <div class="sheet-label">Name</div>
+        <input type="text" id="sheet-edit-name" class="sheet-edit-input" placeholder="Story name">
+      </div>
+      <div class="sheet-section">
+        <div class="sheet-label">Short Hook</div>
+        <textarea id="sheet-edit-hook-short" class="sheet-edit-input" placeholder="One punchy line..." style="min-height:60px"></textarea>
+      </div>
+      <div class="sheet-section">
+        <div class="sheet-label">Full Hook</div>
+        <textarea id="sheet-edit-hook" class="sheet-edit-input" placeholder="The longer version..." style="min-height:80px"></textarea>
+      </div>
+      <div class="sheet-section">
+        <div class="sheet-label">Category</div>
+        <select id="sheet-edit-cat" class="sheet-edit-input"></select>
+      </div>
+    </div>
+    <div class="sheet-section" id="sheet-episode-section" style="display:none">
+      <div class="sheet-label">Used In</div>
+      <div id="sheet-episode-wrap"></div>
+    </div>
     <div class="sheet-section" id="sheet-hook-short-section">
       <div class="sheet-label">Hook</div>
       <div id="sheet-hook-short" class="sheet-hook-short"></div>
@@ -1038,20 +1758,52 @@
       <div id="sheet-hook-long" class="sheet-hook-long"></div>
     </div>
     <div class="sheet-section">
+      <div class="sheet-label">Depth</div>
+      <div class="depth-selector">
+        <button type="button" class="depth-btn" data-depth="quick">Quick Hit</button>
+        <button type="button" class="depth-btn" data-depth="medium">Medium</button>
+        <button type="button" class="depth-btn" data-depth="deep">Deep Dive</button>
+      </div>
+    </div>
+    <div class="sheet-section" id="sheet-flag-section" style="display:none">
+      <div class="sheet-label">Stream Flag</div>
+      <textarea id="sheet-flag-box" placeholder="Add a stream flag or warning..."></textarea>
+    </div>
+    <div class="sheet-section">
       <div class="sheet-label">Prep Notes</div>
       <textarea id="sheet-notes-input" placeholder="Add production notes, reminders, key facts..."></textarea>
     </div>
     <div class="sheet-section">
       <div class="sheet-label">Research Links</div>
       <div id="sheet-links-list"></div>
-      <div style="display:flex;gap:8px;margin-top:8px;align-items:stretch">
-        <input type="url" id="sheet-url-input" placeholder="https://..." style="flex:1;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:10px 12px;color:rgba(255,255,255,0.85);font-size:14px;font-family:-apple-system,sans-serif;outline:none;transition:border-color 0.2s;-webkit-appearance:none;">
-        <button type="button" id="sheet-add-link-btn" style="background:rgba(255,45,120,0.1);border:1px solid rgba(255,45,120,0.22);color:var(--pink-light);font-size:12px;padding:0 16px;border-radius:8px;cursor:pointer;white-space:nowrap;font-family:-apple-system,sans-serif;font-weight:500;flex-shrink:0;transition:background 0.15s">+ Add</button>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-top:8px">
+        <input type="text" id="sheet-link-label-input" placeholder='Label — e.g. "Loonshots YouTube", "His website"' style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:9px 12px;color:rgba(255,255,255,0.85);font-size:13px;font-family:-apple-system,sans-serif;outline:none;transition:border-color 0.2s;-webkit-appearance:none;">
+        <div style="display:flex;gap:8px;align-items:stretch">
+          <input type="url" id="sheet-url-input" placeholder="https://..." style="flex:1;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:10px 12px;color:rgba(255,255,255,0.85);font-size:14px;font-family:-apple-system,sans-serif;outline:none;transition:border-color 0.2s;-webkit-appearance:none;">
+          <button type="button" id="sheet-add-link-btn" style="background:rgba(255,45,120,0.1);border:1px solid rgba(255,45,120,0.22);color:var(--pink-light);font-size:12px;padding:0 16px;border-radius:8px;cursor:pointer;white-space:nowrap;font-family:-apple-system,sans-serif;font-weight:500;flex-shrink:0;transition:background 0.15s">+ Add</button>
+        </div>
       </div>
     </div>
-    <div class="sheet-section" id="sheet-episode-section" style="display:none">
-      <div class="sheet-label">Used In</div>
-      <div id="sheet-episode-wrap"></div>
+    <div class="sheet-section">
+      <div class="sheet-label">Research Log</div>
+      <div class="log-format-bar">
+        <button type="button" class="log-fmt-btn" data-cmd="bold" title="Bold"><b>B</b></button>
+        <button type="button" class="log-fmt-btn" data-cmd="italic" title="Italic"><i>I</i></button>
+        <button type="button" class="log-fmt-btn" data-cmd="underline" title="Underline"><u>U</u></button>
+        <button type="button" class="log-fmt-btn" data-cmd="insertUnorderedList" title="Bullet list">•</button>
+        <button type="button" class="log-fmt-btn" data-cmd="insertOrderedList" title="Numbered list">1.</button>
+        <button type="button" class="log-fmt-btn" data-cmd="undo" title="Undo">↩</button>
+      </div>
+      <div style="display:flex;gap:8px;align-items:flex-end;margin-bottom:12px">
+        <div id="sheet-log-input" contenteditable="true" spellcheck="true" autocapitalize="sentences" data-placeholder="Note a timestamp, a contradiction, a quote, anything..."></div>
+        <button type="button" id="sheet-log-add-btn">+ Add</button>
+      </div>
+      <div class="log-controls">
+        <input type="text" id="log-search" placeholder="Search notes...">
+        <button type="button" class="log-ctrl-btn" id="log-sort-btn">Oldest ↑</button>
+        <button type="button" class="log-ctrl-btn" id="log-export-btn">Export</button>
+      </div>
+      <div id="sheet-log-list"></div>
     </div>
     <button class="sheet-save-btn" id="sheet-save-btn">Save</button>
   </div>
@@ -1065,8 +1817,29 @@
     <button id="drawer-close-btn">✕</button>
   </div>
 
-  <div class="drawer-section">
-    <div class="drawer-title">Add Story</div>
+  <!-- Add Card to Custom Deck — only shown when a custom deck is active -->
+  <div class="drawer-section" id="add-deck-card-section" style="display:none">
+    <div class="drawer-title drawer-title-toggle" id="add-deck-card-toggle">
+      Add Card <span class="toggle-icon">+</span>
+    </div>
+    <div id="add-deck-card-form" class="add-story-form">
+      <div class="form-field">
+        <label>Card Name</label>
+        <input type="text" id="deck-card-name" placeholder="The card title...">
+      </div>
+      <div class="form-field">
+        <label>Text — optional</label>
+        <textarea id="deck-card-text" placeholder="One line. A question, idea, prompt..." style="min-height:60px"></textarea>
+      </div>
+      <button class="submit-btn" id="add-deck-card-btn">Add to Deck</button>
+    </div>
+  </div>
+
+  <div class="drawer-section" id="stories-drawer-section">
+    <div class="drawer-title drawer-title-toggle" id="add-story-toggle">
+      Add Story <span class="toggle-icon">+</span>
+    </div>
+    <div id="add-story-form" class="add-story-form">
     <div class="form-field">
       <label>Name</label>
       <input type="text" id="add-name" placeholder="Story name...">
@@ -1087,6 +1860,7 @@
         <option value="Artists">Artists</option>
         <option value="Science">Science</option>
         <option value="Inventions">Inventions</option>
+        <option value="Education">Education</option>
         <option value="Useful Things">Useful Things</option>
         <option value="Food">Food</option>
         <option value="History">History</option>
@@ -1109,27 +1883,55 @@
       <textarea id="add-notes" placeholder="Reminders for filming..." style="min-height:60px"></textarea>
     </div>
     <button class="submit-btn" id="add-story-btn">Add to Hat</button>
+    </div><!-- /add-story-form -->
   </div>
 
-  <div class="drawer-section">
-    <div class="drawer-title">Session</div>
-    <button class="export-btn" id="reset-btn" style="margin-bottom:8px">↺ Reset Session — Put All Back</button>
-    <button class="export-btn" id="export-btn">↓ Download All Stories</button>
+  <div class="drawer-section" id="session-section">
+    <div class="drawer-title drawer-title-toggle" id="session-toggle">
+      Session <span class="toggle-icon">+</span>
+    </div>
+    <div id="session-form" class="add-story-form">
+      <div style="height:14px"></div>
+      <button class="export-btn" id="reset-btn" style="margin-bottom:8px">↺ Reset Session — Put All Back</button>
+      <button class="export-btn" id="export-btn">↓ Download All Stories</button>
+    </div>
   </div>
 
-  <div class="drawer-search">
-    <input type="search" id="search-input" placeholder="Search stories...">
+  <div class="drawer-section" id="used-section">
+    <div class="drawer-title drawer-title-toggle" id="used-toggle">
+      Used — <span id="used-count">0</span> <span class="toggle-icon">+</span>
+    </div>
+    <div id="used-form" class="add-story-form">
+      <div style="height:14px"></div>
+      <div id="used-list"></div>
+    </div>
   </div>
 
-  <div class="drawer-section">
-    <div class="drawer-title">Used — <span id="used-count">0</span></div>
-    <div id="used-list"></div>
+  <div class="drawer-section" id="active-section">
+    <div class="drawer-title drawer-title-toggle" id="active-toggle">
+      Active — <span id="active-count">0</span> <span class="toggle-icon">+</span>
+    </div>
+    <div id="active-form" class="add-story-form open">
+      <div style="height:14px"></div>
+      <div class="drawer-search">
+        <input type="text" id="search-input" placeholder="Search stories..." autocomplete="off">
+        <button id="search-clear-btn" title="Clear search">×</button>
+      </div>
+      <div id="drawer-filter-row">
+        <select id="drawer-filter-select"></select>
+      </div>
+      <div id="active-list"></div>
+    </div>
   </div>
 
-  <div class="drawer-section">
-    <div class="drawer-title">Active — <span id="active-count">0</span></div>
-    <div id="active-list"></div>
+  <!-- Custom Deck Cards List — shown when custom deck active -->
+  <div id="custom-deck-list-section" style="display:none">
+    <div class="drawer-section">
+      <div class="drawer-title">Cards in Deck</div>
+      <div id="custom-deck-cards-list" style="padding:8px 0"></div>
+    </div>
   </div>
+
 </div>
 
 <script>
@@ -1197,6 +1999,7 @@ let CAT_COLORS = {
   'Food':         '#fb8500',
   'History':      '#8d6b4a',
   'Movements':    '#588157',
+  'Education':    '#f9c74f',
 };
 
 // ══════ STORIES ══════
@@ -1243,13 +2046,10 @@ const DEFAULT_STORIES = [
   {name:"Grant Achatz",hookShort:"He cooked through stage 4 tongue cancer and refused to quit.",hook:"The chef behind America's most mind-bending restaurant cooked through stage 4 tongue cancer and refused to quit. His courses arrive as edible balloons and paintings you eat off the table.",cat:"People"},
   {name:"Chance the Rapper",hookShort:"Three free mixtapes. Three Grammys. Never signed.",hook:"Three free mixtapes. Three Grammys. Never signed to a label in his life. He changed the Grammy eligibility rules just by existing.",cat:"Artists"},
   {name:"Radiohead — In Rainbows",hookShort:"They let fans pay whatever they wanted. It made more money than any album they'd ever released.",hook:"In 2007 Radiohead released an album and let fans pay whatever they wanted. It made more money than any album they had ever released. The entire industry said it would destroy them.",cat:"Artists"},
-  {name:"Macklemore and Ryan Lewis",hookShort:"Self-released. Number one on the charts. Four Grammys. Never signed.",hook:"Self-released. Number one on the charts. Four Grammys. Never signed. The industry said independent artists could not do this.",cat:"Artists"},
-  {name:"Jacob Collier",hookShort:"Self-taught. Self-produced. Five Grammys across every genre that exists.",hook:"Self-taught. Self-produced. Five Grammys across every musical genre that exists. The musical ability alone is the entire story.",cat:"Artists"},
   {name:"Pomplamoose",hookShort:"A husband and wife duo published every dollar they earned and spent publicly.",hook:"A husband and wife music duo published every single dollar they earned and spent publicly. Every tour. Every album. Radical transparency before anyone called it that.",cat:"Artists"},
   {name:"Noname",hookShort:"A rapper who runs a book club that has given away thousands of free books.",hook:"A rapper who runs a book club that has distributed thousands of free books. The cultural impact is almost completely unreported.",cat:"Artists"},
   {name:"The Criterion Collection",hookShort:"Netflix deletes films to save on taxes. Criterion has spent 40 years building a permanent library.",hook:"Netflix deletes its own films to save money on taxes. Criterion has spent 40 years building a permanent library of important cinema. Treating film like it actually matters.",cat:"Artists"},
   {name:"100 Gecs",hookShort:"No genre. Self-produced. Zero label support. Cult following.",hook:"No genre. Self-produced. Built a cult following with zero label support. The music itself is the story.",cat:"Artists"},
-  {name:"Phoebe Bridgers",hookShort:"She built an independent label and owns her own masters in an industry designed to prevent that.",hook:"She built a genuinely independent label and owns her own masters in an industry specifically designed to prevent that.",cat:"Artists"},
   {name:"Library of Things",hookShort:"Your public library will lend you a telescope. Or a power drill. Or a tent. Free.",hook:"Your public library will lend you a telescope. Or a power drill. Or a tent. Free. It exists in dozens of US cities. Most people have no idea.",cat:"Movements"},
   {name:"Repair Café",hookShort:"In 2,500 locations, strangers fix each other's broken things for free.",hook:"In 2,500 locations around the world, strangers meet up to fix each other's broken things for free. No money changes hands. Just people who think stuff shouldn't be thrown away.",cat:"Movements"},
   {name:"Dark Sky Reserves",hookShort:"Some communities have legally banned light pollution. The sky looks completely different there.",hook:"Some communities have legally banned light pollution. There are over 200 of them worldwide. The night sky looks completely different there. Most people have never seen the real sky.",cat:"Movements"},
@@ -1322,7 +2122,163 @@ const DEFAULT_STORIES = [
 ];
 
 // ══════ STATE ══════
-let state = { active:[], used:[], lastPulled:null, filter:'All', animating:false, currentSlip:null };
+let state = { active:[], used:[], deleted:[], lastPulled:null, filter:'All', animating:false, currentSlip:null };
+
+// ══════ CUSTOM DECKS ══════
+let customDecks = [];
+let activeDeckId = 'stories';
+
+function loadCustomDecks() {
+  try { customDecks = JSON.parse(localStorage.getItem('hat-custom-decks') || '[]'); } catch(e) { customDecks = []; }
+  try { activeDeckId = localStorage.getItem('hat-active-deck') || 'stories'; } catch(e) { activeDeckId = 'stories'; }
+}
+function saveCustomDecks() {
+  localStorage.setItem('hat-custom-decks', JSON.stringify(customDecks));
+  if (_firestoreReady && db) {
+    // Use merge so we never accidentally wipe data from another device
+    db.collection('hat').doc('customDecks2')
+      .set({ decks: customDecks }, { merge: true })
+      .then(() => console.log('Decks saved to Firestore ✓', customDecks.length, 'decks'))
+      .catch(e => {
+        console.warn('Firestore decks save failed:', e);
+        showToast('Sync failed — saved locally only', 3000);
+      });
+  }
+}
+function getActiveDeck() {
+  return activeDeckId === 'stories' ? null : customDecks.find(d => d.id === activeDeckId);
+}
+function setActiveDeck(id) {
+  activeDeckId = id;
+  // Only persist active deck locally — never write to Firestore on deck switch
+  localStorage.setItem('hat-active-deck', activeDeckId);
+  // Close anything open from the previous deck
+  const overlay = document.getElementById('slip-overlay');
+  if (overlay && overlay.classList.contains('visible')) {
+    overlay.classList.remove('visible');
+    overlay.style.opacity = '0';
+    state.currentSlip = null;
+  }
+  closeCustomCard();
+  updateDeckSwitcher();
+  updateFiltersVisibility();
+  updateCounter();
+  refreshDrawer();
+}
+function updateFiltersVisibility() {
+  const isCustom = activeDeckId !== 'stories';
+  const filters = document.getElementById('filters');
+  const fade = document.getElementById('filter-fade');
+  if (filters) filters.style.display = isCustom ? 'none' : '';
+  if (fade) fade.style.display = isCustom ? 'none' : '';
+}
+function updateDeckSwitcher() {
+  const btn = document.getElementById('deck-switcher');
+  if (activeDeckId === 'stories') {
+    btn.textContent = '📖 Stories';
+    btn.classList.remove('custom-active');
+  } else {
+    const deck = getActiveDeck();
+    btn.textContent = deck ? `${deck.emoji || '🎴'} ${deck.name}` : '🎴 Deck';
+    btn.classList.add('custom-active');
+  }
+}
+function createDeck(name, emoji) {
+  if (!name.trim()) return;
+  const deck = { id: 'deck_' + Date.now(), name: name.trim(), emoji: emoji.trim() || '🎴', cards: [] };
+  customDecks.push(deck);
+  saveCustomDecks();
+  renderDeckLibrary();
+}
+function deleteDeck(id) {
+  if (!confirm('Delete this deck and all its cards?')) return;
+  customDecks = customDecks.filter(d => d.id !== id);
+  if (activeDeckId === id) setActiveDeck('stories');
+  saveCustomDecks();
+  renderDeckLibrary();
+}
+function addCardToDeck(deckId, name, text) {
+  const deck = customDecks.find(d => d.id === deckId);
+  if (!deck || !name.trim()) return;
+  deck.cards.push({ id: Date.now(), name: name.trim(), text: text.trim() });
+  saveCustomDecks();
+  renderDeckCardsList();
+  updateCounter();
+}
+function removeCardFromDeck(deckId, cardId) {
+  const deck = customDecks.find(d => d.id === deckId);
+  if (!deck) return;
+  deck.cards = deck.cards.filter(c => c.id !== cardId);
+  saveCustomDecks();
+  renderDeckCardsList();
+  updateCounter();
+}
+function renderDeckLibrary() {
+  const list = document.getElementById('deck-list');
+  const allDecks = [
+    { id: 'stories', name: 'Stories', emoji: '📖', count: state.active.length + ' cards' },
+    ...customDecks.map(d => ({ id: d.id, name: d.name, emoji: d.emoji || '🎴', count: d.cards.length + ' cards' }))
+  ];
+  list.innerHTML = allDecks.map(d => `
+    <div class="deck-item ${d.id === activeDeckId ? 'active-deck' : ''}" data-id="${d.id}">
+      <div class="deck-emoji">${d.emoji}</div>
+      <div class="deck-info">
+        <div class="deck-name">${esc(d.name)}</div>
+        <div class="deck-count">${d.count}</div>
+      </div>
+      <div class="deck-active-dot"></div>
+      ${d.id !== 'stories' ? `<button class="deck-del-btn" data-id="${d.id}">×</button>` : ''}
+    </div>`).join('');
+  list.querySelectorAll('.deck-item').forEach(el => {
+    el.addEventListener('click', e => {
+      if (e.target.classList.contains('deck-del-btn')) return;
+      setActiveDeck(el.dataset.id);
+      closeDeckLibrary();
+    });
+  });
+  list.querySelectorAll('.deck-del-btn').forEach(btn => {
+    btn.addEventListener('click', e => { e.stopPropagation(); deleteDeck(btn.dataset.id); });
+  });
+}
+function openDeckLibrary() {
+  renderDeckLibrary();
+  document.getElementById('deck-library-overlay').classList.add('visible');
+  document.getElementById('deck-library').classList.add('open');
+}
+function closeDeckLibrary() {
+  document.getElementById('deck-library-overlay').classList.remove('visible');
+  document.getElementById('deck-library').classList.remove('open');
+}
+function renderDeckCardsList() {
+  const deck = getActiveDeck();
+  const list = document.getElementById('custom-deck-cards-list');
+  if (!deck) { list.innerHTML = ''; return; }
+  if (!deck.cards.length) {
+    list.innerHTML = '<div style="color:rgba(255,255,255,0.2);font-size:12px;padding:8px 20px">No cards yet.</div>';
+    return;
+  }
+  list.innerHTML = deck.cards.map(c => `
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 16px;border-radius:8px">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;color:rgba(255,255,255,0.75);font-family:-apple-system,sans-serif">${esc(c.name)}</div>
+        ${c.text ? `<div style="font-size:11px;color:rgba(255,255,255,0.3);margin-top:2px;font-family:-apple-system,sans-serif">${esc(c.text)}</div>` : ''}
+      </div>
+      <button style="background:none;border:none;color:rgba(255,255,255,0.2);font-size:16px;cursor:pointer;padding:4px" data-card-id="${c.id}">×</button>
+    </div>`).join('');
+  list.querySelectorAll('[data-card-id]').forEach(btn => {
+    btn.addEventListener('click', () => removeCardFromDeck(deck.id, parseInt(btn.dataset.cardId)));
+  });
+}
+function showCustomCard(card, deck) {
+  document.getElementById('custom-card-deck-label').textContent = (deck.emoji || '🎴') + '  ' + deck.name;
+  document.getElementById('custom-card-name').textContent = card.name;
+  document.getElementById('custom-card-text').textContent = card.text || '';
+  document.getElementById('custom-deck-panel').classList.add('open');
+}
+function closeCustomCard() {
+  document.getElementById('custom-deck-panel').classList.remove('open');
+  state.currentSlip = null;
+}
 
 // ══════ FIREBASE ══════
 // 1. Go to https://console.firebase.google.com → New project → "TheHat"
@@ -1364,9 +2320,9 @@ function _initFirestore() {
       .onSnapshot(snap => {
         if (!snap.exists) return;
         const data = snap.data();
-        _applyRemoteState(data.active || [], data.used || []);
+        _applyRemoteState(data.active || [], data.used || [], data.deleted || []);
         // also mirror to localStorage for offline fallback
-        localStorage.setItem('hat-app-v4', JSON.stringify({active: state.active, used: state.used}));
+        localStorage.setItem('hat-app-v4', JSON.stringify({active: state.active, used: state.used, deleted: state.deleted}));
         updateCounter();
       }, err => console.warn('Firestore listener error:', err));
 
@@ -1378,21 +2334,68 @@ function _initFirestore() {
         renderCustomCats();
       }, err => console.warn('Firestore cats listener error:', err));
 
+    function _applyRemoteDecks(snap) {
+      if (!snap.exists) return;
+      const data = snap.data();
+      const incoming = data.decks || [];
+      // Only update if data actually changed
+      if (JSON.stringify(incoming) === JSON.stringify(customDecks)) return;
+      customDecks = incoming;
+      localStorage.setItem('hat-custom-decks', JSON.stringify(customDecks));
+      updateDeckSwitcher();
+      updateFiltersVisibility();
+      updateCounter();
+      refreshDrawer();
+      renderDeckLibrary();
+    }
+
+    // Live listener
+    db.collection('hat').doc('customDecks2')
+      .onSnapshot(_applyRemoteDecks,
+        err => console.warn('Firestore decks listener error:', err));
+
+    // Polling fallback every 10s in case snapshot misses anything
+    setInterval(() => {
+      if (!_firestoreReady || !db) return;
+      db.collection('hat').doc('customDecks2').get()
+        .then(_applyRemoteDecks)
+        .catch(e => console.warn('Decks poll failed:', e));
+    }, 10000);
+
   } catch(e) {
     console.warn('Firebase init failed, using localStorage only:', e);
   }
 }
 
-function _applyRemoteState(active, used) {
+function _applyRemoteState(active, used, deleted) {
+  state.deleted = deleted || [];
+  const deletedSet = new Set(state.deleted);
   const defaultMap = {};
   DEFAULT_STORIES.forEach(s => { defaultMap[s.name] = s; });
-  const merge = arr => arr.map(s => ({
-    ...s,
-    hookShort: s.hookShort || (defaultMap[s.name] && defaultMap[s.name].hookShort) || null,
-    urls: s.urls || (s.url ? [s.url] : []),
-  }));
+  const merge = arr => arr.map(s => {
+    const d = defaultMap[s.name];
+    // If user has manually edited this story, preserve their changes
+    const userEdited = s.edited;
+    return {
+      ...s,
+      hookShort: (d && !userEdited) ? d.hookShort : (s.hookShort || null),
+      hook:      (d && !userEdited) ? d.hook      : (s.hook || s.hookShort || null),
+      cat:       (d && !userEdited) ? d.cat       : s.cat,
+      urls:      (s.urls || (s.url ? [s.url] : [])).map(u => typeof u === 'string' ? {url: u, label: u.replace(/^https?:\/\/(www\.)?/,'').split('/')[0]} : u),
+      notes:     s.notes || null,
+      flag:      (d && !userEdited) ? (d.flag || null) : (s.flag || null),
+    };
+  });
   state.active = merge(active);
   state.used   = merge(used);
+  // Inject any new DEFAULT_STORIES not already in active, used, or intentionally deleted
+  const existingNames = new Set([...state.active, ...state.used].map(s => s.name));
+  const toAdd = DEFAULT_STORIES.filter(s => !existingNames.has(s.name) && !deletedSet.has(s.name));
+  if (toAdd.length > 0) {
+    const maxId = Math.max(0, ...[...state.active, ...state.used].map(s => s.id || 0));
+    toAdd.forEach((s, i) => state.active.push({...s, id: maxId + i + 1}));
+    saveState();
+  }
 }
 
 // ══════ STATE ══════
@@ -1402,7 +2405,7 @@ function loadState() {
     const saved = localStorage.getItem('hat-app-v4');
     if (saved) {
       const p = JSON.parse(saved);
-      _applyRemoteState(p.active || [], p.used || []);
+      _applyRemoteState(p.active || [], p.used || [], p.deleted || []);
     } else {
       state.active = DEFAULT_STORIES.map((s,i) => ({...s, id:i}));
       state.used = [];
@@ -1414,13 +2417,20 @@ function loadState() {
 }
 
 function saveState() {
+  const payload = JSON.stringify({active:state.active, used:state.used, deleted:state.deleted});
   // Always write to localStorage (instant, works offline)
-  localStorage.setItem('hat-app-v4', JSON.stringify({active:state.active, used:state.used}));
+  localStorage.setItem('hat-app-v4', payload);
   // Write to Firestore when available (syncs all devices)
+  // Use JSON round-trip to strip undefined values — Firestore rejects them
   if (_firestoreReady && db) {
-    db.collection('hat').doc('state')
-      .set({ active: state.active, used: state.used })
-      .catch(e => console.warn('Firestore save failed:', e));
+    try {
+      const clean = JSON.parse(payload);
+      db.collection('hat').doc('state')
+        .set(clean)
+        .catch(e => console.warn('Firestore save failed:', e));
+    } catch(e) {
+      console.warn('Firestore save error:', e);
+    }
   }
 }
 
@@ -1472,15 +2482,27 @@ function addCustomCat() {
 }
 
 function getFiltered() {
+  if (state.filter === '__pinned__') return state.active.filter(s => s.pinned);
   if (state.filter === 'All') return state.active;
   return state.active.filter(s => s.cat === state.filter);
 }
 
 function updateCounter() {
+  const el = document.getElementById('counter');
+  if (activeDeckId !== 'stories') {
+    const deck = getActiveDeck();
+    const count = deck ? deck.cards.length : 0;
+    el.textContent = `${count} card${count !== 1 ? 's' : ''}`;
+    document.getElementById('no-slips').style.display = count === 0 ? 'block' : 'none';
+    document.getElementById('tap-hint').style.display = count === 0 ? 'none' : 'block';
+    updatePeeks(count);
+    return;
+  }
   const count = getFiltered().length;
   const total = state.active.length;
-  const el = document.getElementById('counter');
-  if (state.filter === 'All') {
+  if (state.filter === '__pinned__') {
+    el.textContent = `${count} pinned`;
+  } else if (state.filter === 'All') {
     el.textContent = `${total} slip${total !== 1 ? 's' : ''} remaining`;
   } else {
     el.textContent = `${count} · ${state.filter}`;
@@ -1488,12 +2510,12 @@ function updateCounter() {
   document.getElementById('no-slips').style.display = count === 0 ? 'block' : 'none';
   document.getElementById('tap-hint').style.display = count === 0 ? 'none' : 'block';
   updatePeeks(total);
-  document.getElementById('undo-btn').classList.toggle('has-undo', !!state.lastPulled);
 }
 
 function updatePeeks(count) {
   const img = document.getElementById('hat-img');
-  if (img) img.classList.toggle('empty', count === 0);
+  // Never dim the hat for custom decks — only dim when stories deck is empty
+  if (img) img.classList.toggle('empty', count === 0 && activeDeckId === 'stories');
 }
 
 // ══════ HAPTICS ══════
@@ -1504,12 +2526,38 @@ function haptic(pattern) {
 // ══════ PULL ══════
 function pullSlip() {
   if (state.animating) return;
+
+  // Custom deck pull
+  if (activeDeckId !== 'stories') {
+    const deck = getActiveDeck();
+    if (!deck || !deck.cards.length) return;
+    state.animating = true;
+    positionHand();
+    haptic(30);
+    const card = deck.cards[Math.floor(Math.random() * deck.cards.length)];
+    state.currentSlip = { ...card, _deckCard: true, _deckId: activeDeckId };
+    const sL = document.getElementById('slips-left');
+    const sR = document.getElementById('slips-right');
+    if (sL && sR) { sL.classList.add('parting'); sR.classList.add('parting'); setTimeout(() => { sL.classList.remove('parting'); sR.classList.remove('parting'); }, 1700); }
+    const hand = document.getElementById('hand-container');
+    hand.classList.remove('animating'); void hand.offsetWidth; hand.classList.add('animating');
+    const hatImg = document.getElementById('hat-img');
+    setTimeout(() => { hatImg.classList.remove('shuddering'); void hatImg.offsetWidth; hatImg.classList.add('shuddering'); setTimeout(() => hatImg.classList.remove('shuddering'), 560); }, 865);
+    setTimeout(() => showCustomCard(card, deck), 1300);
+    setTimeout(() => { hand.classList.remove('animating'); state.animating = false; }, 2700);
+    return;
+  }
+
   const pool = getFiltered();
   if (pool.length === 0) return;
   state.animating = true;
+  positionHand(); // recalculate for current screen size before animating
   haptic(30);
 
-  const story = pool[Math.floor(Math.random() * pool.length)];
+  // Weighted pool: pinned stories appear 3× as likely
+  const weighted = [];
+  pool.forEach(s => { weighted.push(s); if (s.pinned) { weighted.push(s, s); } });
+  const story = weighted[Math.floor(Math.random() * weighted.length)];
   state.currentSlip = story;
 
   // Part slips as hand enters
@@ -1525,11 +2573,23 @@ function pullSlip() {
   void hand.offsetWidth;
   hand.classList.add('animating');
 
+  // Hat shudder fires when hand hits peak (36% of 2.4s), runs 0.55s through the rummage
+  const hatImg = document.getElementById('hat-img');
+  setTimeout(() => {
+    hatImg.classList.remove('shuddering');
+    void hatImg.offsetWidth; // force reflow so animation restarts if pulled again quickly
+    hatImg.classList.add('shuddering');
+    setTimeout(() => hatImg.classList.remove('shuddering'), 560);
+  }, 865);
+
   setTimeout(() => showSlip(story), 1300);
   setTimeout(() => { hand.classList.remove('animating'); state.animating = false; }, 2700);
 }
 
 function showSlip(story) {
+  // Reset card height for each new pull
+  document.getElementById('card-scene').style.height = '320px';
+
   // Set category color
   const color = CAT_COLORS[story.cat] || '#ff2d78';
   document.getElementById('card-scene').style.setProperty('--cat-color', color);
@@ -1554,44 +2614,125 @@ function showSlip(story) {
     expandBtn.classList.add('hidden');
   }
 
-  // Prep notes
-  const notesEl = document.getElementById('card-notes');
-  if (story.notes) {
-    notesEl.textContent = story.notes;
-    notesEl.style.display = 'block';
+  // Flag — prominent warning strip
+  const flagEl = document.getElementById('card-flag');
+  if (story.flag) {
+    flagEl.textContent = story.flag;
+    flagEl.style.display = 'block';
   } else {
-    notesEl.style.display = 'none';
+    flagEl.style.display = 'none';
+  }
+  document.getElementById('card-notes').style.display = 'none';
+  // Depth badge
+  const depthEl = document.getElementById('card-depth');
+  const depthLabels = { quick: '⚡ Quick Hit', medium: '◎ Medium', deep: '🕳 Deep Dive' };
+  if (story.depth && depthLabels[story.depth]) {
+    depthEl.textContent = depthLabels[story.depth];
+    depthEl.style.display = 'block';
+  } else {
+    depthEl.style.display = 'none';
   }
 
-  // Source links
-  const srcLinks = document.getElementById('source-links');
-  const urls = story.urls || (story.url ? [story.url] : []);
-  if (urls.length > 0) {
-    srcLinks.classList.add('has-links');
-    srcLinks.innerHTML = urls.map((u, i) =>
-      `<button class="source-link-btn" data-idx="${i}">🔗 ${esc(u.replace(/^https?:\/\/(www\.)?/,'').split('/')[0])}</button>`
-    ).join('');
-    srcLinks.querySelectorAll('.source-link-btn').forEach((btn, i) => {
-      btn.onclick = (e) => { e.stopPropagation(); window.open(urls[i], '_blank', 'noopener,noreferrer'); };
-    });
-  } else {
-    srcLinks.classList.remove('has-links');
-    srcLinks.innerHTML = '';
-  }
 
-  // Reset episode input
-  document.getElementById('episode-input').value = '';
+  // Reset episode input and Used button state
+  const epInput = document.getElementById('episode-input');
+  epInput.value = '';
+  epInput.placeholder = 'Ep 1 (optional)';
+  epInput.classList.remove('nudge');
+  const usedBtn = document.getElementById('btn-mark-used');
+  usedBtn.textContent = '✓ Used';
+  delete usedBtn.dataset.confirmed;
+
+  // Reflect pin state on card
+  document.getElementById('card-pin-btn').classList.toggle('pinned', !!story.pinned);
 
   // Reset to front face
   document.getElementById('card-inner').classList.remove('flipped');
   const overlay = document.getElementById('slip-overlay');
   overlay.style.opacity = '1';
   overlay.classList.add('visible');
+  spawnSparkles();
+}
+
+// ══════ CARD GLITTER ══════
+function spawnSparkles() {  // kept same name so showSlip() call is unchanged
+  const scene = document.getElementById('card-scene');
+  if (!scene) return;
+  const rect = scene.getBoundingClientRect();
+  const colors = ['#ffd700','#e8c86d','#f5d76e','#c8a84b','#ffe066','#d4af37','#fcc200','#ffdf00'];
+  const count  = 24;  // sparse — spread around all 4 edges
+
+  for (let i = 0; i < count; i++) {
+    const el = document.createElement('div');
+    el.className = 'glitter';
+
+    // Distribute around the card perimeter
+    const edge = Math.random();
+    const margin  = 6 + Math.random() * 18;   // gap outside the card boundary
+    let px, py, driftAngle;
+
+    if (edge < 0.28) {
+      // top edge
+      px = rect.left + Math.random() * rect.width;
+      py = rect.top  - margin;
+      driftAngle = -Math.PI / 2 + (Math.random() - 0.5) * 1.2;
+    } else if (edge < 0.56) {
+      // bottom edge
+      px = rect.left + Math.random() * rect.width;
+      py = rect.bottom + margin;
+      driftAngle =  Math.PI / 2 + (Math.random() - 0.5) * 1.2;
+    } else if (edge < 0.78) {
+      // left edge
+      px = rect.left - margin;
+      py = rect.top  + Math.random() * rect.height;
+      driftAngle = Math.PI + (Math.random() - 0.5) * 1.2;
+    } else {
+      // right edge
+      px = rect.right + margin;
+      py = rect.top   + Math.random() * rect.height;
+      driftAngle = 0   + (Math.random() - 0.5) * 1.2;
+    }
+
+    const driftDist = 12 + Math.random() * 20;
+    const size  = 1.2 + Math.random() * 2.2;
+    const dur   = 1.3 + Math.random() * 0.9;
+    const delay = Math.random() * 0.45;
+    const peakOp = 0.4 + Math.random() * 0.45;
+
+    el.style.cssText = `
+      left:${px - size / 2}px;
+      top:${py - size / 2}px;
+      width:${size}px; height:${size}px;
+      background:${colors[Math.floor(Math.random() * colors.length)]};
+      --dur:${dur}s; --delay:${delay}s;
+      --peak-op:${peakOp};
+      --tx:${Math.cos(driftAngle) * driftDist}px;
+      --ty:${Math.sin(driftAngle) * driftDist}px;
+    `;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), (dur + delay + 0.15) * 1000);
+  }
+}
+
+function fitCardToBack() {
+  const scene = document.getElementById('card-scene');
+  const back  = document.getElementById('card-back');
+  // Temporarily zero min-height so scrollHeight reflects true content, not the scene's current size
+  back.style.minHeight = '0';
+  const h = Math.max(320, back.scrollHeight);
+  back.style.minHeight = '';
+  scene.style.height = h + 'px';
 }
 
 function flipCard() {
   haptic(15);
-  document.getElementById('card-inner').classList.toggle('flipped');
+  const inner = document.getElementById('card-inner');
+  inner.classList.toggle('flipped');
+  if (inner.classList.contains('flipped')) {
+    fitCardToBack();
+  } else {
+    document.getElementById('card-scene').style.height = '320px';
+  }
 }
 
 function toggleExpand() {
@@ -1600,11 +2741,13 @@ function toggleExpand() {
   const isOpen = longEl.classList.contains('visible');
   longEl.classList.toggle('visible', !isOpen);
   expandBtn.textContent = isOpen ? 'read more ↓' : 'read less ↑';
+  fitCardToBack();
 }
 
 function closeSlip(putBack) {
   const overlay = document.getElementById('slip-overlay');
   const scene = document.getElementById('card-scene');
+  scene.style.height = '320px'; // collapse before exit animation
 
   if (!putBack) {
     // Fly up animation
@@ -1632,8 +2775,19 @@ function closeSlip(putBack) {
   }
 
   if (!putBack && state.currentSlip) {
+    const slip = state.currentSlip;
     const episode = document.getElementById('episode-input').value.trim() || null;
-    markUsed(state.currentSlip, episode);
+    markUsed(slip, episode);
+    showToast('"' + slip.name + '" marked used', 4500, () => {
+      const idx = state.used.findIndex(s => s.id === slip.id);
+      if (idx !== -1) {
+        const s = {...state.used.splice(idx, 1)[0]};
+        delete s.episode;
+        state.active.push(s);
+        state.lastPulled = null;
+        saveState(); updateCounter();
+      }
+    });
   }
   state.currentSlip = null;
 }
@@ -1657,18 +2811,22 @@ function resetSession() {
   closeDrawer();
 }
 
-// ══════ UNDO ══════
-function undoLast() {
-  if (!state.lastPulled) return;
-  const story = state.lastPulled;
-  const idx = state.used.findIndex(s => s.id === story.id);
-  if (idx !== -1) {
-    state.used.splice(idx, 1);
-    state.active.push(story);
-    saveState(); updateCounter();
-  }
-  state.lastPulled = null;
-  document.getElementById('undo-btn').classList.remove('has-undo');
+
+// ══════ DRAWER FILTERS ══════
+function buildDrawerFilters() {
+  const sel = document.getElementById('drawer-filter-select');
+  if (!sel) return;
+  const cats = [...new Set(state.active.map(s => s.cat))].sort();
+  const options = [
+    { key: 'all',         label: 'All Stories' },
+    { key: '__pinned__',  label: '★  Pinned' },
+    { key: '__prepped__', label: '✓  Prepped (has notes or links)' },
+    ...cats.map(c => ({ key: c, label: c }))
+  ];
+  sel.innerHTML = options.map(o =>
+    `<option value="${o.key}"${drawerFilter === o.key ? ' selected' : ''}>${o.label}</option>`
+  ).join('');
+  sel.onchange = () => { drawerFilter = sel.value; refreshDrawer(); };
 }
 
 // ══════ DRAWER ══════
@@ -1682,14 +2840,29 @@ function closeDrawer() {
   document.getElementById('drawer-overlay').classList.remove('visible');
 }
 function refreshDrawer() {
+  // Show/hide sections based on active deck
+  const isCustom = activeDeckId !== 'stories';
+  const storyIds = ['stories-drawer-section','session-section','used-section','active-section'];
+  storyIds.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = isCustom ? 'none' : ''; });
+  document.getElementById('add-deck-card-section').style.display = isCustom ? '' : 'none';
+  document.getElementById('custom-deck-list-section').style.display = isCustom ? '' : 'none';
+  if (isCustom) { renderDeckCardsList(); return; }
+
+
   const q = (document.getElementById('search-input').value || '').toLowerCase().trim();
   document.getElementById('used-count').textContent = state.used.length;
   document.getElementById('active-count').textContent = state.active.length;
 
   const filtered = arr => q ? arr.filter(s =>
-    s.name.toLowerCase().includes(q) || s.cat.toLowerCase().includes(q) ||
-    (s.notes && s.notes.toLowerCase().includes(q))
+    s.name.toLowerCase().includes(q) ||
+    s.cat.toLowerCase().includes(q) ||
+    (s.hookShort && s.hookShort.toLowerCase().includes(q)) ||
+    (s.hook && s.hook.toLowerCase().includes(q)) ||
+    (s.notes && s.notes.toLowerCase().includes(q)) ||
+    (s.flag && s.flag.toLowerCase().includes(q))
   ) : arr;
+
+  const hasUserPrep = s => s.notes || (s.urls && s.urls.length > 0) || s.url;
 
   const usedList = document.getElementById('used-list');
   const fUsed = filtered(state.used);
@@ -1697,10 +2870,21 @@ function refreshDrawer() {
     ? '<div class="empty-state">Nothing pulled yet.</div>'
     : fUsed.map(s => storyHTML(s,'used')).join('');
 
+  buildDrawerFilters();
+
   const activeList = document.getElementById('active-list');
-  const fActive = filtered(state.active);
+  let fActive = filtered(state.active).slice().sort((a,b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
+  // When searching, show all results regardless of category filter
+  if (!q) {
+    if      (drawerFilter === '__pinned__')  fActive = fActive.filter(s => s.pinned);
+    else if (drawerFilter === '__prepped__') fActive = fActive.filter(s => hasUserPrep(s));
+    else if (drawerFilter !== 'all')        fActive = fActive.filter(s => s.cat === drawerFilter);
+  }
+  const emptyMsg = drawerFilter === '__pinned__'  ? 'No pinned stories yet.' :
+                   drawerFilter === '__prepped__' ? 'No prepped stories — add notes or links to any story.' :
+                   'Hat is empty.';
   activeList.innerHTML = fActive.length === 0
-    ? '<div class="empty-state">Hat is empty.</div>'
+    ? `<div class="empty-state">${emptyMsg}</div>`
     : fActive.map(s => storyHTML(s,'active')).join('');
 
   document.querySelectorAll('.story-item').forEach(item => {
@@ -1719,8 +2903,22 @@ function refreshDrawer() {
       e.stopPropagation();
       const id = parseInt(e.target.dataset.id);
       const pile = e.target.dataset.pile;
-      if (pile === 'used') state.used = state.used.filter(s => s.id !== id);
-      else state.active = state.active.filter(s => s.id !== id);
+      const arr = pile === 'used' ? state.used : state.active;
+      const story = arr.find(s => s.id === id);
+      const name = story ? story.name : 'this story';
+      if (pile === 'used') {
+        // Move back to active deck, strip episode tag
+        if (!confirm(`Return "${name}" to the deck?`)) return;
+        state.used = state.used.filter(s => s.id !== id);
+        const restored = {...story};
+        delete restored.episode;
+        state.active.push(restored);
+      } else {
+        if (!confirm(`Remove "${name}" from the deck?`)) return;
+        state.active = state.active.filter(s => s.id !== id);
+        // Track deleted story name so it doesn't come back on reload
+        if (!state.deleted.includes(name)) state.deleted.push(name);
+      }
       saveState(); updateCounter(); refreshDrawer();
     });
   });
@@ -1729,19 +2927,46 @@ function refreshDrawer() {
 function storyHTML(s, pile) {
   const ep = (pile === 'used' && s.episode)
     ? `<div class="story-item-episode">↳ ${esc(s.episode)}</div>` : '';
-  const notesDot = s.notes ? ' <span style="color:rgba(255,45,120,0.5);font-size:8px">●</span>' : '';
+  const notesDot = (s.notes || s.flag) ? ' <span style="color:rgba(255,45,120,0.5);font-size:8px">●</span>' : '';
+  const pinStar = s.pinned ? '<span class="story-pin-star">★</span>' : '';
   return `<div class="story-item" data-id="${s.id}" data-pile="${pile}" style="cursor:pointer">
-    <div class="story-item-text">
-      <div class="story-item-name">${esc(s.name)}${notesDot}</div>
-      <div class="story-item-cat">${esc(s.cat)}</div>
-      ${ep}
+    <div class="story-item-text" style="display:flex;align-items:center;gap:0">
+      ${pinStar}
+      <div>
+        <div class="story-item-name">${esc(s.name)}${notesDot}</div>
+        <div class="story-item-cat">${esc(s.cat)}</div>
+        ${ep}
+      </div>
     </div>
     <button class="story-item-del" data-id="${s.id}" data-pile="${pile}">×</button>
   </div>`;
 }
 
+// ══════ TOAST ══════
+function showToast(msg, duration, undoFn) {
+  duration = duration || 2400;
+  const toast = document.getElementById('toast');
+  toast.textContent = undoFn ? msg + '  —  tap to undo' : msg;
+  toast.classList.toggle('undoable', !!undoFn);
+  toast.classList.add('visible');
+  clearTimeout(toast._timer);
+  toast.onclick = undoFn ? () => { undoFn(); toast.classList.remove('visible'); toast.onclick = null; } : null;
+  toast._timer = setTimeout(() => { toast.classList.remove('visible'); toast.onclick = null; }, duration);
+}
+
+// ══════ FIELD ERROR ══════
+function flashError(id) {
+  const el = document.getElementById(id);
+  el.classList.remove('field-error');
+  void el.offsetWidth;
+  el.classList.add('field-error');
+  setTimeout(() => el.classList.remove('field-error'), 600);
+  el.focus();
+}
+
 // ══════ STORY SHEET ══════
-let sheetStory = null, sheetPile = null;
+let drawerFilter = 'all';
+let sheetStory = null, sheetPile = null, sheetSnapshot = null;
 
 function openStorySheet(story, pile) {
   sheetStory = story; sheetPile = pile;
@@ -1759,7 +2984,14 @@ function openStorySheet(story, pile) {
     longSec.style.display = 'none';
   }
   document.getElementById('sheet-notes-input').value = story.notes || '';
+  const flagSec = document.getElementById('sheet-flag-section');
+  document.getElementById('sheet-flag-box').value = story.flag || '';
+  flagSec.style.display = '';
+  // Depth selector
+  document.querySelectorAll('.depth-btn').forEach(b => b.classList.toggle('active', b.dataset.depth === (story.depth || '')));
   document.getElementById('sheet-url-input').value = '';
+  const pinBtn = document.getElementById('sheet-pin-btn');
+  pinBtn.classList.toggle('pinned', !!story.pinned);
   renderSheetLinks(story.urls || (story.url ? [story.url] : []));
   const epSec = document.getElementById('sheet-episode-section');
   if (pile === 'used' && story.episode) {
@@ -1768,55 +3000,308 @@ function openStorySheet(story, pile) {
   } else {
     epSec.style.display = 'none';
   }
+  // Edit button — available for all stories
+  const editBtn = document.getElementById('sheet-edit-btn');
+  const editFields = document.getElementById('sheet-edit-fields');
+  editBtn.style.display = '';
+  // Populate category select with all known cats
+  const allCats = [...Object.keys(CAT_COLORS), ...getCustomCats()].filter((v,i,a)=>a.indexOf(v)===i);
+  const catSel = document.getElementById('sheet-edit-cat');
+  catSel.innerHTML = allCats.map(c => `<option value="${esc(c)}"${c===story.cat?' selected':''}>${esc(c)}</option>`).join('');
+  if (!editBtn.classList.contains('active')) {
+    editFields.classList.remove('visible');
+  } else {
+    document.getElementById('sheet-edit-name').value = story.name;
+    document.getElementById('sheet-edit-hook-short').value = story.hookShort || '';
+    document.getElementById('sheet-edit-hook').value = story.hook || '';
+  }
+  logSearch = ''; logSort = 'newest';
+  document.getElementById('log-search').value = '';
+  document.getElementById('log-sort-btn').textContent = 'Oldest ↑';
+  document.getElementById('log-sort-btn').classList.remove('active');
+  renderResearchLog(story.researchLog || []);
+  document.getElementById('sheet-log-input').innerHTML = '';
   document.getElementById('story-sheet').classList.add('open');
   document.getElementById('story-sheet-overlay').classList.add('visible');
+  startSheetAutoSave();
+  sheetSnapshot = {
+    notes: document.getElementById('sheet-notes-input').value,
+    flag:  document.getElementById('sheet-flag-box').value,
+    urls: JSON.stringify(sheetUrls),
+    pinned: !!story.pinned
+  };
+}
+
+function maybeCloseSheet() {
+  const current = {
+    notes: document.getElementById('sheet-notes-input').value,
+    flag:  document.getElementById('sheet-flag-box').value,
+    urls:  JSON.stringify(sheetUrls),
+    pinned: document.getElementById('sheet-pin-btn').classList.contains('pinned')
+  };
+  const changed = sheetSnapshot && (
+    current.notes  !== sheetSnapshot.notes  ||
+    current.flag   !== sheetSnapshot.flag   ||
+    current.urls   !== sheetSnapshot.urls   ||
+    current.pinned !== sheetSnapshot.pinned
+  );
+  if (changed && !confirm('Close without saving?')) return;
+  closeStorySheet();
 }
 
 function closeStorySheet() {
+  stopSheetAutoSave();
   document.getElementById('story-sheet').classList.remove('open');
   document.getElementById('story-sheet-overlay').classList.remove('visible');
-  sheetStory = null; sheetPile = null;
+  sheetStory = null; sheetPile = null; sheetSnapshot = null;
 }
 
 let sheetUrls = [];
+let logSort = 'newest'; // 'newest' | 'oldest'
+let logSearch = '';
+
+function normalizeLink(u) {
+  if (typeof u === 'string') return {url: u, label: u.replace(/^https?:\/\/(www\.)?/,'').split('/')[0]};
+  return {url: u.url || '', label: u.label || u.url.replace(/^https?:\/\/(www\.)?/,'').split('/')[0]};
+}
 
 function renderSheetLinks(urls) {
-  sheetUrls = [...urls];
+  sheetUrls = urls.map(normalizeLink);
   const list = document.getElementById('sheet-links-list');
   list.innerHTML = sheetUrls.map((u, i) => `
     <div class="sheet-link-item">
-      <a class="sheet-link-anchor" href="${esc(u)}" target="_blank" rel="noopener noreferrer">${esc(u.replace(/^https?:\/\/(www\.)?/,'').split('/')[0])}</a>
+      <div class="sheet-link-info">
+        <span class="sheet-link-label" contenteditable="true" data-idx="${i}" data-field="label">${esc(u.label)}</span>
+        <span class="sheet-link-url-edit" contenteditable="true" data-idx="${i}" data-field="url">${esc(u.url)}</span>
+      </div>
+      <button class="sheet-link-open" data-idx="${i}" title="Open link">↗</button>
       <button class="sheet-link-del" data-idx="${i}">×</button>
     </div>`).join('');
+
   list.querySelectorAll('.sheet-link-del').forEach(btn => {
     btn.addEventListener('click', () => {
       sheetUrls.splice(parseInt(btn.dataset.idx), 1);
       renderSheetLinks(sheetUrls);
     });
   });
+  list.querySelectorAll('.sheet-link-open').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const u = sheetUrls[parseInt(btn.dataset.idx)];
+      if (u) window.open(u.url, '_blank', 'noopener');
+    });
+  });
+  list.querySelectorAll('[data-field]').forEach(el => {
+    el.addEventListener('blur', () => {
+      const idx = parseInt(el.dataset.idx);
+      const val = el.textContent.trim();
+      if (!val || !sheetUrls[idx]) return;
+      if (el.dataset.field === 'label') sheetUrls[idx].label = val;
+      if (el.dataset.field === 'url') sheetUrls[idx].url = val.startsWith('http') ? val : 'https://' + val;
+    });
+    el.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); el.blur(); }
+    });
+  });
+}
+
+function renderResearchLog(entries) {
+  const list = document.getElementById('sheet-log-list');
+  if (!entries || entries.length === 0) {
+    list.innerHTML = '<div style="color:rgba(255,255,255,0.18);font-size:12px;padding:2px 0 6px">No notes yet.</div>';
+    return;
+  }
+  // Tag each entry with its real index before filtering/sorting
+  let indexed = entries.map((e, i) => ({...e, realIdx: i}));
+  // Search filter
+  if (logSearch.trim()) {
+    const q = logSearch.toLowerCase();
+    indexed = indexed.filter(e => {
+      const plain = (e.text || '').replace(/<[^>]+>/g, '').toLowerCase();
+      return plain.includes(q) || (e.ts || '').toLowerCase().includes(q);
+    });
+  }
+  // Sort
+  if (logSort === 'newest') indexed = [...indexed].reverse();
+  if (!indexed.length) {
+    list.innerHTML = '<div style="color:rgba(255,255,255,0.18);font-size:12px;padding:2px 0 6px">No matches.</div>';
+    return;
+  }
+  list.innerHTML = indexed.map(e => {
+    const realIdx = e.realIdx;
+    return `<div class="sheet-log-entry">
+      <button class="sheet-log-del" data-idx="${realIdx}">×</button>
+      <div class="sheet-log-ts" contenteditable="true" data-idx="${realIdx}">${esc(e.ts)}</div>
+      <div class="sheet-log-text" contenteditable="true" spellcheck="true" autocapitalize="sentences" data-idx="${realIdx}">${e.text}</div>
+    </div>`;
+  }).join('');
+  // Delete buttons
+  list.querySelectorAll('.sheet-log-del').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (!sheetStory) return;
+      const arr = sheetPile === 'used' ? state.used : state.active;
+      const story = arr.find(s => s.id === sheetStory.id);
+      if (!story) return;
+      story.researchLog.splice(parseInt(btn.dataset.idx), 1);
+      saveState();
+      renderResearchLog(story.researchLog);
+    });
+  });
+  // Editable timestamps — save on blur
+  list.querySelectorAll('.sheet-log-ts').forEach(el => {
+    el.addEventListener('blur', () => {
+      if (!sheetStory) return;
+      const arr = sheetPile === 'used' ? state.used : state.active;
+      const story = arr.find(s => s.id === sheetStory.id);
+      if (!story) return;
+      const idx = parseInt(el.dataset.idx);
+      const newTs = el.textContent.trim();
+      if (newTs && story.researchLog[idx]) {
+        story.researchLog[idx].ts = newTs;
+        saveState();
+      }
+    });
+    el.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); el.blur(); }
+    });
+  });
+  // Editable text — save innerHTML on blur, tab to indent, right-click for toolbar
+  list.querySelectorAll('.sheet-log-text').forEach(el => {
+    el.addEventListener('blur', () => {
+      if (!sheetStory) return;
+      const arr = sheetPile === 'used' ? state.used : state.active;
+      const story = arr.find(s => s.id === sheetStory.id);
+      if (!story) return;
+      const idx = parseInt(el.dataset.idx);
+      const newHtml = el.innerHTML.trim();
+      if (newHtml && story.researchLog[idx]) {
+        story.researchLog[idx].text = newHtml;
+        saveState();
+      }
+    });
+    el.addEventListener('keydown', e => {
+      if (e.key === 'Tab') { e.preventDefault(); document.execCommand(e.shiftKey ? 'outdent' : 'indent'); return; }
+      if ((e.metaKey || e.ctrlKey) && e.key === 'b') { e.preventDefault(); document.execCommand('bold'); return; }
+      if ((e.metaKey || e.ctrlKey) && e.key === 'i') { e.preventDefault(); document.execCommand('italic'); return; }
+      if ((e.metaKey || e.ctrlKey) && e.key === 'u') { e.preventDefault(); document.execCommand('underline'); return; }
+      if ((e.metaKey || e.ctrlKey) && e.key === 'c') { document.execCommand('copy'); return; }
+      if ((e.metaKey || e.ctrlKey) && e.key === 'v') {
+        e.preventDefault();
+        navigator.clipboard.readText().then(text => document.execCommand('insertText', false, text)).catch(() => document.execCommand('paste'));
+        return;
+      }
+      handleAutoCapitalize(e);
+    });
+    el.addEventListener('contextmenu', showLogContextMenu);
+  });
+}
+
+function addLogEntry() {
+  const input = document.getElementById('sheet-log-input');
+  const html = input.innerHTML.trim();
+  const text = input.textContent.trim();
+  if (!text || !sheetStory) return;
+  const arr = sheetPile === 'used' ? state.used : state.active;
+  const story = arr.find(s => s.id === sheetStory.id);
+  if (!story) return;
+  if (!story.researchLog) story.researchLog = [];
+  const now = new Date();
+  const ts = now.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'})
+           + ' — ' + now.toLocaleTimeString('en-US', {hour:'numeric', minute:'2-digit'});
+  story.researchLog.push({text: html, ts});
+  saveState();
+  input.innerHTML = '';
+  renderResearchLog(story.researchLog);
+  showToast('Note saved ✓', 1500);
 }
 
 function addSheetLink() {
   const input = document.getElementById('sheet-url-input');
+  const labelInput = document.getElementById('sheet-link-label-input');
   const val = input.value.trim();
   if (!val) return;
   const url = val.startsWith('http') ? val : 'https://' + val;
-  if (!sheetUrls.includes(url)) sheetUrls.push(url);
+  const rawLabel = labelInput ? labelInput.value.trim() : '';
+  const label = rawLabel || url.replace(/^https?:\/\/(www\.)?/,'').split('/')[0];
+  // Snapshot current labels from any focused contenteditable before re-render
+  document.querySelectorAll('#sheet-links-list [data-field]').forEach(el => {
+    const idx = parseInt(el.dataset.idx);
+    const val = el.textContent.trim();
+    if (!val || !sheetUrls[idx]) return;
+    if (el.dataset.field === 'label') sheetUrls[idx].label = val;
+    if (el.dataset.field === 'url') sheetUrls[idx].url = val.startsWith('http') ? val : 'https://' + val;
+  });
+  sheetUrls.push({url, label});
   renderSheetLinks(sheetUrls);
   input.value = '';
+  if (labelInput) labelInput.value = '';
+}
+
+function saveSheetData() {
+  if (!sheetStory || !sheetPile) return false;
+  const arr = sheetPile === 'used' ? state.used : state.active;
+  const story = arr.find(s => s.id === sheetStory.id);
+  if (!story) return false;
+  story.notes = document.getElementById('sheet-notes-input').value.trim() || null;
+  story.flag  = document.getElementById('sheet-flag-box').value.trim() || null;
+  story.urls  = sheetUrls.map(u => ({url: u.url, label: u.label}));
+  story.url   = sheetUrls[0] ? sheetUrls[0].url : null; // backwards compat
+  story.pinned = document.getElementById('sheet-pin-btn').classList.contains('pinned') || false;
+  const activeDepth = document.querySelector('.depth-btn.active');
+  story.depth = activeDepth ? activeDepth.dataset.depth : null;
+  // Save edits for custom stories
+  if (document.getElementById('sheet-edit-btn').classList.contains('active')) {
+    const newName = document.getElementById('sheet-edit-name').value.trim();
+    if (newName) story.name = newName;
+    story.hookShort = document.getElementById('sheet-edit-hook-short').value.trim() || story.hookShort;
+    story.hook      = document.getElementById('sheet-edit-hook').value.trim() || story.hook;
+    story.cat       = document.getElementById('sheet-edit-cat').value;
+    story.edited    = true;
+  }
+  saveState();
+  return true;
 }
 
 function saveSheet() {
-  if (!sheetStory || !sheetPile) return;
-  const arr = sheetPile === 'used' ? state.used : state.active;
-  const story = arr.find(s => s.id === sheetStory.id);
-  if (!story) return;
-  story.notes = document.getElementById('sheet-notes-input').value.trim() || null;
-  story.urls = [...sheetUrls];
-  story.url = sheetUrls[0] || null; // backwards compat
-  saveState();
+  if (!saveSheetData()) return;
   closeStorySheet();
   refreshDrawer();
+  showToast('Saved ✓');
+}
+
+// ── AUTO-SAVE every 15 min while sheet is open ──
+let _sheetAutoSaveTimer = null;
+
+function startSheetAutoSave() {
+  clearInterval(_sheetAutoSaveTimer);
+  _sheetAutoSaveTimer = setInterval(() => {
+    if (!sheetStory) return;
+    // Flush any unsubmitted log input as an auto-saved entry
+    const input = document.getElementById('sheet-log-input');
+    const html = input ? input.innerHTML.trim() : '';
+    const text = input ? input.textContent.trim() : '';
+    if (text) {
+      const arr = sheetPile === 'used' ? state.used : state.active;
+      const story = arr.find(s => s.id === sheetStory.id);
+      if (story) {
+        if (!story.researchLog) story.researchLog = [];
+        const now = new Date();
+        const ts = now.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'})
+                 + ' — ' + now.toLocaleTimeString('en-US', {hour:'numeric', minute:'2-digit'})
+                 + ' (auto)';
+        story.researchLog.push({text: html, ts});
+        input.innerHTML = '';
+        renderResearchLog(story.researchLog);
+      }
+    }
+    // Save all sheet fields silently
+    saveSheetData();
+    showToast('Auto-saved ✓', 2000);
+  }, 15 * 60 * 1000);
+}
+
+function stopSheetAutoSave() {
+  clearInterval(_sheetAutoSaveTimer);
+  _sheetAutoSaveTimer = null;
 }
 function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
@@ -1828,9 +3313,13 @@ function addStory() {
   const cat = document.getElementById('add-cat').value;
   const url = document.getElementById('add-url').value.trim() || null;
   const notes = document.getElementById('add-notes').value.trim() || null;
-  if (!name || !hookShort) return;
+  if (!name || !hookShort) {
+    if (!name) flashError('add-name');
+    if (!hookShort) flashError('add-hook-short');
+    return;
+  }
   const urls = url ? [url.startsWith('http') ? url : 'https://' + url] : [];
-  state.active.push({id:Date.now(), name, hookShort, hook: hook || hookShort, cat, url: urls[0] || null, urls, notes});
+  state.active.push({id:Date.now(), name, hookShort, hook: hook || hookShort, cat, url: urls[0] || null, urls, notes, custom: true});
   saveState(); updateCounter();
   document.getElementById('add-name').value = '';
   document.getElementById('add-hook-short').value = '';
@@ -1857,38 +3346,378 @@ function setFilter(cat) {
   updateCounter();
 }
 
+// ══════ HAND POSITIONING ══════
+// Calculates exact pixel translateX/top values based on the hat's real rendered layout,
+// so the animation aligns perfectly on every screen size and device.
+function positionHand() {
+  const hand  = document.getElementById('hand-container');
+  const stage = document.getElementById('hat-stage');
+  if (!hand || !stage) return;
+
+  const hw = hand.offsetWidth;
+  const hh = hand.offsetHeight;
+  const sw = stage.offsetWidth;
+  const sh = stage.offsetHeight;
+  if (!hw || !hh || !sw || !sh) return;  // image not yet rendered — skip
+
+  // Hat opening (where cards fan out) is roughly the top 20% of the stage height
+  const hatOpeningY = sh * 0.20;
+  // Fingers sit at ~50% from the top of the landscape arm image
+  const fingerFromTop = hh * 0.50;
+  // Set top so fingers land right at the hat opening
+  hand.style.top = (hatOpeningY - fingerFromTop) + 'px';
+
+  // Horizontal: after scaleX(-1) flip, fingers are at the RIGHT edge of the container.
+  // Peak position = right edge reaches ~50% of stage width (hat center), slightly inside.
+  const hatCenterX = sw * 0.50;
+  const peakX  = hatCenterX - hw + 50;          // fingers slightly inside hat
+  const holdX  = peakX - 10;                    // micro-pullback for grab feel
+  const enterX = peakX - hw * 0.55;             // halfway sweep point
+  const startX = -(hw + sw + 80);               // fully off left — arm never seen
+
+  const r = document.documentElement;
+  r.style.setProperty('--hand-x-start', startX + 'px');
+  r.style.setProperty('--hand-x-enter', enterX + 'px');
+  r.style.setProperty('--hand-x-peak',  peakX  + 'px');
+  r.style.setProperty('--hand-x-hold',  holdX  + 'px');
+  r.style.setProperty('--hand-x-exit',  startX + 'px');
+}
+
 // ══════ BOOT ══════
 loadState();
+loadCustomDecks();
 renderCustomCats();
+updateDeckSwitcher();
+updateFiltersVisibility();
 updateCounter();
 _initFirestore(); // connects to Firebase after local state is shown
+
+// Position hand once image loads, and re-position on every resize
+const _handImg = document.querySelector('#hand-container img');
+if (_handImg) {
+  if (_handImg.complete) positionHand();
+  else _handImg.addEventListener('load', positionHand);
+}
+window.addEventListener('resize', positionHand);
+
+// ══════ SHOOTING STARS ══════
+function spawnShootingStar() {
+  const el = document.createElement('div');
+  el.className = 'shooting-star';
+  const angle  = 28 + Math.random() * 18;
+  // Only spawn in upper 20% of viewport — pure sky, well above the hat
+  const startX = Math.random() * window.innerWidth * 0.7;
+  const startY = Math.random() * window.innerHeight * 0.20;
+  el.style.cssText = `left:${startX}px; top:${startY}px; --angle:${angle}deg;`;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1100);
+}
+(function scheduleShootingStar() {
+  setTimeout(() => { spawnShootingStar(); scheduleShootingStar(); },
+    16000 + Math.random() * 14000); // every 16–30 s
+}());
 
 document.getElementById('hat-stage').addEventListener('click', pullSlip);
 document.getElementById('slip-overlay-bg').addEventListener('click', () => closeSlip(true));
 document.getElementById('card-front').addEventListener('click', flipCard);
+document.getElementById('card-pin-btn').addEventListener('click', e => {
+  e.stopPropagation();
+  const story = state.currentSlip;
+  if (!story) return;
+  const target = state.active.find(s => s.id === story.id) || state.used.find(s => s.id === story.id);
+  if (!target) return;
+  target.pinned = !target.pinned;
+  story.pinned = target.pinned;
+  document.getElementById('card-pin-btn').classList.toggle('pinned', target.pinned);
+  saveState();
+  refreshDrawer();
+});
 document.getElementById('card-back').addEventListener('click', (e) => {
-  if (!e.target.closest('.slip-btn') && !e.target.closest('.expand-btn') && !e.target.closest('#episode-input-wrap') && !e.target.closest('#source-btn')) flipCard();
+  if (!e.target.closest('.slip-btn') && !e.target.closest('.expand-btn') && !e.target.closest('#episode-input-wrap') && !e.target.closest('#card-profile-btn')) flipCard();
+});
+document.getElementById('card-profile-btn').addEventListener('click', (e) => {
+  e.stopPropagation();
+  const story = state.currentSlip;
+  if (!story) return;
+  const pile = state.used.find(s => s.id === story.id) ? 'used' : 'active';
+  openStorySheet(story, pile);
 });
 document.getElementById('expand-btn').addEventListener('click', (e) => { e.stopPropagation(); toggleExpand(); });
-document.getElementById('btn-mark-used').addEventListener('click', (e) => { e.stopPropagation(); closeSlip(false); });
+document.getElementById('episode-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') { e.preventDefault(); closeSlip(false); }
+});
+document.getElementById('btn-mark-used').addEventListener('click', (e) => {
+  e.stopPropagation();
+  const epInput = document.getElementById('episode-input');
+  const btn = document.getElementById('btn-mark-used');
+  if (!epInput.value.trim() && !btn.dataset.confirmed) {
+    // First tap with no episode — nudge the field
+    epInput.classList.add('nudge');
+    epInput.focus();
+    epInput.placeholder = 'Which episode?';
+    btn.textContent = '✓ Confirm Used';
+    btn.dataset.confirmed = '1';
+    setTimeout(() => epInput.classList.remove('nudge'), 1800);
+    return;
+  }
+  closeSlip(false);
+});
 document.getElementById('btn-close-slip').addEventListener('click', (e) => { e.stopPropagation(); closeSlip(true); });
-document.getElementById('reset-btn').addEventListener('click', resetSession);
-document.getElementById('undo-btn').addEventListener('click', undoLast);
+document.getElementById('reset-btn').addEventListener('click', () => {
+  if (!confirm('Put all used stories back in the deck? This cannot be undone.')) return;
+  resetSession();
+});
 document.getElementById('menu-btn').addEventListener('click', openDrawer);
 document.getElementById('drawer-close-btn').addEventListener('click', closeDrawer);
+
+// ── DECK LIBRARY ──
+document.getElementById('deck-switcher').addEventListener('click', openDeckLibrary);
+document.getElementById('deck-library-overlay').addEventListener('click', closeDeckLibrary);
+document.getElementById('new-deck-btn').addEventListener('click', () => {
+  const name = document.getElementById('new-deck-name').value.trim();
+  const emoji = document.getElementById('new-deck-emoji').value.trim();
+  if (!name) { document.getElementById('new-deck-name').focus(); return; }
+  createDeck(name, emoji);
+  document.getElementById('new-deck-name').value = '';
+  document.getElementById('new-deck-emoji').value = '';
+});
+document.getElementById('new-deck-name').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); document.getElementById('new-deck-btn').click(); }
+});
+
+// ── CUSTOM DECK CARD ACTIONS ──
+document.getElementById('custom-btn-done').addEventListener('click', closeCustomCard);
+document.getElementById('custom-btn-next').addEventListener('click', () => {
+  closeCustomCard();
+  setTimeout(pullSlip, 120);
+});
+
+// ── ADD CARD TO DECK ──
+document.getElementById('add-deck-card-btn').addEventListener('click', () => {
+  const name = document.getElementById('deck-card-name').value.trim();
+  const text = document.getElementById('deck-card-text').value.trim();
+  if (!name) { document.getElementById('deck-card-name').focus(); return; }
+  addCardToDeck(activeDeckId, name, text);
+  document.getElementById('deck-card-name').value = '';
+  document.getElementById('deck-card-text').value = '';
+  showToast('Card added ✓', 1500);
+});
+document.getElementById('add-deck-card-toggle').addEventListener('click', () => {
+  const form = document.getElementById('add-deck-card-form');
+  form.classList.toggle('open');
+});
 document.getElementById('drawer-overlay').addEventListener('click', closeDrawer);
 document.querySelectorAll('.filter-btn').forEach(b => b.addEventListener('click', () => setFilter(b.dataset.cat)));
 document.getElementById('add-story-btn').addEventListener('click', addStory);
 document.getElementById('new-cat-btn').addEventListener('click', addCustomCat);
 document.getElementById('new-cat-input').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addCustomCat(); } });
 document.getElementById('export-btn').addEventListener('click', exportStories);
-document.getElementById('story-sheet-overlay').addEventListener('click', closeStorySheet);
-document.getElementById('sheet-close-btn').addEventListener('click', closeStorySheet);
+document.getElementById('log-search').addEventListener('input', e => {
+  logSearch = e.target.value;
+  if (!sheetStory) return;
+  const arr = sheetPile === 'used' ? state.used : state.active;
+  const story = arr.find(s => s.id === sheetStory.id);
+  if (story) renderResearchLog(story.researchLog || []);
+});
+document.getElementById('log-sort-btn').addEventListener('click', () => {
+  logSort = logSort === 'newest' ? 'oldest' : 'newest';
+  document.getElementById('log-sort-btn').textContent = logSort === 'newest' ? 'Oldest ↑' : 'Newest ↓';
+  document.getElementById('log-sort-btn').classList.toggle('active', logSort === 'oldest');
+  if (!sheetStory) return;
+  const arr = sheetPile === 'used' ? state.used : state.active;
+  const story = arr.find(s => s.id === sheetStory.id);
+  if (story) renderResearchLog(story.researchLog || []);
+});
+document.getElementById('log-export-btn').addEventListener('click', exportResearchLog);
+document.getElementById('story-sheet-overlay').addEventListener('click', maybeCloseSheet);
+document.getElementById('sheet-close-btn').addEventListener('click', maybeCloseSheet);
+document.getElementById('sheet-pin-btn').addEventListener('click', () => {
+  document.getElementById('sheet-pin-btn').classList.toggle('pinned');
+});
+document.getElementById('sheet-edit-btn').addEventListener('click', () => {
+  const btn = document.getElementById('sheet-edit-btn');
+  const fields = document.getElementById('sheet-edit-fields');
+  const on = btn.classList.toggle('active');
+  btn.textContent = on ? '✓ Done' : '✏ Edit';
+  fields.classList.toggle('visible', on);
+  if (on && sheetStory) {
+    document.getElementById('sheet-edit-name').value = sheetStory.name;
+    document.getElementById('sheet-edit-hook-short').value = sheetStory.hookShort || '';
+    document.getElementById('sheet-edit-hook').value = sheetStory.hook || '';
+  }
+});
 document.getElementById('sheet-save-btn').addEventListener('click', saveSheet);
 document.getElementById('sheet-add-link-btn').addEventListener('click', addSheetLink);
 document.getElementById('sheet-url-input').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addSheetLink(); } });
-document.getElementById('search-input').addEventListener('input', refreshDrawer);
+document.getElementById('sheet-link-label-input').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('sheet-url-input').focus(); } });
+function exportResearchLog() {
+  if (!sheetStory) return;
+  const arr = sheetPile === 'used' ? state.used : state.active;
+  const story = arr.find(s => s.id === sheetStory.id);
+  if (!story || !story.researchLog || !story.researchLog.length) {
+    showToast('No notes to export', 1800); return;
+  }
+  const lines = [`RESEARCH LOG — ${story.name}`, `Exported ${new Date().toLocaleDateString()}`, ''];
+  story.researchLog.forEach((e, i) => {
+    lines.push(`[${e.ts}]`);
+    lines.push((e.text || '').replace(/<[^>]+>/g, '').trim());
+    if (i < story.researchLog.length - 1) lines.push('');
+  });
+  const blob = new Blob([lines.join('\n')], {type:'text/plain'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `${story.name.replace(/[^a-z0-9]/gi,'_')}_research_log.txt`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+// ── LOG CONTEXT MENU ──
+const logContextMenu = document.getElementById('log-context-menu');
+let _savedLogRange = null;
+
+function saveLogSelection() {
+  const sel = window.getSelection();
+  _savedLogRange = (sel && sel.rangeCount > 0) ? sel.getRangeAt(0).cloneRange() : null;
+}
+function restoreLogSelection() {
+  if (!_savedLogRange) return;
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(_savedLogRange);
+}
+function hideLogContextMenu() { logContextMenu.classList.remove('visible'); }
+function showLogContextMenu(e) {
+  e.preventDefault();
+  saveLogSelection(); // capture selection before focus shifts
+  const x = Math.min(e.clientX, window.innerWidth - 290);
+  const y = Math.min(e.clientY, window.innerHeight - 60);
+  logContextMenu.style.left = x + 'px';
+  logContextMenu.style.top  = y + 'px';
+  logContextMenu.classList.add('visible');
+}
+logContextMenu.querySelectorAll('.ctx-item[data-cmd]').forEach(btn => {
+  btn.addEventListener('mousedown', e => {
+    e.preventDefault();
+    restoreLogSelection();
+    document.execCommand(btn.dataset.cmd, false, null);
+    hideLogContextMenu();
+  });
+  btn.addEventListener('touchstart', e => {
+    e.preventDefault();
+    restoreLogSelection();
+    document.execCommand(btn.dataset.cmd, false, null);
+    hideLogContextMenu();
+  }, {passive: false});
+});
+document.getElementById('ctx-copy-btn').addEventListener('mousedown', e => {
+  e.preventDefault();
+  restoreLogSelection();
+  document.execCommand('copy');
+  hideLogContextMenu();
+});
+document.getElementById('ctx-paste-btn').addEventListener('mousedown', e => {
+  e.preventDefault();
+  restoreLogSelection();
+  navigator.clipboard.readText().then(text => {
+    document.execCommand('insertText', false, text);
+  }).catch(() => {
+    document.execCommand('paste');
+  });
+  hideLogContextMenu();
+});
+document.addEventListener('click', e => {
+  if (!logContextMenu.contains(e.target)) hideLogContextMenu();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') hideLogContextMenu(); });
+
+// ── AUTO-CAPITALIZE ──
+function handleAutoCapitalize(e) {
+  if (e.key.length !== 1 || !/[a-z]/.test(e.key)) return;
+  const sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0) return;
+  const range = sel.getRangeAt(0);
+  const temp = range.cloneRange();
+  temp.selectNodeContents(e.currentTarget);
+  temp.setEnd(range.startContainer, range.startOffset);
+  const before = temp.toString();
+  if (before.trim() === '' || /[.!?]\s+$/.test(before) || /[.!?]\s*$/.test(before.trimEnd())) {
+    e.preventDefault();
+    document.execCommand('insertText', false, e.key.toUpperCase());
+  }
+}
+
+// ── LOG INPUT HANDLERS ──
+document.getElementById('sheet-log-add-btn').addEventListener('click', addLogEntry);
+document.getElementById('sheet-log-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addLogEntry(); return; }
+  if (e.key === 'Tab') { e.preventDefault(); document.execCommand(e.shiftKey ? 'outdent' : 'indent'); return; }
+  if ((e.metaKey || e.ctrlKey) && e.key === 'b') { e.preventDefault(); document.execCommand('bold'); return; }
+  if ((e.metaKey || e.ctrlKey) && e.key === 'i') { e.preventDefault(); document.execCommand('italic'); return; }
+  if ((e.metaKey || e.ctrlKey) && e.key === 'u') { e.preventDefault(); document.execCommand('underline'); return; }
+  if ((e.metaKey || e.ctrlKey) && e.key === 'c') { document.execCommand('copy'); return; }
+  if ((e.metaKey || e.ctrlKey) && e.key === 'v') {
+    e.preventDefault();
+    navigator.clipboard.readText().then(text => document.execCommand('insertText', false, text)).catch(() => document.execCommand('paste'));
+    return;
+  }
+  handleAutoCapitalize(e);
+});
+document.getElementById('sheet-log-input').addEventListener('contextmenu', showLogContextMenu);
+document.querySelectorAll('.log-format-bar .log-fmt-btn').forEach(btn => {
+  btn.addEventListener('mousedown', e => {
+    e.preventDefault(); // don't steal focus from input
+    document.execCommand(btn.dataset.cmd, false, null);
+  });
+  btn.addEventListener('touchstart', e => {
+    e.preventDefault();
+    document.execCommand(btn.dataset.cmd, false, null);
+  }, {passive: false});
+});
+document.getElementById('search-input').addEventListener('input', () => {
+  refreshDrawer();
+  document.getElementById('search-clear-btn').style.display =
+    document.getElementById('search-input').value ? 'block' : 'none';
+});
+document.getElementById('search-clear-btn').addEventListener('click', () => {
+  document.getElementById('search-input').value = '';
+  document.getElementById('search-clear-btn').style.display = 'none';
+  refreshDrawer();
+});
+
+// Depth buttons
+document.querySelectorAll('.depth-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const already = btn.classList.contains('active');
+    document.querySelectorAll('.depth-btn').forEach(b => b.classList.remove('active'));
+    if (!already) btn.classList.add('active'); // tap again to deselect
+  });
+});
+
+// Collapsible drawer sections
+[
+  ['add-story-toggle', 'add-story-form'],
+  ['session-toggle',   'session-form'],
+  ['used-toggle',      'used-form'],
+  ['active-toggle',    'active-form'],
+].forEach(([toggleId, formId]) => {
+  document.getElementById(toggleId).addEventListener('click', () => {
+    const form   = document.getElementById(formId);
+    const toggle = document.getElementById(toggleId);
+    const open   = form.classList.toggle('open');
+    toggle.classList.toggle('open', open);
+  });
+});
+
+
+// Escape key closes whatever is open
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  if (document.getElementById('story-sheet').classList.contains('open')) { maybeCloseSheet(); return; }
+  if (document.getElementById('drawer').classList.contains('open')) { closeDrawer(); return; }
+  if (document.getElementById('slip-overlay').classList.contains('visible')) { closeSlip(true); return; }
+});
 </script>
 
+<div id="toast"></div>
 </body>
 </html>
