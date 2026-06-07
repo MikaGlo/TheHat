@@ -2334,32 +2334,35 @@ function _initFirestore() {
         renderCustomCats();
       }, err => console.warn('Firestore cats listener error:', err));
 
-    function _applyRemoteDecks(snap) {
-      if (!snap.exists) return;
-      const data = snap.data();
-      const incoming = data.decks || [];
-      // Only update if data actually changed
-      if (JSON.stringify(incoming) === JSON.stringify(customDecks)) return;
-      customDecks = incoming;
-      localStorage.setItem('hat-custom-decks', JSON.stringify(customDecks));
-      updateDeckSwitcher();
-      updateFiltersVisibility();
-      updateCounter();
-      refreshDrawer();
-      renderDeckLibrary();
-    }
-
-    // Live listener
     db.collection('hat').doc('customDecks2')
-      .onSnapshot(_applyRemoteDecks,
-        err => console.warn('Firestore decks listener error:', err));
+      .onSnapshot(snap => {
+        if (!snap || !snap.exists) return;
+        const incoming = snap.data().decks || [];
+        if (JSON.stringify(incoming) === JSON.stringify(customDecks)) return;
+        customDecks = incoming;
+        localStorage.setItem('hat-custom-decks', JSON.stringify(customDecks));
+        updateDeckSwitcher();
+        updateFiltersVisibility();
+        updateCounter();
+        refreshDrawer();
+        renderDeckLibrary();
+      }, err => console.warn('Firestore decks listener error:', err));
 
-    // Polling fallback every 10s in case snapshot misses anything
+    // Polling fallback every 10s
     setInterval(() => {
-      if (!_firestoreReady || !db) return;
-      db.collection('hat').doc('customDecks2').get()
-        .then(_applyRemoteDecks)
-        .catch(e => console.warn('Decks poll failed:', e));
+      if (!db) return;
+      db.collection('hat').doc('customDecks2').get().then(snap => {
+        if (!snap || !snap.exists) return;
+        const incoming = snap.data().decks || [];
+        if (JSON.stringify(incoming) === JSON.stringify(customDecks)) return;
+        customDecks = incoming;
+        localStorage.setItem('hat-custom-decks', JSON.stringify(customDecks));
+        updateDeckSwitcher();
+        updateFiltersVisibility();
+        updateCounter();
+        refreshDrawer();
+        renderDeckLibrary();
+      }).catch(e => console.warn('Decks poll failed:', e));
     }, 10000);
 
   } catch(e) {
