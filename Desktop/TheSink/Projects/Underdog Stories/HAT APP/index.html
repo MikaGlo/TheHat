@@ -2126,6 +2126,7 @@ const DEFAULT_STORIES = [
 
 // ══════ STATE ══════
 let state = { active:[], used:[], deleted:[], customDecks:[], lastPulled:null, filter:'All', animating:false, currentSlip:null };
+let _lastLocalSave = 0; // timestamp of last local deck save — used to ignore stale Firestore echoes
 
 // ══════ CUSTOM DECKS ══════
 // customDecks is a direct reference to state.customDecks — syncs via main state doc
@@ -2137,6 +2138,7 @@ function loadCustomDecks() {
   try { activeDeckId = localStorage.getItem('hat-active-deck') || 'stories'; } catch(e) { activeDeckId = 'stories'; }
 }
 function saveCustomDecks() {
+  _lastLocalSave = Date.now(); // stamp so _applyRemoteState ignores Firestore echo for 4s
   localStorage.setItem('hat-custom-decks', JSON.stringify(customDecks));
   saveState(); // custom decks now live inside the main state document — same sync that already works
 }
@@ -2348,16 +2350,19 @@ function _initFirestore() {
 }
 
 function _applyRemoteState(active, used, deleted, remoteDecks) {
-  // Apply custom decks — only update if incoming has content or we have nothing
+  // Apply custom decks — skip if we saved locally in the last 4s (prevents Firestore echo restoring deleted decks)
   const incoming = remoteDecks || [];
-  if (incoming.length > 0 || state.customDecks.length === 0) {
-    if (JSON.stringify(incoming) !== JSON.stringify(state.customDecks)) {
-      state.customDecks = incoming;
-      updateDeckSwitcher();
-      updateFiltersVisibility();
-      updateCounter();
-      refreshDrawer();
-      renderDeckLibrary();
+  const timeSinceLocalSave = Date.now() - _lastLocalSave;
+  if (timeSinceLocalSave > 4000) {
+    if (incoming.length > 0 || state.customDecks.length === 0) {
+      if (JSON.stringify(incoming) !== JSON.stringify(state.customDecks)) {
+        state.customDecks = incoming;
+        updateDeckSwitcher();
+        updateFiltersVisibility();
+        updateCounter();
+        refreshDrawer();
+        renderDeckLibrary();
+      }
     }
   }
   state.deleted = deleted || [];
