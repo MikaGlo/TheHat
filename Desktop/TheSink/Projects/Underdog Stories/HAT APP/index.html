@@ -1915,11 +1915,11 @@
     </div>
     <div id="add-deck-card-form" class="add-story-form">
       <div class="form-field">
-        <label>Card Name</label>
+        <label id="deck-card-name-label">Card Name</label>
         <input type="text" id="deck-card-name" placeholder="The card title...">
       </div>
       <div class="form-field">
-        <label>Text — optional</label>
+        <label id="deck-card-text-label">Text — optional</label>
         <textarea id="deck-card-text" placeholder="One line. A question, idea, prompt..." style="min-height:60px"></textarea>
       </div>
       <button class="submit-btn" id="add-deck-card-btn">Add to Deck</button>
@@ -2361,21 +2361,10 @@ function isQuoteDeck(deck) {
 function updateAddCardFormLabels() {
   const deck = getActiveDeck();
   const isQuote = isQuoteDeck(deck);
-  const nameLabel = document.querySelector('#add-deck-card-form label:first-of-type');
-  const textLabel = document.querySelector('#add-deck-card-form label:last-of-type');
-  const nameInput = document.getElementById('deck-card-name');
-  const textInput = document.getElementById('deck-card-text');
-  if (isQuote) {
-    if (nameLabel) nameLabel.textContent = 'Said By';
-    if (textLabel) textLabel.textContent = 'The Quote';
-    if (nameInput) nameInput.placeholder = 'Who said it...';
-    if (textInput) textInput.placeholder = 'Enter the quote...';
-  } else {
-    if (nameLabel) nameLabel.textContent = 'Card Name';
-    if (textLabel) textLabel.textContent = 'Text — optional';
-    if (nameInput) nameInput.placeholder = 'The card title...';
-    if (textInput) textInput.placeholder = 'One line. A question, idea, prompt...';
-  }
+  document.getElementById('deck-card-name-label').textContent = isQuote ? 'Said By' : 'Card Name';
+  document.getElementById('deck-card-text-label').textContent = isQuote ? 'The Quote' : 'Text — optional';
+  document.getElementById('deck-card-name').placeholder = isQuote ? 'Who said it...' : 'The card title...';
+  document.getElementById('deck-card-text').placeholder = isQuote ? 'Enter the quote...' : 'One line. A question, idea, prompt...';
 }
 function showCustomCard(card, deck) {
   if (isQuoteDeck(deck)) {
