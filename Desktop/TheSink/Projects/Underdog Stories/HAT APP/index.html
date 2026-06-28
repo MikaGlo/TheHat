@@ -264,6 +264,70 @@
   #custom-btn-next { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.6); }
   #custom-btn-done { background: var(--pink); color: white; }
 
+  /* ── QUOTE CARD OVERLAY ── */
+  #quote-card-overlay {
+    position: fixed; inset: 0;
+    background: #07060d;
+    z-index: 400;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 40px 32px env(safe-area-inset-bottom, 40px);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.35s ease;
+  }
+  #quote-card-overlay.visible { opacity: 1; pointer-events: auto; }
+  #quote-deck-label {
+    font-size: 10px; letter-spacing: 3px; text-transform: uppercase;
+    color: rgba(255,255,255,0.2); font-family: -apple-system, sans-serif;
+    margin-bottom: 48px;
+  }
+  #quote-mark {
+    font-size: clamp(80px, 16vw, 120px);
+    line-height: 0.6;
+    color: var(--pink);
+    font-family: 'Georgia', serif;
+    opacity: 0.7;
+    align-self: flex-start;
+    margin-bottom: 16px;
+    user-select: none;
+  }
+  #quote-text {
+    font-size: clamp(22px, 5vw, 36px);
+    font-family: 'Georgia', serif;
+    font-style: italic;
+    font-weight: 400;
+    color: rgba(255,255,255,0.92);
+    text-align: center;
+    line-height: 1.55;
+    max-width: 680px;
+    flex: 1;
+    display: flex; align-items: center; justify-content: center;
+  }
+  #quote-author {
+    margin-top: 40px;
+    font-size: clamp(13px, 3vw, 16px);
+    letter-spacing: 2.5px; text-transform: uppercase;
+    color: rgba(255,255,255,0.35);
+    font-family: -apple-system, sans-serif;
+    font-weight: 500;
+  }
+  #quote-author::before { content: '— '; }
+  #quote-card-actions {
+    display: flex; gap: 10px;
+    width: 100%; max-width: 500px;
+    margin-top: 56px;
+  }
+  .quote-btn {
+    flex: 1; padding: 15px;
+    border: none; border-radius: 12px;
+    font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase;
+    font-family: -apple-system, sans-serif; font-weight: 500;
+    cursor: pointer; transition: opacity 0.15s;
+  }
+  .quote-btn:active { opacity: 0.75; }
+  #quote-btn-return { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.5); }
+  #quote-btn-done   { background: var(--pink); color: white; }
+
   /* ── HAT STAGE ── */
   #hat-stage {
     position: relative;
@@ -1702,6 +1766,18 @@
   </div>
 </div>
 
+<!-- Quote Card Overlay -->
+<div id="quote-card-overlay">
+  <div id="quote-deck-label"></div>
+  <div id="quote-mark">"</div>
+  <div id="quote-text"></div>
+  <div id="quote-author"></div>
+  <div id="quote-card-actions">
+    <button class="quote-btn" id="quote-btn-return">↩ Return</button>
+    <button class="quote-btn" id="quote-btn-done">Done</button>
+  </div>
+</div>
+
 <!-- Log Format Context Menu -->
 <div id="log-context-menu">
   <button type="button" class="ctx-item" data-cmd="bold"><span><b>Bold</b></span><span class="ctx-shortcut">⌘B</span></button>
@@ -2266,7 +2342,18 @@ function renderDeckCardsList() {
     btn.addEventListener('click', () => removeCardFromDeck(deck.id, parseInt(btn.dataset.cardId)));
   });
 }
+function isQuoteDeck(deck) {
+  return deck && deck.name && deck.name.toLowerCase().includes('quote');
+}
 function showCustomCard(card, deck) {
+  if (isQuoteDeck(deck)) {
+    document.getElementById('quote-deck-label').textContent = (deck.emoji || '💬') + '  ' + deck.name;
+    document.getElementById('quote-text').textContent = card.text || card.name;
+    document.getElementById('quote-author').textContent = card.text ? card.name : '';
+    document.getElementById('quote-author').style.display = card.text ? '' : 'none';
+    document.getElementById('quote-card-overlay').classList.add('visible');
+    return;
+  }
   document.getElementById('custom-card-deck-label').textContent = (deck.emoji || '🎴') + '  ' + deck.name;
   document.getElementById('custom-card-name').textContent = card.name;
   document.getElementById('custom-card-text').textContent = card.text || '';
@@ -2274,6 +2361,7 @@ function showCustomCard(card, deck) {
 }
 function closeCustomCard() {
   document.getElementById('custom-deck-panel').classList.remove('open');
+  document.getElementById('quote-card-overlay').classList.remove('visible');
   state.currentSlip = null;
 }
 
@@ -3486,6 +3574,11 @@ document.getElementById('new-deck-name').addEventListener('keydown', e => {
 // ── CUSTOM DECK CARD ACTIONS ──
 document.getElementById('custom-btn-done').addEventListener('click', closeCustomCard);
 document.getElementById('custom-btn-next').addEventListener('click', () => {
+  closeCustomCard();
+  setTimeout(pullSlip, 120);
+});
+document.getElementById('quote-btn-done').addEventListener('click', closeCustomCard);
+document.getElementById('quote-btn-return').addEventListener('click', () => {
   closeCustomCard();
   setTimeout(pullSlip, 120);
 });
