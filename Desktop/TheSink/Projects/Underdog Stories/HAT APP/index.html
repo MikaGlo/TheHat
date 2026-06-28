@@ -2408,7 +2408,8 @@ function renderDeckCardsList() {
         <div style="display:flex;gap:4px;flex-shrink:0">
           ${isUsed
             ? `<button class="deck-card-return-btn" data-id="${c.id}" style="background:rgba(255,255,255,0.06);border:none;color:rgba(140,210,140,0.7);font-size:11px;letter-spacing:1px;cursor:pointer;padding:5px 10px;border-radius:6px;font-family:-apple-system,sans-serif">Return</button>`
-            : `<button class="deck-card-edit-btn" data-id="${c.id}" style="background:rgba(255,255,255,0.06);border:none;color:rgba(255,255,255,0.4);font-size:11px;letter-spacing:1px;cursor:pointer;padding:5px 10px;border-radius:6px;font-family:-apple-system,sans-serif">Edit</button>`}
+            : `<button class="deck-card-used-btn" data-id="${c.id}" style="background:rgba(80,160,80,0.12);border:none;color:rgba(140,210,140,0.65);font-size:11px;letter-spacing:1px;cursor:pointer;padding:5px 10px;border-radius:6px;font-family:-apple-system,sans-serif">✓</button>
+               <button class="deck-card-edit-btn" data-id="${c.id}" style="background:rgba(255,255,255,0.06);border:none;color:rgba(255,255,255,0.4);font-size:11px;letter-spacing:1px;cursor:pointer;padding:5px 10px;border-radius:6px;font-family:-apple-system,sans-serif">Edit</button>`}
           <button class="deck-card-del-btn" data-id="${c.id}" style="background:none;border:none;color:rgba(255,255,255,0.18);font-size:16px;cursor:pointer;padding:4px 8px">×</button>
         </div>
       </div>
@@ -2433,6 +2434,9 @@ function renderDeckCardsList() {
   });
   list.querySelectorAll('.deck-card-return-btn').forEach(btn => {
     btn.addEventListener('click', () => returnDeckCard(deck.id, parseInt(btn.dataset.id)));
+  });
+  list.querySelectorAll('.deck-card-used-btn').forEach(btn => {
+    btn.addEventListener('click', () => markDeckCardUsed(deck.id, parseInt(btn.dataset.id)));
   });
   list.querySelectorAll('.deck-card-edit-btn').forEach(btn => {
     btn.addEventListener('click', () => {
