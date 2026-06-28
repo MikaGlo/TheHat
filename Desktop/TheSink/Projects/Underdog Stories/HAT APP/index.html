@@ -3692,6 +3692,9 @@ document.getElementById('quote-btn-return').addEventListener('click', () => {
   closeCustomCard();
   setTimeout(pullSlip, 120);
 });
+document.getElementById('quote-card-overlay').addEventListener('click', e => {
+  if (!e.target.closest('#quote-card-inner') && !e.target.closest('#quote-card-actions')) closeCustomCard();
+});
 
 // ── ADD CARD TO DECK ──
 document.getElementById('add-deck-card-btn').addEventListener('click', () => {
