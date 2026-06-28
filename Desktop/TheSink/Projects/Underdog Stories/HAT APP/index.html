@@ -327,6 +327,16 @@
     width: 100%; text-align: center;
   }
   #quote-author::before { content: '— '; }
+  .deck-card-row {
+    padding: 6px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .deck-card-row:last-child { border-bottom: none; }
+  .deck-card-view {
+    display: flex; align-items: center; gap: 10px;
+  }
+  #deck-cards-toggle { user-select: none; }
+
   #quote-card-actions {
     display: flex; gap: 10px;
     width: 100%; max-width: 560px;
@@ -2022,7 +2032,10 @@
   <!-- Custom Deck Cards List — shown when custom deck active -->
   <div id="custom-deck-list-section" style="display:none">
     <div class="drawer-section">
-      <div class="drawer-title">Cards in Deck</div>
+      <div class="drawer-title drawer-title-toggle" id="deck-cards-toggle" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer">
+        <span id="deck-cards-toggle-label">Cards in Deck</span>
+        <span class="toggle-icon" id="deck-cards-chevron" style="font-size:14px;transition:transform 0.2s">▾</span>
+      </div>
       <div id="custom-deck-cards-list" style="padding:8px 0"></div>
     </div>
   </div>
@@ -2339,26 +2352,87 @@ function closeDeckLibrary() {
   document.getElementById('deck-library-overlay').classList.remove('visible');
   document.getElementById('deck-library').classList.remove('open');
 }
+let _deckCardsCollapsed = false;
 function renderDeckCardsList() {
   const deck = getActiveDeck();
   const list = document.getElementById('custom-deck-cards-list');
+  const label = document.getElementById('deck-cards-toggle-label');
+  const chevron = document.getElementById('deck-cards-chevron');
   if (!deck) { list.innerHTML = ''; return; }
-  if (!(deck.cards || []).length) {
+  const cards = deck.cards || [];
+  if (label) label.textContent = `Cards in Deck (${cards.length})`;
+  if (_deckCardsCollapsed) {
+    list.style.display = 'none';
+    if (chevron) chevron.style.transform = 'rotate(-90deg)';
+    return;
+  }
+  if (chevron) chevron.style.transform = 'rotate(0deg)';
+  list.style.display = '';
+  if (!cards.length) {
     list.innerHTML = '<div style="color:rgba(255,255,255,0.2);font-size:12px;padding:8px 20px">No cards yet.</div>';
     return;
   }
-  list.innerHTML = (deck.cards || []).map(c => `
-    <div style="display:flex;align-items:center;gap:10px;padding:8px 16px;border-radius:8px">
-      <div style="flex:1;min-width:0">
-        <div style="font-size:13px;color:rgba(255,255,255,0.75);font-family:-apple-system,sans-serif">${esc(c.name)}</div>
-        ${c.text ? `<div style="font-size:11px;color:rgba(255,255,255,0.3);margin-top:2px;font-family:-apple-system,sans-serif">${esc(c.text)}</div>` : ''}
+  const isQuote = isQuoteDeck(deck);
+  list.innerHTML = cards.map(c => `
+    <div class="deck-card-row" data-id="${c.id}">
+      <div class="deck-card-view">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;color:rgba(255,255,255,0.8);font-family:-apple-system,sans-serif;font-weight:500">${esc(c.name)}</div>
+          ${c.text ? `<div style="font-size:11px;color:rgba(255,255,255,0.3);margin-top:3px;font-family:-apple-system,sans-serif;line-height:1.4">${esc(c.text)}</div>` : ''}
+        </div>
+        <div style="display:flex;gap:4px;flex-shrink:0">
+          <button class="deck-card-edit-btn" data-id="${c.id}" style="background:rgba(255,255,255,0.06);border:none;color:rgba(255,255,255,0.4);font-size:11px;letter-spacing:1px;cursor:pointer;padding:5px 10px;border-radius:6px;font-family:-apple-system,sans-serif">Edit</button>
+          <button class="deck-card-del-btn" data-id="${c.id}" style="background:none;border:none;color:rgba(255,255,255,0.18);font-size:16px;cursor:pointer;padding:4px 8px">×</button>
+        </div>
       </div>
-      <button style="background:none;border:none;color:rgba(255,255,255,0.2);font-size:16px;cursor:pointer;padding:4px" data-card-id="${c.id}">×</button>
+      <div class="deck-card-edit-form" data-id="${c.id}" style="display:none;padding:10px 0 4px;gap:8px;flex-direction:column">
+        <input class="edit-card-name" placeholder="${isQuote ? 'Who said it...' : 'Card name...'}" value="${esc(c.name)}" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:8px 12px;color:rgba(255,255,255,0.85);font-size:13px;font-family:-apple-system,sans-serif;outline:none;width:100%;box-sizing:border-box">
+        <textarea class="edit-card-text" placeholder="${isQuote ? 'Enter the quote...' : 'Text (optional)...'}" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:8px 12px;color:rgba(255,255,255,0.85);font-size:13px;font-family:-apple-system,sans-serif;outline:none;width:100%;box-sizing:border-box;resize:vertical;min-height:56px">${esc(c.text || '')}</textarea>
+        <div style="display:flex;gap:8px">
+          <button class="deck-card-save-btn" data-id="${c.id}" style="flex:1;background:var(--pink);border:none;border-radius:8px;color:white;font-size:12px;letter-spacing:1px;padding:9px;cursor:pointer;font-family:-apple-system,sans-serif;text-transform:uppercase">Save</button>
+          <button class="deck-card-cancel-btn" data-id="${c.id}" style="flex:1;background:rgba(255,255,255,0.06);border:none;border-radius:8px;color:rgba(255,255,255,0.4);font-size:12px;letter-spacing:1px;padding:9px;cursor:pointer;font-family:-apple-system,sans-serif;text-transform:uppercase">Cancel</button>
+        </div>
+      </div>
     </div>`).join('');
-  list.querySelectorAll('[data-card-id]').forEach(btn => {
-    btn.addEventListener('click', () => removeCardFromDeck(deck.id, parseInt(btn.dataset.cardId)));
+
+  list.querySelectorAll('.deck-card-del-btn').forEach(btn => {
+    btn.addEventListener('click', () => removeCardFromDeck(deck.id, parseInt(btn.dataset.id)));
+  });
+  list.querySelectorAll('.deck-card-edit-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const row = list.querySelector(`.deck-card-row[data-id="${btn.dataset.id}"]`);
+      row.querySelector('.deck-card-view').style.display = 'none';
+      row.querySelector('.deck-card-edit-form').style.display = 'flex';
+    });
+  });
+  list.querySelectorAll('.deck-card-cancel-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const row = list.querySelector(`.deck-card-row[data-id="${btn.dataset.id}"]`);
+      row.querySelector('.deck-card-view').style.display = 'flex';
+      row.querySelector('.deck-card-edit-form').style.display = 'none';
+    });
+  });
+  list.querySelectorAll('.deck-card-save-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = parseInt(btn.dataset.id);
+      const row = list.querySelector(`.deck-card-row[data-id="${btn.dataset.id}"]`);
+      const newName = row.querySelector('.edit-card-name').value.trim();
+      const newText = row.querySelector('.edit-card-text').value.trim();
+      if (!newName) return;
+      const card = (deck.cards || []).find(c => c.id === id);
+      if (card) { card.name = newName; card.text = newText; }
+      saveCustomDecks();
+      renderDeckCardsList();
+    });
   });
 }
+// Toggle collapse of cards list
+document.addEventListener('click', e => {
+  if (e.target.closest('#deck-cards-toggle')) {
+    _deckCardsCollapsed = !_deckCardsCollapsed;
+    renderDeckCardsList();
+  }
+});
 function isQuoteDeck(deck) {
   return deck && deck.name && deck.name.toLowerCase().includes('quote');
 }
