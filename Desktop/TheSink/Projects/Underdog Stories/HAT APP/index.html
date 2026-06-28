@@ -289,13 +289,15 @@
     overflow: hidden;
   }
   #quote-card-inner::before {
-    content: '';
+    content: '\201C';
     position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    width: 70%; height: 60%;
-    background: radial-gradient(ellipse, rgba(255,45,120,0.055) 0%, transparent 70%);
+    top: -10px; left: 20px;
+    font-size: 180px;
+    font-family: 'Georgia', serif;
+    color: rgba(255,45,120,0.07);
+    line-height: 1;
     pointer-events: none;
+    user-select: none;
   }
   #quote-text {
     font-size: clamp(20px, 5vw, 30px);
@@ -306,17 +308,13 @@
     text-align: center;
     line-height: 1.65;
     padding: 8px 0 28px;
-    flex: 1; display: flex; align-items: center;
+    flex: 1;
     position: relative;
   }
-  #quote-text .q-open {
-    color: var(--pink);
-    font-style: italic;
-  }
   #quote-ornament {
-    font-size: 13px;
-    color: rgba(255,45,120,0.4);
-    letter-spacing: 6px;
+    font-size: 11px;
+    color: rgba(255,45,120,0.35);
+    letter-spacing: 8px;
     margin-bottom: 18px;
     user-select: none;
   }
@@ -328,6 +326,7 @@
     font-weight: 500;
     width: 100%; text-align: center;
   }
+  #quote-author::before { content: '— '; }
   #quote-card-actions {
     display: flex; gap: 10px;
     width: 100%; max-width: 560px;
@@ -2375,13 +2374,7 @@ function showCustomCard(card, deck) {
   if (isQuoteDeck(deck)) {
     // card.name = who said it, card.text = the quote
     const raw = card.text || card.name;
-    const textEl = document.getElementById('quote-text');
-    // Wrap opening curly quote in pink if present
-    if (raw.startsWith('“')) {
-      textEl.innerHTML = '<span class="q-open">“</span>' + raw.slice(1).replace(/</g,'&lt;');
-    } else {
-      textEl.textContent = raw;
-    }
+    document.getElementById('quote-text').textContent = raw;
     const ornamentEl = document.getElementById('quote-ornament');
     const authorEl = document.getElementById('quote-author');
     if (card.text && card.name) {
