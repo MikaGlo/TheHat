@@ -277,14 +277,14 @@
   }
   #quote-card-overlay.visible { opacity: 1; pointer-events: auto; }
   #quote-card-inner {
-    background: linear-gradient(160deg, #141028 0%, #0c0918 100%);
-    border: 1px solid rgba(255,255,255,0.09);
+    background: linear-gradient(160deg, #16102e 0%, #0c0918 100%);
+    border: 1px solid rgba(255,45,120,0.18);
     border-radius: 28px;
     width: 100%; max-width: 580px;
     min-height: 320px;
     padding: 44px 44px 40px;
     display: flex; flex-direction: column; align-items: center; justify-content: space-between;
-    box-shadow: 0 0 80px rgba(255,45,120,0.08), 0 32px 80px rgba(0,0,0,0.6);
+    box-shadow: 0 0 0 1px rgba(255,45,120,0.08), 0 0 60px rgba(255,45,120,0.1), 0 32px 80px rgba(0,0,0,0.7);
     position: relative;
     overflow: hidden;
   }
@@ -294,7 +294,7 @@
     top: -10px; left: 20px;
     font-size: 180px;
     font-family: 'Georgia', serif;
-    color: rgba(255,45,120,0.07);
+    color: rgba(255,45,120,0.06);
     line-height: 1;
     pointer-events: none;
     user-select: none;
@@ -312,16 +312,16 @@
     position: relative;
   }
   #quote-ornament {
-    font-size: 11px;
-    color: rgba(255,45,120,0.35);
-    letter-spacing: 8px;
-    margin-bottom: 18px;
-    user-select: none;
+    width: 80px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,45,120,0.55), transparent);
+    margin-bottom: 20px;
+    border: none;
   }
   #quote-author {
     font-size: 11px;
     letter-spacing: 3.5px; text-transform: uppercase;
-    color: rgba(255,255,255,0.28);
+    color: rgba(255,100,160,0.55);
     font-family: -apple-system, sans-serif;
     font-weight: 500;
     width: 100%; text-align: center;
@@ -1795,7 +1795,7 @@
 <div id="quote-card-overlay">
   <div id="quote-card-inner">
     <div id="quote-text"></div>
-    <div id="quote-ornament">✦</div>
+    <div id="quote-ornament"></div>
     <div id="quote-author"></div>
   </div>
   <div id="quote-card-actions">
