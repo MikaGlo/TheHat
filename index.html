@@ -277,14 +277,14 @@
   }
   #quote-card-overlay.visible { opacity: 1; pointer-events: auto; }
   #quote-card-inner {
-    background: linear-gradient(160deg, #141028 0%, #0c0918 100%);
-    border: 1px solid rgba(255,255,255,0.09);
+    background: linear-gradient(160deg, #16102e 0%, #0c0918 100%);
+    border: 1px solid rgba(255,45,120,0.18);
     border-radius: 28px;
     width: 100%; max-width: 580px;
     min-height: 320px;
     padding: 44px 44px 40px;
     display: flex; flex-direction: column; align-items: center; justify-content: space-between;
-    box-shadow: 0 0 80px rgba(255,45,120,0.08), 0 32px 80px rgba(0,0,0,0.6);
+    box-shadow: 0 0 0 1px rgba(255,45,120,0.08), 0 0 60px rgba(255,45,120,0.1), 0 32px 80px rgba(0,0,0,0.7);
     position: relative;
     overflow: hidden;
   }
@@ -294,7 +294,7 @@
     top: -10px; left: 20px;
     font-size: 180px;
     font-family: 'Georgia', serif;
-    color: rgba(255,45,120,0.07);
+    color: rgba(255,45,120,0.06);
     line-height: 1;
     pointer-events: none;
     user-select: none;
@@ -312,16 +312,16 @@
     position: relative;
   }
   #quote-ornament {
-    font-size: 11px;
-    color: rgba(255,45,120,0.35);
-    letter-spacing: 8px;
-    margin-bottom: 18px;
-    user-select: none;
+    width: 80px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,45,120,0.55), transparent);
+    margin-bottom: 20px;
+    border: none;
   }
   #quote-author {
     font-size: 11px;
     letter-spacing: 3.5px; text-transform: uppercase;
-    color: rgba(255,255,255,0.28);
+    color: rgba(255,140,185,0.85);
     font-family: -apple-system, sans-serif;
     font-weight: 500;
     width: 100%; text-align: center;
@@ -351,6 +351,7 @@
   }
   .quote-btn:active { opacity: 0.75; }
   #quote-btn-return { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.5); }
+  #quote-btn-used   { background: rgba(80,160,80,0.18); color: rgba(140,210,140,0.9); border: 1px solid rgba(80,160,80,0.25); }
   #quote-btn-done   { background: var(--pink); color: white; }
 
   /* ── HAT STAGE ── */
@@ -1795,11 +1796,12 @@
 <div id="quote-card-overlay">
   <div id="quote-card-inner">
     <div id="quote-text"></div>
-    <div id="quote-ornament">✦</div>
+    <div id="quote-ornament"></div>
     <div id="quote-author"></div>
   </div>
   <div id="quote-card-actions">
     <button class="quote-btn" id="quote-btn-return">↩ Return</button>
+    <button class="quote-btn" id="quote-btn-used">✓ Used</button>
     <button class="quote-btn" id="quote-btn-done">Done</button>
   </div>
 </div>
@@ -1929,12 +1931,12 @@
     </div>
     <div id="add-deck-card-form" class="add-story-form">
       <div class="form-field">
-        <label id="deck-card-name-label">Card Name</label>
-        <input type="text" id="deck-card-name" placeholder="The card title...">
-      </div>
-      <div class="form-field">
         <label id="deck-card-text-label">Text — optional</label>
         <textarea id="deck-card-text" placeholder="One line. A question, idea, prompt..." style="min-height:60px"></textarea>
+      </div>
+      <div class="form-field">
+        <label id="deck-card-name-label">Card Name</label>
+        <input type="text" id="deck-card-name" placeholder="The card title...">
       </div>
       <button class="submit-btn" id="add-deck-card-btn">Add to Deck</button>
     </div>
@@ -2302,7 +2304,7 @@ function deleteDeck(id) {
 }
 function addCardToDeck(deckId, name, text) {
   const deck = customDecks.find(d => d.id === deckId);
-  if (!deck || !name.trim()) return;
+  if (!deck || (!name.trim() && !text.trim())) return;
   deck.cards.push({ id: Date.now(), name: name.trim(), text: text.trim() });
   saveCustomDecks();
   renderDeckCardsList();
@@ -2312,6 +2314,25 @@ function removeCardFromDeck(deckId, cardId) {
   const deck = customDecks.find(d => d.id === deckId);
   if (!deck) return;
   deck.cards = deck.cards.filter(c => c.id !== cardId);
+  deck.usedCardIds = (deck.usedCardIds || []).filter(id => id !== cardId);
+  saveCustomDecks();
+  renderDeckCardsList();
+  updateCounter();
+}
+function markDeckCardUsed(deckId, cardId) {
+  const deck = customDecks.find(d => d.id === deckId);
+  if (!deck) return;
+  if (!deck.usedCardIds) deck.usedCardIds = [];
+  if (!deck.usedCardIds.includes(cardId)) deck.usedCardIds.push(cardId);
+  saveCustomDecks();
+  closeCustomCard();
+  renderDeckCardsList();
+  updateCounter();
+}
+function returnDeckCard(deckId, cardId) {
+  const deck = customDecks.find(d => d.id === deckId);
+  if (!deck) return;
+  deck.usedCardIds = (deck.usedCardIds || []).filter(id => id !== cardId);
   saveCustomDecks();
   renderDeckCardsList();
   updateCounter();
@@ -2352,7 +2373,7 @@ function closeDeckLibrary() {
   document.getElementById('deck-library-overlay').classList.remove('visible');
   document.getElementById('deck-library').classList.remove('open');
 }
-let _deckCardsCollapsed = false;
+let _deckCardsCollapsed = localStorage.getItem('hat-cards-collapsed') === '1';
 function renderDeckCardsList() {
   const deck = getActiveDeck();
   const list = document.getElementById('custom-deck-cards-list');
@@ -2360,7 +2381,10 @@ function renderDeckCardsList() {
   const chevron = document.getElementById('deck-cards-chevron');
   if (!deck) { list.innerHTML = ''; return; }
   const cards = deck.cards || [];
-  if (label) label.textContent = `Cards in Deck (${cards.length})`;
+  const usedIds = new Set(deck.usedCardIds || []);
+  const activeCards = cards.filter(c => !usedIds.has(c.id));
+  const usedCards = cards.filter(c => usedIds.has(c.id));
+  if (label) label.textContent = `Cards in Deck (${activeCards.length}${usedCards.length ? ' + ' + usedCards.length + ' used' : ''})`;
   if (_deckCardsCollapsed) {
     list.style.display = 'none';
     if (chevron) chevron.style.transform = 'rotate(-90deg)';
@@ -2373,30 +2397,66 @@ function renderDeckCardsList() {
     return;
   }
   const isQuote = isQuoteDeck(deck);
-  list.innerHTML = cards.map(c => `
+
+  const cardRow = (c, isUsed) => {
+    const hasAuthor = !!(c.name && c.name.trim());
+    const hasText = !!(c.text && c.text.trim());
+    // For quotes: author is fixed title, quote is expandable subtext.
+    // If no author, quote itself is the expandable element.
+    const titleHtml = hasAuthor
+      ? `<div style="font-size:13px;color:rgba(255,255,255,0.8);font-family:-apple-system,sans-serif;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(c.name)}</div>`
+      : '';
+    const expandable = hasText
+      ? `<div class="deck-card-subtext" data-id="${c.id}" style="font-size:${hasAuthor ? '11px' : '13px'};color:rgba(255,255,255,${hasAuthor ? '0.3' : '0.8'});margin-top:${hasAuthor ? '3' : '0'}px;font-family:-apple-system,sans-serif;font-weight:${hasAuthor ? '400' : '500'};line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer">${esc(c.text)}</div>`
+      : '';
+    return `
     <div class="deck-card-row" data-id="${c.id}">
-      <div class="deck-card-view">
-        <div style="flex:1;min-width:0">
-          <div style="font-size:13px;color:rgba(255,255,255,0.8);font-family:-apple-system,sans-serif;font-weight:500">${esc(c.name)}</div>
-          ${c.text ? `<div style="font-size:11px;color:rgba(255,255,255,0.3);margin-top:3px;font-family:-apple-system,sans-serif;line-height:1.4">${esc(c.text)}</div>` : ''}
+      <div class="deck-card-view" style="${isUsed ? 'opacity:0.5' : ''};align-items:flex-start">
+        <div class="deck-card-preview" data-id="${c.id}" style="flex:1;min-width:0;padding-top:2px">
+          ${titleHtml}${expandable}
         </div>
         <div style="display:flex;gap:4px;flex-shrink:0">
-          <button class="deck-card-edit-btn" data-id="${c.id}" style="background:rgba(255,255,255,0.06);border:none;color:rgba(255,255,255,0.4);font-size:11px;letter-spacing:1px;cursor:pointer;padding:5px 10px;border-radius:6px;font-family:-apple-system,sans-serif">Edit</button>
+          ${isUsed
+            ? `<button class="deck-card-return-btn" data-id="${c.id}" style="background:rgba(255,255,255,0.06);border:none;color:rgba(140,210,140,0.7);font-size:11px;letter-spacing:1px;cursor:pointer;padding:5px 10px;border-radius:6px;font-family:-apple-system,sans-serif">Return</button>`
+            : `<button class="deck-card-used-btn" data-id="${c.id}" style="background:rgba(80,160,80,0.12);border:none;color:rgba(140,210,140,0.65);font-size:11px;letter-spacing:1px;cursor:pointer;padding:5px 10px;border-radius:6px;font-family:-apple-system,sans-serif">✓</button>
+               <button class="deck-card-edit-btn" data-id="${c.id}" style="background:rgba(255,255,255,0.06);border:none;color:rgba(255,255,255,0.4);font-size:11px;letter-spacing:1px;cursor:pointer;padding:5px 10px;border-radius:6px;font-family:-apple-system,sans-serif">Edit</button>`}
           <button class="deck-card-del-btn" data-id="${c.id}" style="background:none;border:none;color:rgba(255,255,255,0.18);font-size:16px;cursor:pointer;padding:4px 8px">×</button>
         </div>
       </div>
       <div class="deck-card-edit-form" data-id="${c.id}" style="display:none;padding:10px 0 4px;gap:8px;flex-direction:column">
-        <input class="edit-card-name" placeholder="${isQuote ? 'Who said it...' : 'Card name...'}" value="${esc(c.name)}" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:8px 12px;color:rgba(255,255,255,0.85);font-size:13px;font-family:-apple-system,sans-serif;outline:none;width:100%;box-sizing:border-box">
+        <input class="edit-card-name" placeholder="${isQuote ? 'Who said it...' : 'Card name...'}" value="${esc(c.name || '')}" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:8px 12px;color:rgba(255,255,255,0.85);font-size:13px;font-family:-apple-system,sans-serif;outline:none;width:100%;box-sizing:border-box">
         <textarea class="edit-card-text" placeholder="${isQuote ? 'Enter the quote...' : 'Text (optional)...'}" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:8px 12px;color:rgba(255,255,255,0.85);font-size:13px;font-family:-apple-system,sans-serif;outline:none;width:100%;box-sizing:border-box;resize:vertical;min-height:56px">${esc(c.text || '')}</textarea>
         <div style="display:flex;gap:8px">
           <button class="deck-card-save-btn" data-id="${c.id}" style="flex:1;background:var(--pink);border:none;border-radius:8px;color:white;font-size:12px;letter-spacing:1px;padding:9px;cursor:pointer;font-family:-apple-system,sans-serif;text-transform:uppercase">Save</button>
           <button class="deck-card-cancel-btn" data-id="${c.id}" style="flex:1;background:rgba(255,255,255,0.06);border:none;border-radius:8px;color:rgba(255,255,255,0.4);font-size:12px;letter-spacing:1px;padding:9px;cursor:pointer;font-family:-apple-system,sans-serif;text-transform:uppercase">Cancel</button>
         </div>
       </div>
-    </div>`).join('');
+    </div>`;
+  };
 
+  list.innerHTML =
+    activeCards.map(c => cardRow(c, false)).join('') +
+    (usedCards.length ? `
+      <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.18);padding:14px 16px 6px;font-family:-apple-system,sans-serif">Used</div>
+      ${usedCards.map(c => cardRow(c, true)).join('')}` : '');
+
+  list.querySelectorAll('.deck-card-subtext').forEach(el => {
+    el.addEventListener('click', () => {
+      const expanded = el.dataset.expanded === '1';
+      el.dataset.expanded = expanded ? '0' : '1';
+      el.style.whiteSpace = expanded ? 'nowrap' : 'normal';
+      el.style.overflow = expanded ? 'hidden' : 'visible';
+      el.style.textOverflow = expanded ? 'ellipsis' : 'unset';
+    });
+  });
   list.querySelectorAll('.deck-card-del-btn').forEach(btn => {
     btn.addEventListener('click', () => removeCardFromDeck(deck.id, parseInt(btn.dataset.id)));
+  });
+  list.querySelectorAll('.deck-card-return-btn').forEach(btn => {
+    btn.addEventListener('click', () => returnDeckCard(deck.id, parseInt(btn.dataset.id)));
+  });
+  list.querySelectorAll('.deck-card-used-btn').forEach(btn => {
+    btn.addEventListener('click', () => markDeckCardUsed(deck.id, parseInt(btn.dataset.id)));
   });
   list.querySelectorAll('.deck-card-edit-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -2418,7 +2478,6 @@ function renderDeckCardsList() {
       const row = list.querySelector(`.deck-card-row[data-id="${btn.dataset.id}"]`);
       const newName = row.querySelector('.edit-card-name').value.trim();
       const newText = row.querySelector('.edit-card-text').value.trim();
-      if (!newName) return;
       const card = (deck.cards || []).find(c => c.id === id);
       if (card) { card.name = newName; card.text = newText; }
       saveCustomDecks();
@@ -2430,6 +2489,7 @@ function renderDeckCardsList() {
 document.addEventListener('click', e => {
   if (e.target.closest('#deck-cards-toggle')) {
     _deckCardsCollapsed = !_deckCardsCollapsed;
+    localStorage.setItem('hat-cards-collapsed', _deckCardsCollapsed ? '1' : '0');
     renderDeckCardsList();
   }
 });
@@ -2685,7 +2745,9 @@ function updateCounter() {
   const el = document.getElementById('counter');
   if (activeDeckId !== 'stories') {
     const deck = getActiveDeck();
-    const count = deck ? deck.cards.length : 0;
+    const usedIds = new Set((deck && deck.usedCardIds) || []);
+    const active = deck ? (deck.cards || []).filter(c => !usedIds.has(c.id)) : [];
+    const count = active.length;
     el.textContent = `${count} card${count !== 1 ? 's' : ''}`;
     document.getElementById('no-slips').style.display = count === 0 ? 'block' : 'none';
     document.getElementById('tap-hint').style.display = count === 0 ? 'none' : 'block';
@@ -2724,7 +2786,8 @@ function pullSlip() {
   // Custom deck pull
   if (activeDeckId !== 'stories') {
     const deck = getActiveDeck();
-    const deckCards = deck ? (deck.cards || []) : [];
+    const usedSet = new Set((deck && deck.usedCardIds) || []);
+    const deckCards = deck ? (deck.cards || []).filter(c => !usedSet.has(c.id)) : [];
     if (!deck || !deckCards.length) return;
     state.animating = true;
     positionHand();
@@ -3688,6 +3751,11 @@ document.getElementById('custom-btn-next').addEventListener('click', () => {
   setTimeout(pullSlip, 120);
 });
 document.getElementById('quote-btn-done').addEventListener('click', closeCustomCard);
+document.getElementById('quote-btn-used').addEventListener('click', () => {
+  if (state.currentSlip && state.currentSlip._deckCard) {
+    markDeckCardUsed(state.currentSlip._deckId, state.currentSlip.id);
+  }
+});
 document.getElementById('quote-btn-return').addEventListener('click', () => {
   closeCustomCard();
   setTimeout(pullSlip, 120);
@@ -3700,7 +3768,12 @@ document.getElementById('quote-card-overlay').addEventListener('click', e => {
 document.getElementById('add-deck-card-btn').addEventListener('click', () => {
   const name = document.getElementById('deck-card-name').value.trim();
   const text = document.getElementById('deck-card-text').value.trim();
-  if (!name) { document.getElementById('deck-card-name').focus(); return; }
+  const deck = getActiveDeck();
+  if (isQuoteDeck(deck)) {
+    if (!text) { document.getElementById('deck-card-text').focus(); return; }
+  } else {
+    if (!name) { document.getElementById('deck-card-name').focus(); return; }
+  }
   addCardToDeck(activeDeckId, name, text);
   document.getElementById('deck-card-name').value = '';
   document.getElementById('deck-card-text').value = '';
