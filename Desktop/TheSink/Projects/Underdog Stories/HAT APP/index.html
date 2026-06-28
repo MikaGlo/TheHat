@@ -3701,7 +3701,12 @@ document.getElementById('quote-card-overlay').addEventListener('click', e => {
 document.getElementById('add-deck-card-btn').addEventListener('click', () => {
   const name = document.getElementById('deck-card-name').value.trim();
   const text = document.getElementById('deck-card-text').value.trim();
-  if (!name) { document.getElementById('deck-card-name').focus(); return; }
+  const deck = getActiveDeck();
+  if (isQuoteDeck(deck)) {
+    if (!text) { document.getElementById('deck-card-text').focus(); return; }
+  } else {
+    if (!name) { document.getElementById('deck-card-name').focus(); return; }
+  }
   addCardToDeck(activeDeckId, name, text);
   document.getElementById('deck-card-name').value = '';
   document.getElementById('deck-card-text').value = '';
