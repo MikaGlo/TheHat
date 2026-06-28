@@ -287,22 +287,6 @@
     box-shadow: 0 0 80px rgba(255,45,120,0.08), 0 32px 80px rgba(0,0,0,0.6);
     position: relative;
   }
-  #quote-deck-label {
-    font-size: 10px; letter-spacing: 3px; text-transform: uppercase;
-    color: rgba(255,255,255,0.2); font-family: -apple-system, sans-serif;
-    margin-bottom: 0;
-  }
-  #quote-mark {
-    font-size: clamp(48px, 10vw, 72px);
-    line-height: 1;
-    color: var(--pink);
-    font-family: 'Georgia', serif;
-    opacity: 0.55;
-    text-align: center;
-    margin: 8px 0 0;
-    user-select: none;
-    letter-spacing: -4px;
-  }
   #quote-text {
     font-size: clamp(20px, 5vw, 30px);
     font-family: 'Georgia', serif;
@@ -1782,8 +1766,6 @@
 <!-- Quote Card Overlay -->
 <div id="quote-card-overlay">
   <div id="quote-card-inner">
-    <div id="quote-deck-label"></div>
-    <div id="quote-mark">&#x201C;</div>
     <div id="quote-text"></div>
     <div id="quote-author"></div>
   </div>
@@ -2372,7 +2354,6 @@ function updateAddCardFormLabels() {
 function showCustomCard(card, deck) {
   if (isQuoteDeck(deck)) {
     // card.name = who said it, card.text = the quote
-    document.getElementById('quote-deck-label').textContent = (deck.emoji || '💬') + '  ' + deck.name;
     document.getElementById('quote-text').textContent = card.text || card.name;
     const authorEl = document.getElementById('quote-author');
     if (card.text && card.name) {
