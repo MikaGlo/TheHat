@@ -2948,6 +2948,7 @@ function openDrawer() {
   document.getElementById('drawer').classList.add('open');
   document.getElementById('drawer-overlay').classList.add('visible');
   refreshDrawer();
+  updateAddCardFormLabels();
 }
 function closeDrawer() {
   document.getElementById('drawer').classList.remove('open');
