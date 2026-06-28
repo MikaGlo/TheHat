@@ -2302,7 +2302,7 @@ function deleteDeck(id) {
 }
 function addCardToDeck(deckId, name, text) {
   const deck = customDecks.find(d => d.id === deckId);
-  if (!deck || !name.trim()) return;
+  if (!deck || (!name.trim() && !text.trim())) return;
   deck.cards.push({ id: Date.now(), name: name.trim(), text: text.trim() });
   saveCustomDecks();
   renderDeckCardsList();
