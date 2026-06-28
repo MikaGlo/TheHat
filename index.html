@@ -264,6 +264,80 @@
   #custom-btn-next { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.6); }
   #custom-btn-done { background: var(--pink); color: white; }
 
+  /* ── QUOTE CARD OVERLAY ── */
+  #quote-card-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.92);
+    z-index: 400;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 24px 24px env(safe-area-inset-bottom, 28px);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.35s ease;
+  }
+  #quote-card-overlay.visible { opacity: 1; pointer-events: auto; }
+  #quote-card-inner {
+    background: linear-gradient(160deg, #141028 0%, #0c0918 100%);
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 24px;
+    width: 100%; max-width: 560px;
+    padding: 40px 36px 36px;
+    display: flex; flex-direction: column; align-items: center;
+    box-shadow: 0 0 60px rgba(255,45,120,0.07), 0 24px 64px rgba(0,0,0,0.5);
+    position: relative;
+  }
+  #quote-deck-label {
+    font-size: 10px; letter-spacing: 3px; text-transform: uppercase;
+    color: rgba(255,255,255,0.2); font-family: -apple-system, sans-serif;
+    margin-bottom: 28px;
+  }
+  #quote-mark {
+    font-size: clamp(56px, 12vw, 80px);
+    line-height: 0.75;
+    color: var(--pink);
+    font-family: 'Georgia', serif;
+    opacity: 0.6;
+    align-self: flex-start;
+    margin-bottom: 12px;
+    user-select: none;
+  }
+  #quote-text {
+    font-size: clamp(18px, 4.5vw, 26px);
+    font-family: 'Georgia', serif;
+    font-style: italic;
+    font-weight: 400;
+    color: rgba(255,255,255,0.92);
+    text-align: center;
+    line-height: 1.6;
+    padding: 8px 0 28px;
+  }
+  #quote-author {
+    font-size: 11px;
+    letter-spacing: 3px; text-transform: uppercase;
+    color: rgba(255,255,255,0.3);
+    font-family: -apple-system, sans-serif;
+    font-weight: 500;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255,255,255,0.07);
+    width: 100%; text-align: center;
+  }
+  #quote-author::before { content: '— '; }
+  #quote-card-actions {
+    display: flex; gap: 10px;
+    width: 100%; max-width: 560px;
+    margin-top: 16px;
+  }
+  .quote-btn {
+    flex: 1; padding: 15px;
+    border: none; border-radius: 14px;
+    font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase;
+    font-family: -apple-system, sans-serif; font-weight: 500;
+    cursor: pointer; transition: opacity 0.15s;
+  }
+  .quote-btn:active { opacity: 0.75; }
+  #quote-btn-return { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.5); }
+  #quote-btn-done   { background: var(--pink); color: white; }
+
   /* ── HAT STAGE ── */
   #hat-stage {
     position: relative;
@@ -1702,6 +1776,20 @@
   </div>
 </div>
 
+<!-- Quote Card Overlay -->
+<div id="quote-card-overlay">
+  <div id="quote-card-inner">
+    <div id="quote-deck-label"></div>
+    <div id="quote-mark">"</div>
+    <div id="quote-text"></div>
+    <div id="quote-author"></div>
+  </div>
+  <div id="quote-card-actions">
+    <button class="quote-btn" id="quote-btn-return">↩ Return</button>
+    <button class="quote-btn" id="quote-btn-done">Done</button>
+  </div>
+</div>
+
 <!-- Log Format Context Menu -->
 <div id="log-context-menu">
   <button type="button" class="ctx-item" data-cmd="bold"><span><b>Bold</b></span><span class="ctx-shortcut">⌘B</span></button>
@@ -1827,11 +1915,11 @@
     </div>
     <div id="add-deck-card-form" class="add-story-form">
       <div class="form-field">
-        <label>Card Name</label>
+        <label id="deck-card-name-label">Card Name</label>
         <input type="text" id="deck-card-name" placeholder="The card title...">
       </div>
       <div class="form-field">
-        <label>Text — optional</label>
+        <label id="deck-card-text-label">Text — optional</label>
         <textarea id="deck-card-text" placeholder="One line. A question, idea, prompt..." style="min-height:60px"></textarea>
       </div>
       <button class="submit-btn" id="add-deck-card-btn">Add to Deck</button>
@@ -2126,6 +2214,7 @@ const DEFAULT_STORIES = [
 
 // ══════ STATE ══════
 let state = { active:[], used:[], deleted:[], customDecks:[], lastPulled:null, filter:'All', animating:false, currentSlip:null };
+let _lastLocalSave = 0; // timestamp of last local deck save — used to ignore stale Firestore echoes
 
 // ══════ CUSTOM DECKS ══════
 // customDecks is a direct reference to state.customDecks — syncs via main state doc
@@ -2137,6 +2226,7 @@ function loadCustomDecks() {
   try { activeDeckId = localStorage.getItem('hat-active-deck') || 'stories'; } catch(e) { activeDeckId = 'stories'; }
 }
 function saveCustomDecks() {
+  _lastLocalSave = Date.now(); // stamp so _applyRemoteState ignores Firestore echo for 4s
   localStorage.setItem('hat-custom-decks', JSON.stringify(customDecks));
   saveState(); // custom decks now live inside the main state document — same sync that already works
 }
@@ -2159,6 +2249,7 @@ function setActiveDeck(id) {
   updateFiltersVisibility();
   updateCounter();
   refreshDrawer();
+  updateAddCardFormLabels();
 }
 function updateFiltersVisibility() {
   const isCustom = activeDeckId !== 'stories';
@@ -2264,7 +2355,33 @@ function renderDeckCardsList() {
     btn.addEventListener('click', () => removeCardFromDeck(deck.id, parseInt(btn.dataset.cardId)));
   });
 }
+function isQuoteDeck(deck) {
+  return deck && deck.name && deck.name.toLowerCase().includes('quote');
+}
+function updateAddCardFormLabels() {
+  const deck = getActiveDeck();
+  const isQuote = isQuoteDeck(deck);
+  document.getElementById('deck-card-name-label').textContent = isQuote ? 'Said By' : 'Card Name';
+  document.getElementById('deck-card-text-label').textContent = isQuote ? 'The Quote' : 'Text — optional';
+  document.getElementById('deck-card-name').placeholder = isQuote ? 'Who said it...' : 'The card title...';
+  document.getElementById('deck-card-text').placeholder = isQuote ? 'Enter the quote...' : 'One line. A question, idea, prompt...';
+}
 function showCustomCard(card, deck) {
+  if (isQuoteDeck(deck)) {
+    // card.name = who said it, card.text = the quote
+    document.getElementById('quote-deck-label').textContent = (deck.emoji || '💬') + '  ' + deck.name;
+    document.getElementById('quote-text').textContent = card.text || card.name;
+    const authorEl = document.getElementById('quote-author');
+    if (card.text && card.name) {
+      authorEl.textContent = card.name;
+      authorEl.style.display = '';
+    } else {
+      authorEl.textContent = '';
+      authorEl.style.display = 'none';
+    }
+    document.getElementById('quote-card-overlay').classList.add('visible');
+    return;
+  }
   document.getElementById('custom-card-deck-label').textContent = (deck.emoji || '🎴') + '  ' + deck.name;
   document.getElementById('custom-card-name').textContent = card.name;
   document.getElementById('custom-card-text').textContent = card.text || '';
@@ -2272,6 +2389,7 @@ function showCustomCard(card, deck) {
 }
 function closeCustomCard() {
   document.getElementById('custom-deck-panel').classList.remove('open');
+  document.getElementById('quote-card-overlay').classList.remove('visible');
   state.currentSlip = null;
 }
 
@@ -2348,16 +2466,19 @@ function _initFirestore() {
 }
 
 function _applyRemoteState(active, used, deleted, remoteDecks) {
-  // Apply custom decks — only update if incoming has content or we have nothing
+  // Apply custom decks — skip if we saved locally in the last 4s (prevents Firestore echo restoring deleted decks)
   const incoming = remoteDecks || [];
-  if (incoming.length > 0 || state.customDecks.length === 0) {
-    if (JSON.stringify(incoming) !== JSON.stringify(state.customDecks)) {
-      state.customDecks = incoming;
-      updateDeckSwitcher();
-      updateFiltersVisibility();
-      updateCounter();
-      refreshDrawer();
-      renderDeckLibrary();
+  const timeSinceLocalSave = Date.now() - _lastLocalSave;
+  if (timeSinceLocalSave > 4000) {
+    if (incoming.length > 0 || state.customDecks.length === 0) {
+      if (JSON.stringify(incoming) !== JSON.stringify(state.customDecks)) {
+        state.customDecks = incoming;
+        updateDeckSwitcher();
+        updateFiltersVisibility();
+        updateCounter();
+        refreshDrawer();
+        renderDeckLibrary();
+      }
     }
   }
   state.deleted = deleted || [];
@@ -2827,6 +2948,7 @@ function openDrawer() {
   document.getElementById('drawer').classList.add('open');
   document.getElementById('drawer-overlay').classList.add('visible');
   refreshDrawer();
+  updateAddCardFormLabels();
 }
 function closeDrawer() {
   document.getElementById('drawer').classList.remove('open');
@@ -3481,6 +3603,11 @@ document.getElementById('new-deck-name').addEventListener('keydown', e => {
 // ── CUSTOM DECK CARD ACTIONS ──
 document.getElementById('custom-btn-done').addEventListener('click', closeCustomCard);
 document.getElementById('custom-btn-next').addEventListener('click', () => {
+  closeCustomCard();
+  setTimeout(pullSlip, 120);
+});
+document.getElementById('quote-btn-done').addEventListener('click', closeCustomCard);
+document.getElementById('quote-btn-return').addEventListener('click', () => {
   closeCustomCard();
   setTimeout(pullSlip, 120);
 });
