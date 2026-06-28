@@ -267,59 +267,69 @@
   /* ── QUOTE CARD OVERLAY ── */
   #quote-card-overlay {
     position: fixed; inset: 0;
-    background: #07060d;
+    background: rgba(0,0,0,0.92);
     z-index: 400;
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
-    padding: 40px 32px env(safe-area-inset-bottom, 40px);
+    padding: 24px 24px env(safe-area-inset-bottom, 28px);
     opacity: 0; pointer-events: none;
     transition: opacity 0.35s ease;
   }
   #quote-card-overlay.visible { opacity: 1; pointer-events: auto; }
+  #quote-card-inner {
+    background: linear-gradient(160deg, #141028 0%, #0c0918 100%);
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 24px;
+    width: 100%; max-width: 560px;
+    padding: 40px 36px 36px;
+    display: flex; flex-direction: column; align-items: center;
+    box-shadow: 0 0 60px rgba(255,45,120,0.07), 0 24px 64px rgba(0,0,0,0.5);
+    position: relative;
+  }
   #quote-deck-label {
     font-size: 10px; letter-spacing: 3px; text-transform: uppercase;
     color: rgba(255,255,255,0.2); font-family: -apple-system, sans-serif;
-    margin-bottom: 48px;
+    margin-bottom: 28px;
   }
   #quote-mark {
-    font-size: clamp(80px, 16vw, 120px);
-    line-height: 0.6;
+    font-size: clamp(56px, 12vw, 80px);
+    line-height: 0.75;
     color: var(--pink);
     font-family: 'Georgia', serif;
-    opacity: 0.7;
+    opacity: 0.6;
     align-self: flex-start;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
     user-select: none;
   }
   #quote-text {
-    font-size: clamp(22px, 5vw, 36px);
+    font-size: clamp(18px, 4.5vw, 26px);
     font-family: 'Georgia', serif;
     font-style: italic;
     font-weight: 400;
     color: rgba(255,255,255,0.92);
     text-align: center;
-    line-height: 1.55;
-    max-width: 680px;
-    flex: 1;
-    display: flex; align-items: center; justify-content: center;
+    line-height: 1.6;
+    padding: 8px 0 28px;
   }
   #quote-author {
-    margin-top: 40px;
-    font-size: clamp(13px, 3vw, 16px);
-    letter-spacing: 2.5px; text-transform: uppercase;
-    color: rgba(255,255,255,0.35);
+    font-size: 11px;
+    letter-spacing: 3px; text-transform: uppercase;
+    color: rgba(255,255,255,0.3);
     font-family: -apple-system, sans-serif;
     font-weight: 500;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255,255,255,0.07);
+    width: 100%; text-align: center;
   }
   #quote-author::before { content: '— '; }
   #quote-card-actions {
     display: flex; gap: 10px;
-    width: 100%; max-width: 500px;
-    margin-top: 56px;
+    width: 100%; max-width: 560px;
+    margin-top: 16px;
   }
   .quote-btn {
     flex: 1; padding: 15px;
-    border: none; border-radius: 12px;
+    border: none; border-radius: 14px;
     font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase;
     font-family: -apple-system, sans-serif; font-weight: 500;
     cursor: pointer; transition: opacity 0.15s;
@@ -1768,10 +1778,12 @@
 
 <!-- Quote Card Overlay -->
 <div id="quote-card-overlay">
-  <div id="quote-deck-label"></div>
-  <div id="quote-mark">"</div>
-  <div id="quote-text"></div>
-  <div id="quote-author"></div>
+  <div id="quote-card-inner">
+    <div id="quote-deck-label"></div>
+    <div id="quote-mark">"</div>
+    <div id="quote-text"></div>
+    <div id="quote-author"></div>
+  </div>
   <div id="quote-card-actions">
     <button class="quote-btn" id="quote-btn-return">↩ Return</button>
     <button class="quote-btn" id="quote-btn-done">Done</button>
@@ -2237,6 +2249,7 @@ function setActiveDeck(id) {
   updateFiltersVisibility();
   updateCounter();
   refreshDrawer();
+  updateAddCardFormLabels();
 }
 function updateFiltersVisibility() {
   const isCustom = activeDeckId !== 'stories';
@@ -2345,12 +2358,38 @@ function renderDeckCardsList() {
 function isQuoteDeck(deck) {
   return deck && deck.name && deck.name.toLowerCase().includes('quote');
 }
+function updateAddCardFormLabels() {
+  const deck = getActiveDeck();
+  const isQuote = isQuoteDeck(deck);
+  const nameLabel = document.querySelector('#add-deck-card-form label:first-of-type');
+  const textLabel = document.querySelector('#add-deck-card-form label:last-of-type');
+  const nameInput = document.getElementById('deck-card-name');
+  const textInput = document.getElementById('deck-card-text');
+  if (isQuote) {
+    if (nameLabel) nameLabel.textContent = 'Said By';
+    if (textLabel) textLabel.textContent = 'The Quote';
+    if (nameInput) nameInput.placeholder = 'Who said it...';
+    if (textInput) textInput.placeholder = 'Enter the quote...';
+  } else {
+    if (nameLabel) nameLabel.textContent = 'Card Name';
+    if (textLabel) textLabel.textContent = 'Text — optional';
+    if (nameInput) nameInput.placeholder = 'The card title...';
+    if (textInput) textInput.placeholder = 'One line. A question, idea, prompt...';
+  }
+}
 function showCustomCard(card, deck) {
   if (isQuoteDeck(deck)) {
+    // card.name = who said it, card.text = the quote
     document.getElementById('quote-deck-label').textContent = (deck.emoji || '💬') + '  ' + deck.name;
     document.getElementById('quote-text').textContent = card.text || card.name;
-    document.getElementById('quote-author').textContent = card.text ? card.name : '';
-    document.getElementById('quote-author').style.display = card.text ? '' : 'none';
+    const authorEl = document.getElementById('quote-author');
+    if (card.text && card.name) {
+      authorEl.textContent = card.name;
+      authorEl.style.display = '';
+    } else {
+      authorEl.textContent = '';
+      authorEl.style.display = 'none';
+    }
     document.getElementById('quote-card-overlay').classList.add('visible');
     return;
   }
