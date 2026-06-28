@@ -2352,7 +2352,7 @@ function closeDeckLibrary() {
   document.getElementById('deck-library-overlay').classList.remove('visible');
   document.getElementById('deck-library').classList.remove('open');
 }
-let _deckCardsCollapsed = false;
+let _deckCardsCollapsed = localStorage.getItem('hat-cards-collapsed') === '1';
 function renderDeckCardsList() {
   const deck = getActiveDeck();
   const list = document.getElementById('custom-deck-cards-list');
@@ -2430,6 +2430,7 @@ function renderDeckCardsList() {
 document.addEventListener('click', e => {
   if (e.target.closest('#deck-cards-toggle')) {
     _deckCardsCollapsed = !_deckCardsCollapsed;
+    localStorage.setItem('hat-cards-collapsed', _deckCardsCollapsed ? '1' : '0');
     renderDeckCardsList();
   }
 });
