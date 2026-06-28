@@ -286,6 +286,16 @@
     display: flex; flex-direction: column; align-items: center; justify-content: space-between;
     box-shadow: 0 0 80px rgba(255,45,120,0.08), 0 32px 80px rgba(0,0,0,0.6);
     position: relative;
+    overflow: hidden;
+  }
+  #quote-card-inner::before {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 70%; height: 60%;
+    background: radial-gradient(ellipse, rgba(255,45,120,0.055) 0%, transparent 70%);
+    pointer-events: none;
   }
   #quote-text {
     font-size: clamp(20px, 5vw, 30px);
@@ -295,8 +305,20 @@
     color: rgba(255,255,255,0.94);
     text-align: center;
     line-height: 1.65;
-    padding: 24px 0 32px;
+    padding: 8px 0 28px;
     flex: 1; display: flex; align-items: center;
+    position: relative;
+  }
+  #quote-text .q-open {
+    color: var(--pink);
+    font-style: italic;
+  }
+  #quote-ornament {
+    font-size: 13px;
+    color: rgba(255,45,120,0.4);
+    letter-spacing: 6px;
+    margin-bottom: 18px;
+    user-select: none;
   }
   #quote-author {
     font-size: 11px;
@@ -304,11 +326,8 @@
     color: rgba(255,255,255,0.28);
     font-family: -apple-system, sans-serif;
     font-weight: 500;
-    padding-top: 22px;
-    border-top: 1px solid rgba(255,255,255,0.06);
     width: 100%; text-align: center;
   }
-  #quote-author::before { content: '— '; }
   #quote-card-actions {
     display: flex; gap: 10px;
     width: 100%; max-width: 560px;
@@ -1767,6 +1786,7 @@
 <div id="quote-card-overlay">
   <div id="quote-card-inner">
     <div id="quote-text"></div>
+    <div id="quote-ornament">✦</div>
     <div id="quote-author"></div>
   </div>
   <div id="quote-card-actions">
@@ -2354,14 +2374,24 @@ function updateAddCardFormLabels() {
 function showCustomCard(card, deck) {
   if (isQuoteDeck(deck)) {
     // card.name = who said it, card.text = the quote
-    document.getElementById('quote-text').textContent = card.text || card.name;
+    const raw = card.text || card.name;
+    const textEl = document.getElementById('quote-text');
+    // Wrap opening curly quote in pink if present
+    if (raw.startsWith('“')) {
+      textEl.innerHTML = '<span class="q-open">“</span>' + raw.slice(1).replace(/</g,'&lt;');
+    } else {
+      textEl.textContent = raw;
+    }
+    const ornamentEl = document.getElementById('quote-ornament');
     const authorEl = document.getElementById('quote-author');
     if (card.text && card.name) {
       authorEl.textContent = card.name;
       authorEl.style.display = '';
+      ornamentEl.style.display = '';
     } else {
       authorEl.textContent = '';
       authorEl.style.display = 'none';
+      ornamentEl.style.display = 'none';
     }
     document.getElementById('quote-card-overlay').classList.add('visible');
     return;
